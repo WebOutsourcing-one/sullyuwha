@@ -34,11 +34,13 @@ export function SiteHeader() {
       <Container>
         <div className="flex h-16 items-center justify-between md:h-20">
           {/* 로고 */}
-          <a href="#top" className="flex items-baseline gap-2" aria-label="수려화 홈">
+          <a href="#top" className="flex items-baseline gap-2" aria-label="설유화 홈">
             <span className="font-display text-2xl font-bold tracking-tight text-meok">
-              수려화
+              설유화
             </span>
-            <span className="hidden text-xs text-hwangto sm:inline">秀麗花</span>
+            <span className="hidden text-xs uppercase tracking-widest text-hwangto sm:inline">
+              sullyuwha
+            </span>
           </a>
 
           {/* 데스크톱 내비 */}

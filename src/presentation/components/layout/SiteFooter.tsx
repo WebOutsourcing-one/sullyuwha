@@ -16,9 +16,11 @@ export function SiteFooter() {
           <div className="max-w-sm">
             <div className="flex items-baseline gap-2">
               <span className="font-display text-2xl font-bold text-hanji">
-                수려화
+                설유화
               </span>
-              <span className="text-xs text-hwangto">秀麗花</span>
+              <span className="text-xs uppercase tracking-widest text-hwangto">
+                sullyuwha
+              </span>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-hanji/70">
               전통의 결을 오늘의 삶에 맞춰 짓는 한복 공방. 한 벌의 옷이 오래
@@ -40,8 +42,8 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col gap-2 border-t border-hanji/15 py-6 text-xs text-hanji/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {2026} 수려화 한복 공방. All rights reserved.</p>
-          <p>서울특별시 종로구 북촌로 11길 24</p>
+          <p>© {2026} 설유화 한복 공방. All rights reserved.</p>
+          <p>서울특별시 종로구 북촌로12길 24-5</p>
         </div>
       </Container>
     </footer>

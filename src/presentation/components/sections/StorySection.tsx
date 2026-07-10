@@ -45,18 +45,13 @@ export function StorySection({ story }: StorySectionProps) {
               </div>
 
               {/* 이름의 의미 */}
-              <div className="mt-2 flex items-start gap-5 border-t border-line pt-6">
-                <span className="font-display text-4xl font-bold text-dancheong-red">
-                  {story.nameMeaning.hanja}
-                </span>
-                <div>
-                  <p className="font-display text-lg text-meok">
-                    {story.nameMeaning.reading}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-meok-soft">
-                    {story.nameMeaning.meaning}
-                  </p>
-                </div>
+              <div className="mt-2 border-t border-line pt-6">
+                <p className="font-display text-2xl font-bold text-dancheong-red">
+                  {story.nameMeaning.reading}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-meok-soft">
+                  {story.nameMeaning.meaning}
+                </p>
               </div>
             </div>
           </Reveal>

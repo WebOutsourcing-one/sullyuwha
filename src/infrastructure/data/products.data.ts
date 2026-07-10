@@ -51,7 +51,7 @@ export const productsData: readonly HanbokProduct[] = [
     description:
       "선비의 기품이 담긴 겉옷. 넓은 소매와 긴 자락이 걸음마다 단아한 선을 그립니다.",
     image: image("collection/dopo", "남성 도포", 3 / 4),
-    tags: ["남성", "예복", "삼베"],
+    tags: ["남성", "예복", "명주"],
   },
   {
     id: "norigae",

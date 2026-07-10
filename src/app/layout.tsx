@@ -21,12 +21,12 @@ const notoSerif = Noto_Serif_KR({
 });
 
 export const metadata: Metadata = {
-  title: "수려화 | 전통 한복 공방",
+  title: "설유화 | 전통 한복 공방",
   description:
-    "전통의 결을 오늘의 삶에 맞춰 짓는 한복 브랜드, 수려화(秀麗花). 당의·활옷·철릭·도포 맞춤 제작.",
+    "전통의 결을 오늘의 삶에 맞춰 짓는 한복 브랜드, 설유화. 당의·활옷·철릭·도포 맞춤 제작.",
   openGraph: {
-    title: "수려화 | 전통 한복 공방",
-    description: "전통의 결을 오늘의 삶에 맞춰 짓는 한복 브랜드, 수려화.",
+    title: "설유화 | 전통 한복 공방",
+    description: "전통의 결을 오늘의 삶에 맞춰 짓는 한복 브랜드, 설유화.",
     type: "website",
     locale: "ko_KR",
   },

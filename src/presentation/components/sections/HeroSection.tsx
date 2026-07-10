@@ -12,7 +12,7 @@ export function HeroSection({ hero }: HeroSectionProps) {
     <section
       id="top"
       className="relative overflow-hidden bg-meok text-hanji"
-      aria-label="수려화 소개"
+      aria-label="설유화 소개"
     >
       {/* 창살 격자 배경 */}
       <div
