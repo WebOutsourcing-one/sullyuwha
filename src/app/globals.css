@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+/* ============================================================
+   수려화 — 한옥 디자인 토큰 (design.md 기준)
+   ============================================================ */
+@theme {
+  /* 색상 — 기본(Neutral) */
+  --color-hanji: #faf6ec;
+  --color-hanji-deep: #f2ead8;
+  --color-meok: #2b2622;
+  --color-meok-soft: #5a524a;
+  --color-giwa: #3a3d42;
+  --color-line: #ded3bc;
+
+  /* 색상 — 강조(단청) */
+  --color-dancheong-red: #9e3b36;
+  --color-dancheong-blue: #33566e;
+  --color-hwangto: #c2a15b;
+  --color-solip: #4a5d4e;
+
+  /* 서체 (layout.tsx의 next/font 변수와 연결) */
+  --font-sans: var(--font-noto-sans), "Apple SD Gothic Neo", sans-serif;
+  --font-display: var(--font-noto-serif), "Nanum Myeongjo", serif;
+
+  /* 레이아웃 */
+  --container-content: 1200px;
+
+  /* 이징 — 한옥의 느린 감속 */
+  --ease-hanok: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============================================================
+   베이스
+   ============================================================ */
+:root {
+  --gutter: 20px;
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 40px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  /* 한글 어절(공백) 단위 줄바꿈 — 단어 중간 끊김 방지 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-hanji);
+  color: var(--color-meok);
+  font-family: var(--font-sans);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* 한지 결 — 아주 은은한 안료 번짐 */
+  background-image:
+    radial-gradient(circle at 18% 20%, rgba(194, 161, 91, 0.045), transparent 42%),
+    radial-gradient(circle at 82% 72%, rgba(158, 59, 54, 0.03), transparent 46%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--color-meok);
+}
+
+p {
+  max-width: 65ch;
+}
+
+::selection {
+  background-color: var(--color-dancheong-red);
+  color: var(--color-hanji);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-dancheong-blue);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   유틸리티 — 한옥 모티프
+   ============================================================ */
+
+/* 콘텐츠 컨테이너 */
+.u-container {
+  width: 100%;
+  max-width: var(--container-content);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* 섹션 상하 여백 */
+.u-section {
+  padding-block: clamp(4rem, 10vw, 8rem);
+}
+
+/* 창살(格子) 격자 패턴 — 장식 레이어에 사용, opacity는 마크업에서 조절 */
+.u-lattice {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-line) 65%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-line) 65%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 46px 46px;
+}
+
+/* 낙관(印) — 단청 적색 도장 포인트 */
+.u-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  color: var(--color-hanji);
+  background-color: var(--color-dancheong-red);
+  border-radius: 3px;
+}
+
+/* ============================================================
+   스크롤 진입 애니메이션 (Reveal 컴포넌트가 .is-visible 부여)
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.7s var(--ease-hanok),
+    transform 0.7s var(--ease-hanok);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
