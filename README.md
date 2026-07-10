@@ -14,8 +14,8 @@
 ## 시작하기
 
 ```bash
-npm install
-npm run dev        # http://localhost:3000
+bun install
+bun run dev        # http://localhost:3000
 ```
 
 R2를 아직 연결하지 않아도 **한지 톤 플레이스홀더**로 전체 레이아웃이 렌더링된다.
@@ -80,8 +80,8 @@ src/
 ## 스크립트
 
 ```bash
-npm run dev      # 개발 서버
-npm run build    # 프로덕션 빌드
-npm run start    # 빌드 결과 실행
-npm run lint     # ESLint
+bun run dev      # 개발 서버
+bun run build    # 프로덕션 빌드
+bun run start    # 빌드 결과 실행
+bun run lint     # ESLint
 ```
