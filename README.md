@@ -1,8 +1,8 @@
 # 설유화 (sullyuwha)
 
-전통 한복 브랜드 **설유화** 홍보 페이지.
+실크 기성복 브랜드 **설유화(Seolyuhwa)** 홍보 페이지.
 백엔드 없이 **프론트(Next.js) + 파일서버(Cloudflare R2)** 만으로 동작하며,
-**클린 아키텍처**로 계층을 분리했다. 한옥 컨셉 디자인은 [`design.md`](./design.md) 참고.
+**클린 아키텍처**로 계층을 분리했다. 디자인 시스템(모던 럭셔리 미니멀)은 [`design.md`](./design.md) 참고.
 
 ## 스택
 
@@ -18,7 +18,7 @@ bun install
 bun run dev        # http://localhost:3000
 ```
 
-R2를 아직 연결하지 않아도 **한지 톤 플레이스홀더**로 전체 레이아웃이 렌더링된다.
+R2를 아직 연결하지 않아도 **샴페인 톤 플레이스홀더**로 전체 레이아웃이 렌더링된다.
 
 ## Cloudflare R2 연동
 
@@ -34,8 +34,8 @@ R2를 아직 연결하지 않아도 **한지 톤 플레이스홀더**로 전체 
    ```
    hero/main.jpg
    story/atelier.jpg
-   collection/{dangui,hwarot,cheollik,jeogori,dopo,norigae}.jpg
-   craft/{select,cut,sew,finish}.jpg
+   collection/{slip-dress,blouse,setup,scarf,pajama,robe}.jpg
+   silk/{luster,breathe,grade,care}.jpg
    gallery/01.jpg … gallery/08.jpg
    contact/map.jpg
    ```
@@ -54,11 +54,11 @@ R2를 아직 연결하지 않아도 **한지 톤 플레이스홀더**로 전체 
 ```
 src/
 ├─ domain/                  # 엔티티 · 값 객체 · 리포지토리 인터페이스 (의존성 0)
-│  ├─ entities/             #   HeroContent, BrandStory, HanbokProduct, CraftStep, GalleryItem, ContactInfo
+│  ├─ entities/             #   HeroContent, BrandStory, Product, SilkFeature, GalleryItem, ContactInfo
 │  ├─ value-objects/        #   AssetKey, Image
 │  └─ repositories/         #   ProductRepository, GalleryRepository, BrandContentRepository (계약)
 ├─ application/             # 유스케이스 (도메인에만 의존)
-│  └─ use-cases/            #   GetHeroContent, GetHanbokCollection, GetCraftProcess, …
+│  └─ use-cases/            #   GetHeroContent, GetCollection, GetSilkFeatures, GetGallery, …
 ├─ infrastructure/          # 구현체 (도메인 계약 구현)
 │  ├─ config/               #   env 로드
 │  ├─ assets/               #   R2AssetResolver (AssetKey → 공개 URL)
@@ -70,9 +70,13 @@ src/
 └─ app/                     # Next.js App Router (layout, page, globals.css)
 ```
 
+### 페이지 섹션
+
+Hero → 브랜드 소개 → 컬렉션 → 실크 소재 이야기 → 룩북 → 문의·스토어 → 푸터.
+
 ### 콘텐츠 · 디자인 수정 지점
 
-- **문구/제품/갤러리 등 콘텐츠**: `src/infrastructure/data/*.data.ts`
+- **문구/상품/룩북 등 콘텐츠**: `src/infrastructure/data/*.data.ts`
 - **색·서체·여백 토큰**: `src/app/globals.css` 의 `@theme` 블록 (근거: `design.md`)
 - **섹션 레이아웃**: `src/presentation/components/sections/*`
 - **저장소 교체**(정적 → API/CMS): `src/infrastructure/repositories/*` 구현 후 `src/composition/container.ts` 배선만 변경

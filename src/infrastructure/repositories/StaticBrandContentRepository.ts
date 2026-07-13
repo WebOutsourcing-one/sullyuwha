@@ -1,12 +1,12 @@
 import type { BrandContentRepository } from "@/domain/repositories/BrandContentRepository";
 import type { HeroContent } from "@/domain/entities/HeroContent";
 import type { BrandStory } from "@/domain/entities/BrandStory";
-import type { CraftStep } from "@/domain/entities/CraftStep";
+import type { SilkFeature } from "@/domain/entities/SilkFeature";
 import type { ContactInfo } from "@/domain/entities/ContactInfo";
 import {
   heroData,
   storyData,
-  craftStepsData,
+  silkFeaturesData,
   contactData,
 } from "../data/brandContent.data";
 
@@ -20,8 +20,8 @@ export class StaticBrandContentRepository implements BrandContentRepository {
     return storyData;
   }
 
-  async getCraftSteps(): Promise<readonly CraftStep[]> {
-    return craftStepsData;
+  async getSilkFeatures(): Promise<readonly SilkFeature[]> {
+    return silkFeaturesData;
   }
 
   async getContact(): Promise<ContactInfo> {

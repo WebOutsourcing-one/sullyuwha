@@ -3,8 +3,9 @@ import { StaticGalleryRepository } from "@/infrastructure/repositories/StaticGal
 import { StaticBrandContentRepository } from "@/infrastructure/repositories/StaticBrandContentRepository";
 import { GetHeroContent } from "@/application/use-cases/GetHeroContent";
 import { GetBrandStory } from "@/application/use-cases/GetBrandStory";
-import { GetHanbokCollection } from "@/application/use-cases/GetHanbokCollection";
-import { GetCraftProcess } from "@/application/use-cases/GetCraftProcess";
+import { GetCollection } from "@/application/use-cases/GetCollection";
+import { GetProduct } from "@/application/use-cases/GetProduct";
+import { GetSilkFeatures } from "@/application/use-cases/GetSilkFeatures";
 import { GetGallery } from "@/application/use-cases/GetGallery";
 import { GetContactInfo } from "@/application/use-cases/GetContactInfo";
 
@@ -21,8 +22,9 @@ function createContainer() {
   return {
     getHero: new GetHeroContent(brandContentRepository),
     getStory: new GetBrandStory(brandContentRepository),
-    getCollection: new GetHanbokCollection(productRepository),
-    getCraftProcess: new GetCraftProcess(brandContentRepository),
+    getCollection: new GetCollection(productRepository),
+    getProduct: new GetProduct(productRepository),
+    getSilkFeatures: new GetSilkFeatures(brandContentRepository),
     getGallery: new GetGallery(galleryRepository),
     getContact: new GetContactInfo(brandContentRepository),
   } as const;

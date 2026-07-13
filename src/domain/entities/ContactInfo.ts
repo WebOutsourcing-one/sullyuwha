@@ -1,14 +1,15 @@
 import type { Image } from "../value-objects/Image";
 
-/** 문의 · 오시는 길 섹션의 정보. */
+/** 문의 · 스토어 섹션의 정보. */
 export interface ContactInfo {
-  readonly studioName: string;
+  readonly showroomName: string;
   readonly address: string;
   readonly phone: string;
   readonly email: string;
   /** 운영 시간 등 라벨-값 목록 */
   readonly hours: readonly LabeledValue[];
-  readonly reservationNote: string;
+  /** 구매 · 입점 문의 안내 */
+  readonly note: string;
   readonly socials: readonly SocialLink[];
   /** 약도/위치 이미지(선택) */
   readonly mapImage?: Image;

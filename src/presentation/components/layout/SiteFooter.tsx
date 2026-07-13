@@ -1,30 +1,30 @@
 import { Container } from "../ui/Container";
 
 const NAV_LINKS = [
-  { label: "이야기", href: "#story" },
+  { label: "브랜드", href: "#story" },
   { label: "컬렉션", href: "#collection" },
-  { label: "장인정신", href: "#craft" },
-  { label: "갤러리", href: "#gallery" },
+  { label: "실크", href: "#silk" },
+  { label: "룩북", href: "#lookbook" },
   { label: "문의", href: "#contact" },
 ] as const;
 
 export function SiteFooter() {
   return (
-    <footer className="bg-giwa text-hanji/80">
+    <footer className="bg-charcoal text-ivory/80">
       <Container>
-        <div className="flex flex-col gap-10 py-14 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-10 py-16 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm">
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-2xl font-bold text-hanji">
+            <div className="flex items-baseline gap-2.5">
+              <span className="font-serif text-2xl font-light text-ivory">
                 설유화
               </span>
-              <span className="text-xs uppercase tracking-widest text-hwangto">
-                sullyuwha
+              <span className="text-[0.65rem] uppercase tracking-[0.22em] text-gold">
+                Seolyuhwa
               </span>
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-hanji/70">
-              전통의 결을 오늘의 삶에 맞춰 짓는 한복 공방. 한 벌의 옷이 오래
-              곁에 남기를 바랍니다.
+            <p className="mt-4 text-sm leading-relaxed text-ivory/60">
+              실크를 일상으로 들이는 기성복 브랜드. 매일 두르는 고요한 광택을
+              제안합니다.
             </p>
           </div>
 
@@ -33,7 +33,7 @@ export function SiteFooter() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm text-hanji/70 transition-colors duration-200 hover:text-hwangto"
+                className="text-sm text-ivory/60 transition-colors duration-200 hover:text-gold"
               >
                 {link.label}
               </a>
@@ -41,9 +41,9 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-hanji/15 py-6 text-xs text-hanji/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {2026} 설유화 한복 공방. All rights reserved.</p>
-          <p>서울특별시 종로구 북촌로12길 24-5</p>
+        <div className="flex flex-col gap-2 border-t border-ivory/15 py-6 text-xs text-ivory/45 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {2026} 설유화 (Seolyuhwa). All rights reserved.</p>
+          <p>서울특별시 성동구 성수이로 12, 2층</p>
         </div>
       </Container>
     </footer>

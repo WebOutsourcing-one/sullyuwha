@@ -2,8 +2,8 @@ import { container } from "@/composition/container";
 import { HeroSection } from "@/presentation/components/sections/HeroSection";
 import { StorySection } from "@/presentation/components/sections/StorySection";
 import { CollectionSection } from "@/presentation/components/sections/CollectionSection";
-import { CraftSection } from "@/presentation/components/sections/CraftSection";
-import { GallerySection } from "@/presentation/components/sections/GallerySection";
+import { SilkSection } from "@/presentation/components/sections/SilkSection";
+import { LookbookSection } from "@/presentation/components/sections/LookbookSection";
 import { ContactSection } from "@/presentation/components/sections/ContactSection";
 
 /**
@@ -11,12 +11,12 @@ import { ContactSection } from "@/presentation/components/sections/ContactSectio
  * (서버 컴포넌트: 정적 콘텐츠이므로 빌드 타임에 렌더링된다.)
  */
 export default async function HomePage() {
-  const [hero, story, products, craftSteps, gallery, contact] =
+  const [hero, story, products, silkFeatures, gallery, contact] =
     await Promise.all([
       container.getHero.execute(),
       container.getStory.execute(),
       container.getCollection.execute(),
-      container.getCraftProcess.execute(),
+      container.getSilkFeatures.execute(),
       container.getGallery.execute(),
       container.getContact.execute(),
     ]);
@@ -26,8 +26,8 @@ export default async function HomePage() {
       <HeroSection hero={hero} />
       <StorySection story={story} />
       <CollectionSection products={products} />
-      <CraftSection steps={craftSteps} />
-      <GallerySection items={gallery} />
+      <SilkSection features={silkFeatures} />
+      <LookbookSection items={gallery} />
       <ContactSection contact={contact} />
     </>
   );

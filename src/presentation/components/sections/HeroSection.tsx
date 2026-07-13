@@ -11,45 +11,34 @@ export function HeroSection({ hero }: HeroSectionProps) {
   return (
     <section
       id="top"
-      className="relative overflow-hidden bg-meok text-hanji"
+      className="relative overflow-hidden bg-charcoal text-ivory"
       aria-label="설유화 소개"
     >
-      {/* 창살 격자 배경 */}
-      <div
-        className="u-lattice pointer-events-none absolute inset-0 opacity-[0.05]"
-        aria-hidden
-      />
-
       <Container>
-        <div className="grid items-center gap-12 py-20 md:py-24 lg:grid-cols-2 lg:gap-16 lg:py-28">
+        <div className="grid items-center gap-12 py-24 md:py-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20 lg:py-36">
           {/* 텍스트 */}
           <Reveal className="order-2 lg:order-1">
-            <div className="flex flex-col items-start gap-6">
-              <div className="flex items-center gap-3">
-                <span className="h-px w-8 bg-hwangto" aria-hidden />
-                <span className="text-sm tracking-wide text-hwangto">
-                  {hero.eyebrow}
-                </span>
-              </div>
+            <div className="flex flex-col items-start gap-7">
+              <span className="u-label">{hero.eyebrow}</span>
 
-              <h1 className="whitespace-pre-line text-hanji text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.15]">
+              <h1 className="whitespace-pre-line font-serif text-[clamp(2.75rem,7vw,5.5rem)] font-light leading-[1.08] text-ivory">
                 {hero.slogan}
               </h1>
 
-              <p className="text-hanji/75 text-[clamp(1rem,1.1vw,1.125rem)]">
+              <p className="max-w-md text-[clamp(0.95rem,1.05vw,1.0625rem)] leading-relaxed text-ivory/70">
                 {hero.subcopy}
               </p>
 
-              <div className="mt-2 flex flex-wrap gap-3">
+              <div className="mt-3 flex flex-wrap gap-3">
                 <a
                   href={hero.primaryCta.href}
-                  className="rounded-sm bg-hanji px-7 py-3.5 text-sm font-medium text-meok transition-colors duration-300 ease-hanok hover:bg-dancheong-red hover:text-hanji"
+                  className="inline-flex items-center rounded-sm bg-ivory px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-300 ease-silk hover:bg-gold hover:text-ivory"
                 >
                   {hero.primaryCta.label}
                 </a>
                 <a
                   href={hero.secondaryCta.href}
-                  className="rounded-sm border border-hanji/40 px-7 py-3.5 text-sm text-hanji transition-colors duration-300 ease-hanok hover:border-hanji hover:bg-hanji/10"
+                  className="inline-flex items-center rounded-sm border border-ivory/35 px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-300 ease-silk hover:border-ivory hover:bg-ivory hover:text-charcoal"
                 >
                   {hero.secondaryCta.label}
                 </a>
@@ -57,23 +46,14 @@ export function HeroSection({ hero }: HeroSectionProps) {
             </div>
           </Reveal>
 
-          {/* 이미지 (문틀 프레임) */}
+          {/* 대표 룩 이미지 */}
           <Reveal className="order-1 lg:order-2" delay={120}>
-            <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-sm border border-hanji/15">
-                <R2Image
-                  image={hero.image}
-                  priority
-                  sizes="(max-width: 1024px) 90vw, 45vw"
-                />
-              </div>
-              {/* 낙관 포인트 */}
-              <span
-                className="u-seal absolute -bottom-4 -left-4 h-14 w-14 text-2xl shadow-lg"
-                aria-hidden
-              >
-                秀
-              </span>
+            <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden lg:max-w-none">
+              <R2Image
+                image={hero.image}
+                priority
+                sizes="(max-width: 1024px) 90vw, 48vw"
+              />
             </div>
           </Reveal>
         </div>

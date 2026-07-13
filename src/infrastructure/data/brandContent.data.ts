@@ -1,88 +1,88 @@
 import type { HeroContent } from "@/domain/entities/HeroContent";
 import type { BrandStory } from "@/domain/entities/BrandStory";
-import type { CraftStep } from "@/domain/entities/CraftStep";
+import type { SilkFeature } from "@/domain/entities/SilkFeature";
 import type { ContactInfo } from "@/domain/entities/ContactInfo";
 import { image } from "./image";
 
 /** 히어로 콘텐츠. */
 export const heroData: HeroContent = {
-  eyebrow: "설유화",
-  slogan: "한 땀에 스민\n오래된 아름다움",
+  eyebrow: "SEOLYUHWA — SILK READY-TO-WEAR",
+  slogan: "매일 두르는\n고요한 광택",
   subcopy:
-    "설유화는 우리 옷의 결과 색을 오늘의 삶에 맞춰 짓습니다. 전통의 격식은 지키되, 입는 이의 하루에 스며들도록.",
+    "설유화는 실크를 특별한 날의 옷에서 매일의 옷으로 옮깁니다. 부담 없이 입고, 오래 곁에 두는 실크 기성복.",
   primaryCta: { label: "컬렉션 보기", href: "#collection" },
   secondaryCta: { label: "브랜드 이야기", href: "#story" },
-  image: image("hero/main", "고운 색의 한복을 입은 모습", 3 / 4),
+  image: image("hero/main", "실크 룩을 입은 모습", 3 / 4),
 };
 
-/** 브랜드 스토리. */
+/** 브랜드 소개. */
 export const storyData: BrandStory = {
-  eyebrow: "布 · 옷감에서 시작하다",
-  title: "느리게, 그러나 오래 남도록",
+  eyebrow: "OUR STORY",
+  title: "실크를 일상의 언어로",
   paragraphs: [
-    "설유화는 옷감을 고르는 일에서 시작합니다. 명주와 모시의 결을 손으로 확인하고, 계절과 자리에 어울리는 빛깔을 고릅니다.",
-    "재단과 바느질은 서두르지 않습니다. 한 벌의 옷이 몸의 곡선을 따라 자연스레 흐르도록, 오랜 손끝의 감각으로 짓습니다.",
-    "우리는 전통을 박제하지 않습니다. 오늘을 사는 사람이 편히 입고, 오래 곁에 둘 수 있는 옷 — 그것이 설유화가 지키려는 아름다움입니다.",
+    "설유화는 실크가 옷장 깊숙이 걸려 있는 옷이 아니라, 매일 손이 가는 옷이기를 바랍니다.",
+    "그래서 관리가 어렵지 않은 원사를 고르고, 몸을 편안하게 감싸는 실루엣으로 짓습니다. 격식은 덜고, 촉감과 품질은 그대로.",
+    "화려함으로 시선을 끌기보다, 입은 사람의 하루에 자연스레 스며드는 옷 — 그것이 설유화가 만드는 실크입니다.",
   ],
   nameMeaning: {
     reading: "설유화",
-    meaning: "우리 옷이 사람을 꽃처럼 돋보이게 하기를 바라는 마음을 담았습니다.",
+    meaning:
+      "부드럽게 흐르는 실크처럼, 일상에 은은히 피어나는 아름다움을 담은 이름입니다.",
   },
-  image: image("story/atelier", "옷감을 살피는 장인의 손", 4 / 5),
+  image: image("story/atelier", "실크 원단을 살피는 모습", 4 / 5),
 };
 
-/** 제작 과정(장인정신) 단계. */
-export const craftStepsData: readonly CraftStep[] = [
+/** 실크 소재 이야기(피처). */
+export const silkFeaturesData: readonly SilkFeature[] = [
   {
-    order: 1,
-    title: "옷감 고르기",
-    subtitle: "擇布",
+    id: "luster",
+    label: "LUSTER",
+    title: "깊은 광택과 드레이프",
     description:
-      "명주·모시의 결과 무게를 손으로 가늠하고, 자리와 계절에 맞는 빛깔을 고릅니다.",
-    image: image("craft/select", "여러 색의 옷감을 고르는 모습", 4 / 3),
+      "빛을 부드럽게 머금는 실크 특유의 광택과, 몸을 따라 흐르는 자연스러운 드레이프.",
+    image: image("silk/luster", "실크의 광택", 4 / 3),
   },
   {
-    order: 2,
-    title: "본과 재단",
-    subtitle: "裁斷",
+    id: "breathe",
+    label: "BREATHE",
+    title: "사계절 통기성",
     description:
-      "입는 이의 치수에 맞춰 본을 뜨고, 결을 살려 옷감을 마릅니다. 여기서 옷의 태가 결정됩니다.",
-    image: image("craft/cut", "옷감을 재단하는 모습", 4 / 3),
+      "여름엔 시원하고 겨울엔 따뜻한 천연 단백질 섬유. 계절을 가리지 않고 입습니다.",
+    image: image("silk/breathe", "통기성 좋은 실크", 4 / 3),
   },
   {
-    order: 3,
-    title: "손바느질",
-    subtitle: "縫製",
+    id: "grade",
+    label: "GRADE 6A",
+    title: "균일한 원사 등급",
     description:
-      "곱솔과 감침으로 한 땀 한 땀 잇습니다. 겉으로 드러나지 않는 안쪽까지 정갈하게 마무리합니다.",
-    image: image("craft/sew", "손바느질하는 장인의 손", 4 / 3),
+      "최상급 6A 등급 원사와 안정적인 momme로 균일하고 오래가는 옷을 짓습니다.",
+    image: image("silk/grade", "실크 원사", 4 / 3),
   },
   {
-    order: 4,
-    title: "다림과 완성",
-    subtitle: "完成",
+    id: "care",
+    label: "HOME CARE",
+    title: "집에서 관리하는 실크",
     description:
-      "동정과 깃을 세우고 결을 다려, 옷이 가장 아름다운 선을 갖추도록 마지막을 손질합니다.",
-    image: image("craft/finish", "완성된 한복을 손질하는 모습", 4 / 3),
+      "중성세제 손세탁과 그늘 건조. 어렵지 않게 오래 입도록 케어 가이드를 함께 드립니다.",
+    image: image("silk/care", "실크 홈 케어", 4 / 3),
   },
 ];
 
-/** 문의 · 오시는 길. */
+/** 문의 · 스토어. */
 export const contactData: ContactInfo = {
-  studioName: "설유화 한복 공방",
-  address: "서울특별시 종로구 북촌로12길 24-5",
+  showroomName: "설유화 쇼룸",
+  address: "서울특별시 성동구 성수이로 12, 2층",
   phone: "02-1234-5678",
-  email: "atelier@sullyuwha.com",
+  email: "hello@sullyuwha.com",
   hours: [
-    { label: "평일", value: "10:00 – 19:00" },
-    { label: "토요일", value: "11:00 – 17:00" },
+    { label: "평일", value: "11:00 – 20:00" },
+    { label: "토요일", value: "12:00 – 18:00" },
     { label: "일요일 · 공휴일", value: "휴무" },
   ],
-  reservationNote:
-    "맞춤 상담은 예약제로 운영됩니다. 원하시는 자리와 일정, 예산을 알려주시면 결에 맞는 옷을 함께 그려 드립니다.",
+  note: "제품 구매 상담과 편집숍·리테일 입점 문의를 받습니다. 방문은 예약을 권장드립니다.",
   socials: [
     { label: "Instagram", url: "https://www.instagram.com/sullyuwha" },
     { label: "Kakao", url: "https://pf.kakao.com" },
   ],
-  mapImage: image("contact/map", "공방 위치 약도", 16 / 9),
+  mapImage: image("contact/map", "쇼룸 위치 약도", 16 / 9),
 };

@@ -1,32 +1,31 @@
 @import "tailwindcss";
 
 /* ============================================================
-   설유화 — 한옥 디자인 토큰 (design.md 기준)
+   설유화 — 실크 기성복 디자인 토큰 (design.md 기준)
+   모던 럭셔리 미니멀
    ============================================================ */
 @theme {
   /* 색상 — 기본(Neutral) */
-  --color-hanji: #faf6ec;
-  --color-hanji-deep: #f2ead8;
-  --color-meok: #2b2622;
-  --color-meok-soft: #5a524a;
-  --color-giwa: #3a3d42;
-  --color-line: #ded3bc;
+  --color-ivory: #f7f3ec;
+  --color-champagne: #e7dfd0;
+  --color-mist: #efe9de;
+  --color-charcoal: #2a2724;
+  --color-taupe: #7c7367;
+  --color-line: #e0d8c8;
 
-  /* 색상 — 강조(단청) */
-  --color-dancheong-red: #9e3b36;
-  --color-dancheong-blue: #33566e;
-  --color-hwangto: #c2a15b;
-  --color-solip: #4a5d4e;
+  /* 색상 — 강조 */
+  --color-gold: #b79363;
 
   /* 서체 (layout.tsx의 next/font 변수와 연결) */
   --font-sans: var(--font-noto-sans), "Apple SD Gothic Neo", sans-serif;
-  --font-display: var(--font-noto-serif), "Nanum Myeongjo", serif;
+  --font-serif: var(--font-cormorant), var(--font-noto-serif),
+    "Nanum Myeongjo", serif;
 
   /* 레이아웃 */
-  --container-content: 1200px;
+  --container-content: 1240px;
 
-  /* 이징 — 한옥의 느린 감속 */
-  --ease-hanok: cubic-bezier(0.22, 1, 0.36, 1);
+  /* 이징 — 실크처럼 느리고 매끄럽게 */
+  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ============================================================
@@ -37,14 +36,14 @@
 }
 @media (min-width: 1024px) {
   :root {
-    --gutter: 40px;
+    --gutter: 48px;
   }
 }
 
 *,
 *::before,
 *::after {
-  /* 한글 어절(공백) 단위 줄바꿈 — 단어 중간 끊김 방지 */
+  /* 한글 어절(공백) 단위 줄바꿈 */
   word-break: keep-all;
   overflow-wrap: break-word;
 }
@@ -54,46 +53,42 @@ html {
 }
 
 body {
-  background-color: var(--color-hanji);
-  color: var(--color-meok);
+  background-color: var(--color-ivory);
+  color: var(--color-charcoal);
   font-family: var(--font-sans);
+  font-weight: 400;
   line-height: 1.8;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* 한지 결 — 아주 은은한 안료 번짐 */
-  background-image:
-    radial-gradient(circle at 18% 20%, rgba(194, 161, 91, 0.045), transparent 42%),
-    radial-gradient(circle at 82% 72%, rgba(158, 59, 54, 0.03), transparent 46%);
-  background-attachment: fixed;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display);
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  font-weight: 700;
-  color: var(--color-meok);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-charcoal);
 }
 
 p {
-  max-width: 65ch;
+  max-width: 60ch;
 }
 
 ::selection {
-  background-color: var(--color-dancheong-red);
-  color: var(--color-hanji);
+  background-color: var(--color-gold);
+  color: var(--color-ivory);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-dancheong-blue);
+  outline: 2px solid var(--color-gold);
   outline-offset: 3px;
 }
 
 /* ============================================================
-   유틸리티 — 한옥 모티프
+   유틸리티
    ============================================================ */
 
 /* 콘텐츠 컨테이너 */
@@ -104,36 +99,25 @@ p {
   padding-inline: var(--gutter);
 }
 
-/* 섹션 상하 여백 */
+/* 섹션 상하 여백 (관대하게) */
 .u-section {
-  padding-block: clamp(4rem, 10vw, 8rem);
+  padding-block: clamp(5rem, 12vw, 10rem);
 }
 
-/* 창살(格子) 격자 패턴 — 장식 레이어에 사용, opacity는 마크업에서 조절 */
-.u-lattice {
-  background-image:
-    linear-gradient(
-      to right,
-      color-mix(in srgb, var(--color-line) 65%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--color-line) 65%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 46px 46px;
+/* 좁은 에디토리얼 폭 */
+.u-narrow {
+  max-width: 720px;
+  margin-inline: auto;
 }
 
-/* 낙관(印) — 단청 적색 도장 포인트 */
-.u-seal {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  color: var(--color-hanji);
-  background-color: var(--color-dancheong-red);
-  border-radius: 3px;
+/* 넓은 자간 라틴 라벨 (eyebrow) */
+.u-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-gold);
 }
 
 /* ============================================================
@@ -141,10 +125,10 @@ p {
    ============================================================ */
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateY(24px);
   transition:
-    opacity 0.7s var(--ease-hanok),
-    transform 0.7s var(--ease-hanok);
+    opacity 0.8s var(--ease-silk),
+    transform 0.8s var(--ease-silk);
   will-change: opacity, transform;
 }
 .reveal.is-visible {

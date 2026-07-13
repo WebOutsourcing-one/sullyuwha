@@ -12,27 +12,28 @@ export function ContactSection({ contact }: ContactSectionProps) {
   return (
     <section
       id="contact"
-      className="u-section bg-giwa text-hanji"
+      className="u-section bg-charcoal text-ivory"
       aria-labelledby="contact-title"
     >
       <Container>
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
           {/* 정보 */}
           <Reveal>
             <div className="flex flex-col gap-8">
               <SectionHeading
-                eyebrow="訪 · 문의 · 오시는 길"
-                title="결에 맞는 옷을 함께"
+                eyebrow="VISIT & CONTACT"
+                title="문의 · 스토어"
                 titleId="contact-title"
+                align="left"
                 invert
               />
 
-              <p className="text-hanji/75 leading-relaxed">
-                {contact.reservationNote}
+              <p className="max-w-md leading-relaxed text-ivory/70">
+                {contact.note}
               </p>
 
-              <dl className="flex flex-col divide-y divide-hanji/15 border-y border-hanji/15">
-                <ContactRow label="공방" value={contact.studioName} />
+              <dl className="flex flex-col divide-y divide-ivory/15 border-y border-ivory/15">
+                <ContactRow label="쇼룸" value={contact.showroomName} />
                 <ContactRow label="주소" value={contact.address} />
                 <ContactRow
                   label="전화"
@@ -56,7 +57,7 @@ export function ContactSection({ contact }: ContactSectionProps) {
                     href={s.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-sm border border-hanji/30 px-4 py-2 text-sm text-hanji transition-colors duration-200 ease-hanok hover:bg-hanji hover:text-meok"
+                    className="rounded-sm border border-ivory/30 px-5 py-2.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-300 ease-silk hover:bg-ivory hover:text-charcoal"
                   >
                     {s.label}
                   </a>
@@ -67,7 +68,7 @@ export function ContactSection({ contact }: ContactSectionProps) {
 
           {/* 약도 */}
           <Reveal delay={100}>
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm border border-hanji/15 lg:aspect-auto lg:h-full lg:min-h-[26rem]">
+            <div className="relative aspect-[4/3] w-full overflow-hidden lg:aspect-auto lg:h-full lg:min-h-[28rem]">
               {contact.mapImage ? (
                 <R2Image
                   image={contact.mapImage}
@@ -92,13 +93,15 @@ function ContactRow({
   href?: string;
 }) {
   return (
-    <div className="flex items-baseline gap-4 py-3">
-      <dt className="w-20 shrink-0 text-sm text-hwangto">{label}</dt>
-      <dd className="text-hanji/90">
+    <div className="flex items-baseline gap-4 py-3.5">
+      <dt className="w-24 shrink-0 text-xs uppercase tracking-[0.1em] text-gold">
+        {label}
+      </dt>
+      <dd className="text-ivory/90">
         {href ? (
           <a
             href={href}
-            className="transition-colors duration-200 hover:text-hwangto"
+            className="transition-colors duration-200 hover:text-gold"
           >
             {value}
           </a>
