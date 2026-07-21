@@ -1,4 +1,5 @@
 import type { BrandStory } from "@/domain/entities/BrandStory";
+import { BranchMotif } from "../ui/BranchMotif";
 import { Container } from "../ui/Container";
 import { R2Image } from "../ui/R2Image";
 import { Reveal } from "../ui/Reveal";
@@ -12,10 +13,15 @@ export function StorySection({ story }: StorySectionProps) {
   return (
     <section
       id="story"
-      className="u-section bg-ivory"
+      className="relative overflow-hidden u-section bg-ivory"
       aria-labelledby="story-title"
     >
-      <Container>
+      <BranchMotif
+        className="right-[-8%] top-[-4%] h-[60%] w-[56%]"
+        position="top right"
+        opacity={0.1}
+      />
+      <Container className="relative z-10">
         <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-24">
           {/* 이미지 */}
           <Reveal>

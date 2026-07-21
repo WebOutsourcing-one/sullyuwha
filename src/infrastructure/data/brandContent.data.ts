@@ -7,9 +7,9 @@ import { image } from "./image";
 /** 히어로 콘텐츠. */
 export const heroData: HeroContent = {
   eyebrow: "SEOLYUHWA — SILK READY-TO-WEAR",
-  slogan: "매일 두르는\n고요한 광택",
+  slogan: "고귀함이 서려있는\n기품있는 선",
   subcopy:
-    "설유화는 실크를 특별한 날의 옷에서 매일의 옷으로 옮깁니다. 부담 없이 입고, 오래 곁에 두는 실크 기성복.",
+    "실크의 고요한 광택과 몸을 따라 흐르는 선. 설유화는 매일의 옷에 기품을 더합니다.",
   primaryCta: { label: "컬렉션 보기", href: "#collection" },
   secondaryCta: { label: "브랜드 이야기", href: "#story" },
   image: image("hero/main", "실크 룩을 입은 모습", 3 / 4),

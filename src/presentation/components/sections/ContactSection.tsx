@@ -1,6 +1,7 @@
+import Image from "next/image";
 import type { ContactInfo } from "@/domain/entities/ContactInfo";
+import { BranchMotif } from "../ui/BranchMotif";
 import { Container } from "../ui/Container";
-import { R2Image } from "../ui/R2Image";
 import { Reveal } from "../ui/Reveal";
 import { SectionHeading } from "../ui/SectionHeading";
 
@@ -12,10 +13,17 @@ export function ContactSection({ contact }: ContactSectionProps) {
   return (
     <section
       id="contact"
-      className="u-section bg-charcoal text-ivory"
+      className="relative overflow-hidden u-section bg-charcoal text-ivory"
       aria-labelledby="contact-title"
     >
-      <Container>
+      <BranchMotif
+        variant="ivory"
+        className="bottom-[-6%] left-[-7%] h-[56%] w-[50%]"
+        position="bottom left"
+        opacity={0.1}
+        flip
+      />
+      <Container className="relative z-10">
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
           {/* 정보 */}
           <Reveal>
@@ -66,15 +74,45 @@ export function ContactSection({ contact }: ContactSectionProps) {
             </div>
           </Reveal>
 
-          {/* 약도 */}
+          {/* 명함 — 반전한 설유화 꽃가지 + 좌측 상단부터 세로 타이포 */}
           <Reveal delay={100}>
-            <div className="relative aspect-[4/3] w-full overflow-hidden lg:aspect-auto lg:h-full lg:min-h-[28rem]">
-              {contact.mapImage ? (
-                <R2Image
-                  image={contact.mapImage}
-                  sizes="(max-width: 1024px) 90vw, 45vw"
+            <div className="flex w-full items-center justify-center lg:h-full">
+              <div className="relative aspect-[3/7] w-full max-w-[18rem] overflow-hidden rounded-sm bg-ivory ring-1 ring-black/5 shadow-[0_40px_90px_-50px_rgba(0,0,0,0.8)]">
+                {/* 반전한 꽃가지 (컬러, 흰 배경은 카드에 녹임) */}
+                <Image
+                  src="/branch-photo-vertical.jpg"
+                  alt="설유화 꽃가지"
+                  fill
+                  sizes="320px"
+                  className="scale-x-[-1] object-cover object-[42%_60%] mix-blend-multiply"
                 />
-              ) : null}
+
+                {/* 좌측 상단 타이포 가독성용 아이보리 스크림 */}
+                <div
+                  className="absolute inset-0 bg-gradient-to-br from-ivory via-ivory/55 to-transparent"
+                  aria-hidden
+                />
+
+                {/* 좌측 상단부터 세로쓰기 (writing-mode: vertical-rl) */}
+                <div className="absolute inset-0 flex flex-col items-start gap-6 p-8">
+                  <p className="font-serif text-[2rem] font-light leading-none tracking-[0.1em] text-charcoal [writing-mode:vertical-rl]">
+                    설유화
+                  </p>
+                  <span className="block h-6 w-px bg-gold" aria-hidden />
+                  {/* 우→좌 2열: 고귀함이 · 기품있는 선 */}
+                  <div
+                    className="flex items-start gap-2 font-serif text-base font-light leading-none tracking-[0.04em] text-charcoal/85"
+                    aria-label="고귀함이 기품있는 선"
+                  >
+                    <span className="whitespace-nowrap [writing-mode:vertical-rl]" aria-hidden>
+                      기품있는 선
+                    </span>
+                    <span className="whitespace-nowrap [writing-mode:vertical-rl]" aria-hidden>
+                      고귀함이
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </Reveal>
         </div>

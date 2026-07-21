@@ -1,4 +1,5 @@
 import type { SilkFeature } from "@/domain/entities/SilkFeature";
+import { BranchMotif } from "../ui/BranchMotif";
 import { Container } from "../ui/Container";
 import { R2Image } from "../ui/R2Image";
 import { Reveal } from "../ui/Reveal";
@@ -12,10 +13,16 @@ export function SilkSection({ features }: SilkSectionProps) {
   return (
     <section
       id="silk"
-      className="u-section bg-charcoal text-ivory"
+      className="relative overflow-hidden u-section bg-charcoal text-ivory"
       aria-labelledby="silk-title"
     >
-      <Container>
+      <BranchMotif
+        variant="ivory"
+        className="right-[-6%] top-[-5%] h-[52%] w-[48%]"
+        position="top right"
+        opacity={0.12}
+      />
+      <Container className="relative z-10">
         <SectionHeading
           eyebrow="THE SILK"
           title="소재로 증명하는 실크"
