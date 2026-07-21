@@ -2,19 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { Container } from "../ui/Container";
+import { Emblem } from "../ui/Icons";
 
 const NAV_LINKS = [
-  { label: "브랜드", href: "/#story" },
-  { label: "컬렉션", href: "/#collection" },
-  { label: "실크", href: "/#silk" },
-  { label: "룩북", href: "/#lookbook" },
-  { label: "문의", href: "/#contact" },
+  { label: "BRAND", href: "/#top" },
+  { label: "COLLECTION", href: "/#collection" },
+  { label: "BESPOKE", href: "/#bespoke" },
+  { label: "STORY", href: "/#about" },
+  { label: "CONTACT", href: "/#contact" },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
-  // 메뉴 열림 시 배경 스크롤 잠금 + ESC 닫기
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -30,39 +30,40 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line/70 bg-ivory/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-line/60 bg-ivory/80 backdrop-blur-md">
       <Container>
         <div className="flex h-16 items-center justify-between md:h-20">
-          {/* 워드마크 */}
-          <a href="/#top" className="flex items-baseline gap-2.5" aria-label="설유화 홈">
-            <span className="font-serif text-2xl font-light tracking-tight text-charcoal">
-              설유화
-            </span>
-            <span className="hidden text-[0.65rem] uppercase tracking-[0.22em] text-gold sm:inline">
-              Seolyuhwa
+          {/* 워드마크 + 엠블럼 */}
+          <a
+            href="/#top"
+            className="flex items-center gap-2.5"
+            aria-label="설유화 홈"
+          >
+            <Emblem className="h-6 w-6 text-gold" aria-hidden />
+            <span className="flex flex-col leading-none">
+              <span className="font-serif text-xl font-light tracking-tight text-charcoal">
+                설유화
+              </span>
+              <span className="mt-1 text-[0.55rem] uppercase tracking-[0.32em] text-taupe">
+                Sullyuwha
+              </span>
             </span>
           </a>
 
           {/* 데스크톱 내비 */}
           <nav
-            className="hidden items-center gap-9 md:flex"
+            className="hidden items-center gap-10 md:flex"
             aria-label="주요 메뉴"
           >
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm text-taupe transition-colors duration-200 hover:text-charcoal"
+                className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
               >
                 {link.label}
               </a>
             ))}
-            <a
-              href="/#contact"
-              className="rounded-sm border border-charcoal px-5 py-2 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-300 ease-silk hover:bg-charcoal hover:text-ivory"
-            >
-              문의하기
-            </a>
           </nav>
 
           {/* 모바일 토글 */}
@@ -97,27 +98,17 @@ export function SiteHeader() {
       {/* 모바일 전체화면 메뉴 */}
       {open && (
         <div className="fixed inset-0 top-16 z-40 bg-ivory md:hidden">
-          <nav
-            className="flex flex-col gap-1 px-6 py-8"
-            aria-label="모바일 메뉴"
-          >
+          <nav className="flex flex-col gap-1 px-6 py-8" aria-label="모바일 메뉴">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="border-b border-line/60 py-4 font-serif text-xl font-light text-charcoal"
+                className="border-b border-line/60 py-4 font-serif text-xl font-light tracking-[0.05em] text-charcoal"
               >
                 {link.label}
               </a>
             ))}
-            <a
-              href="/#contact"
-              onClick={() => setOpen(false)}
-              className="mt-6 rounded-sm bg-charcoal px-5 py-4 text-center text-xs uppercase tracking-[0.12em] text-ivory"
-            >
-              문의하기
-            </a>
           </nav>
         </div>
       )}

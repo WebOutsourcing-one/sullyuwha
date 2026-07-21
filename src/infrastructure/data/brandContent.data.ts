@@ -1,88 +1,134 @@
 import type { HeroContent } from "@/domain/entities/HeroContent";
 import type { BrandStory } from "@/domain/entities/BrandStory";
 import type { SilkFeature } from "@/domain/entities/SilkFeature";
+import type { Category } from "@/domain/entities/Category";
+import type { BespokeContent } from "@/domain/entities/BespokeContent";
+import type { ProcessStep } from "@/domain/entities/ProcessStep";
 import type { ContactInfo } from "@/domain/entities/ContactInfo";
 import { image } from "./image";
 
 /** 히어로 콘텐츠. */
 export const heroData: HeroContent = {
-  eyebrow: "SEOLYUHWA — SILK READY-TO-WEAR",
+  eyebrow: "SULLYUWHA — KOREAN COUTURE HANBOK",
   slogan: "고귀함이 서려있는\n기품있는 선",
   subcopy:
-    "실크의 고요한 광택과 몸을 따라 흐르는 선. 설유화는 매일의 옷에 기품을 더합니다.",
-  primaryCta: { label: "컬렉션 보기", href: "#collection" },
-  secondaryCta: { label: "브랜드 이야기", href: "#story" },
-  image: image("hero/main", "실크 룩을 입은 모습", 3 / 4),
+    "전통의 아름다움 위에 현대의 감각을 더해\n단 하나의 예복을 짓습니다.",
+  primaryCta: { label: "COLLECTION VIEW", href: "#collection" },
+  secondaryCta: { label: "BRAND STORY", href: "#about" },
+  image: image("hero/main", "설유화 예복", 3 / 4),
 };
 
-/** 브랜드 소개. */
+/** 브랜드 소개(About). */
 export const storyData: BrandStory = {
-  eyebrow: "OUR STORY",
-  title: "실크를 일상의 언어로",
+  eyebrow: "ABOUT SULLYUWHA",
+  title: "시간이 지나도\n변하지 않는 가치",
   paragraphs: [
-    "설유화는 실크가 옷장 깊숙이 걸려 있는 옷이 아니라, 매일 손이 가는 옷이기를 바랍니다.",
-    "그래서 관리가 어렵지 않은 원사를 고르고, 몸을 편안하게 감싸는 실루엣으로 짓습니다. 격식은 덜고, 촉감과 품질은 그대로.",
-    "화려함으로 시선을 끌기보다, 입은 사람의 하루에 자연스레 스며드는 옷 — 그것이 설유화가 만드는 실크입니다.",
+    "설유화는 궁중 예복의 정수와 현대적 감각이 만나는 곳입니다.",
+    "당신의 이야기를 가장 아름다운 옷으로 완성해드립니다.",
   ],
   nameMeaning: {
     reading: "설유화",
     meaning:
-      "부드럽게 흐르는 실크처럼, 일상에 은은히 피어나는 아름다움을 담은 이름입니다.",
+      "눈 속에 피어나는 설유화처럼, 고요함 속에서 은은히 빛나는 아름다움을 담은 이름입니다.",
   },
-  image: image("story/atelier", "실크 원단을 살피는 모습", 4 / 5),
+  image: image("about/portrait", "설유화 예복을 입은 모습", 4 / 5),
 };
 
-/** 실크 소재 이야기(피처). */
+/** 브랜드 특징(4 아이콘). id는 Icons.featureIcons 키와 일치. */
 export const silkFeaturesData: readonly SilkFeature[] = [
   {
-    id: "luster",
-    label: "LUSTER",
-    title: "깊은 광택과 드레이프",
-    description:
-      "빛을 부드럽게 머금는 실크 특유의 광택과, 몸을 따라 흐르는 자연스러운 드레이프.",
-    image: image("silk/luster", "실크의 광택", 4 / 3),
+    id: "tradition",
+    label: "TRADITION",
+    title: "전통",
+    description: "궁중의 예복에서 영감을 받아 전통의 가치를 담습니다.",
   },
   {
-    id: "breathe",
-    label: "BREATHE",
-    title: "사계절 통기성",
-    description:
-      "여름엔 시원하고 겨울엔 따뜻한 천연 단백질 섬유. 계절을 가리지 않고 입습니다.",
-    image: image("silk/breathe", "통기성 좋은 실크", 4 / 3),
+    id: "craft",
+    label: "CRAFTSMANSHIP",
+    title: "장인정신",
+    description: "장인의 손끝에서 탄생하는 섬세한 작업과 고귀한 선.",
   },
   {
-    id: "grade",
-    label: "GRADE 6A",
-    title: "균일한 원사 등급",
-    description:
-      "최상급 6A 등급 원사와 안정적인 momme로 균일하고 오래가는 옷을 짓습니다.",
-    image: image("silk/grade", "실크 원사", 4 / 3),
+    id: "bespoke",
+    label: "BESPOKE",
+    title: "맞춤",
+    description: "당신만을 위한 맞춤 디자인으로 특별한 가치를 선사합니다.",
   },
   {
-    id: "care",
-    label: "HOME CARE",
-    title: "집에서 관리하는 실크",
-    description:
-      "중성세제 손세탁과 그늘 건조. 어렵지 않게 오래 입도록 케어 가이드를 함께 드립니다.",
-    image: image("silk/care", "실크 홈 케어", 4 / 3),
+    id: "heritage",
+    label: "HERITAGE",
+    title: "계승",
+    description: "시간이 지나도 변하지 않는 아름다움, 그 가치를 이어갑니다.",
   },
 ];
 
-/** 문의 · 스토어. */
+/** 컬렉션 카테고리(여성/남성/맞춤/장신구). */
+export const categoriesData: readonly Category[] = [
+  {
+    id: "women",
+    labelEn: "WOMEN",
+    title: "여성 예복",
+    image: image("collection/women", "여성 예복", 3 / 4),
+    href: "#collection",
+  },
+  {
+    id: "men",
+    labelEn: "MEN",
+    title: "남성 예복",
+    image: image("collection/men", "남성 예복", 3 / 4),
+    href: "#collection",
+  },
+  {
+    id: "bespoke",
+    labelEn: "BESPOKE",
+    title: "맞춤 예복",
+    image: image("collection/bespoke", "맞춤 예복", 3 / 4),
+    href: "#bespoke",
+  },
+  {
+    id: "accessories",
+    labelEn: "ACCESSORIES",
+    title: "장신구",
+    image: image("collection/accessories", "장신구", 3 / 4),
+    href: "#collection",
+  },
+];
+
+/** 맞춤(비스포크) 섹션. */
+export const bespokeData: BespokeContent = {
+  eyebrow: "BESPOKE SERVICE",
+  title: "당신만을 위한\n단 하나의 예복",
+  paragraphs: [
+    "원단 선정부터 디자인, 제작까지 모든 과정을 섬세하게 맞춤으로 진행합니다.",
+  ],
+  cta: { label: "자세히 보기", href: "#process" },
+  image: image("bespoke/atelier", "맞춤 자수 디테일", 4 / 5),
+};
+
+/** 맞춤 제작 과정(5단계). icon은 Icons.processIcons 키와 일치. */
+export const processData: readonly ProcessStep[] = [
+  { id: "consult", icon: "consult", title: "상담 및 기획" },
+  { id: "design", icon: "design", title: "디자인 제안" },
+  { id: "fabric", icon: "fabric", title: "원단 선정" },
+  { id: "handcraft", icon: "handcraft", title: "수작업 제작" },
+  { id: "fitting", icon: "fitting", title: "피팅 및 완성" },
+];
+
+/** 문의 · 아틀리에. */
 export const contactData: ContactInfo = {
-  showroomName: "설유화 쇼룸",
+  showroomName: "설유화 아틀리에",
   address: "서울특별시 성동구 성수이로 12, 2층",
   phone: "02-1234-5678",
   email: "hello@sullyuwha.com",
   hours: [
-    { label: "평일", value: "11:00 – 20:00" },
-    { label: "토요일", value: "12:00 – 18:00" },
-    { label: "일요일 · 공휴일", value: "휴무" },
+    { label: "평일", value: "10:00 – 19:00" },
+    { label: "토요일", value: "11:00 – 17:00" },
+    { label: "일요일 · 공휴일", value: "예약제 운영" },
   ],
-  note: "제품 구매 상담과 편집숍·리테일 입점 문의를 받습니다. 방문은 예약을 권장드립니다.",
+  note: "예복 상담과 맞춤 제작 문의를 받습니다. 원활한 상담을 위해 방문 예약을 권장드립니다.",
   socials: [
     { label: "Instagram", url: "https://www.instagram.com/sullyuwha" },
     { label: "Kakao", url: "https://pf.kakao.com" },
   ],
-  mapImage: image("contact/map", "쇼룸 위치 약도", 16 / 9),
+  mapImage: image("contact/atelier", "아틀리에 위치", 16 / 9),
 };

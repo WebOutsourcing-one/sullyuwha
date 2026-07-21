@@ -5,16 +5,17 @@
    모던 럭셔리 미니멀
    ============================================================ */
 @theme {
-  /* 색상 — 기본(Neutral) */
-  --color-ivory: #f7f3ec;
-  --color-champagne: #e7dfd0;
-  --color-mist: #efe9de;
-  --color-charcoal: #2a2724;
-  --color-taupe: #7c7367;
-  --color-line: #e0d8c8;
+  /* 색상 — 기본(Neutral) · 시안 크림/오트밀 톤 */
+  --color-ivory: #f3ece0; /* 기본 배경(따뜻한 크림) */
+  --color-champagne: #e7dcc8; /* 카드/교차 섹션(깊은 크림) */
+  --color-mist: #eee6d8; /* 아주 옅은 톤 구분 */
+  --color-sand: #ded0b8; /* 카테고리 카드/살짝 진한 베이지 */
+  --color-charcoal: #3d352b; /* 기본 텍스트(따뜻한 에스프레소) */
+  --color-taupe: #8a7c69; /* 보조 텍스트 */
+  --color-line: #e1d7c3; /* 헤어라인 */
 
-  /* 색상 — 강조 */
-  --color-gold: #b79363;
+  /* 색상 — 강조(뮤트 브론즈, 아주 소량) */
+  --color-gold: #ab8f67;
 
   /* 서체 (layout.tsx의 next/font 변수와 연결) */
   --font-sans: var(--font-noto-sans), "Apple SD Gothic Neo", sans-serif;
