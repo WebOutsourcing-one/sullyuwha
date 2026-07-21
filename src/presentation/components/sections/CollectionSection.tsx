@@ -1,4 +1,5 @@
 import type { Product } from "@/domain/entities/Product";
+import { BranchMotif } from "../ui/BranchMotif";
 import { Container } from "../ui/Container";
 import { ProductCard } from "../ui/ProductCard";
 import { Reveal } from "../ui/Reveal";
@@ -12,10 +13,16 @@ export function CollectionSection({ products }: CollectionSectionProps) {
   return (
     <section
       id="collection"
-      className="u-section bg-mist"
+      className="relative overflow-hidden u-section bg-mist"
       aria-labelledby="collection-title"
     >
-      <Container>
+      <BranchMotif
+        className="bottom-[-6%] left-[-8%] h-[64%] w-[52%]"
+        position="bottom left"
+        opacity={0.09}
+        flip
+      />
+      <Container className="relative z-10">
         <SectionHeading
           eyebrow="COLLECTION"
           title="매일의 실크"
