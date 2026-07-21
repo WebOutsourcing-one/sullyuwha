@@ -29,12 +29,13 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "설유화 | 실크 기성복",
+  title: "설유화 | 한복 예복 · 맞춤",
   description:
-    "실크를 일상으로 들이는 기성복 브랜드, 설유화. 실크 블라우스·슬립 원피스·셋업·스카프.",
+    "전통의 아름다움 위에 현대의 감각을 더해 단 하나의 예복을 짓는 한복 브랜드, 설유화.",
   openGraph: {
-    title: "설유화 | 실크 기성복",
-    description: "실크를 일상으로 들이는 기성복 브랜드, 설유화.",
+    title: "설유화 | 한복 예복 · 맞춤",
+    description:
+      "전통의 아름다움 위에 현대의 감각을 더해 단 하나의 예복을 짓습니다.",
     type: "website",
     locale: "ko_KR",
   },
