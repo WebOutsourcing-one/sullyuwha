@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { HeroContent } from "@/domain/entities/HeroContent";
 import { Container } from "../ui/Container";
+import { R2Image } from "../ui/R2Image";
 import { Reveal } from "../ui/Reveal";
 import { IconArrow } from "../ui/Icons";
 
@@ -8,13 +9,9 @@ interface HeroSectionProps {
   hero: HeroContent;
 }
 
-/** 부조(엠보스)를 흉내내는 다중 그림자 — 흰 가지가 크림 위로 도드라진다. */
-const RELIEF =
-  "drop-shadow(1.5px 2.5px 1.5px rgba(61,53,43,0.5)) drop-shadow(-1.5px -1.5px 1px rgba(255,255,255,1)) drop-shadow(0.5px 0.5px 0.5px rgba(61,53,43,0.28))";
-
 /**
- * 히어로 — 크림 배경 위에 설유화 꽃가지가 흰 부조처럼 도드라지고,
- * 어른거리는 나뭇잎 그림자가 은은히 겹친다. 좌측에 브랜드 슬로건.
+ * 히어로 — 좌측 브랜드 슬로건, 우측 한복 예복 포트레이트.
+ * 어른거리는 나뭇잎 그림자가 크림 배경에 은은히 겹친다.
  */
 export function HeroSection({ hero }: HeroSectionProps) {
   return (
@@ -23,49 +20,43 @@ export function HeroSection({ hero }: HeroSectionProps) {
       className="relative overflow-hidden bg-ivory"
       aria-label="설유화 소개"
     >
-      {/* 어른거리는 나뭇잎 그림자 */}
+      {/* 어른거리는 나뭇잎 그림자 (좌측, 아주 옅게) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-[8%] -top-[12%] h-[72%] w-[58%] opacity-[0.05]"
+        className="pointer-events-none absolute -left-[8%] -top-[10%] hidden h-[70%] w-[48%] opacity-[0.04] lg:block"
       >
         <Image
           src="/branch-ink.png"
           alt=""
           fill
-          sizes="50vw"
+          sizes="45vw"
           className="object-contain blur-[2px]"
           style={{ transform: "scaleY(-1) rotate(6deg)" }}
         />
       </div>
 
-      {/* 설유화 꽃가지 — 흰 부조 릴리프 */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[44%] sm:h-[50%] lg:inset-0 lg:left-[26%] lg:h-full"
-      >
-        <Image
-          src="/branch-relief.png"
-          alt=""
-          fill
+      {/* 한복 예복 포트레이트 */}
+      <div className="absolute inset-x-0 top-0 h-[50%] bg-champagne sm:h-[54%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[46%]">
+        <R2Image
+          image={hero.image}
           priority
-          sizes="100vw"
-          className="object-contain object-[60%_42%] lg:object-[center_40%]"
-          style={{ filter: RELIEF }}
+          sizes="(max-width: 1024px) 100vw, 46vw"
+          className="object-[center_22%]"
+        />
+        {/* 모바일: 하단 크림 페이드 */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-ivory to-transparent lg:hidden"
+        />
+        {/* 데스크톱: 좌측 크림 페이드로 경계를 부드럽게 */}
+        <div
+          aria-hidden
+          className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-ivory to-transparent lg:block"
         />
       </div>
 
-      {/* 좌측·하단 크림 페이드 (가지를 덮지 않도록 빠르게 투명) */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ivory from-5% via-ivory/10 via-40% to-transparent"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-ivory to-transparent"
-      />
-
       <Container>
-        <div className="relative flex min-h-[86vh] flex-col justify-end pb-24 lg:min-h-[90vh] lg:justify-center lg:pb-0">
+        <div className="relative flex min-h-[88vh] flex-col justify-end pb-16 lg:min-h-[90vh] lg:justify-center lg:pb-0">
           <Reveal>
             <div className="max-w-xl">
               <h1 className="whitespace-pre-line font-serif text-[clamp(2.5rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">

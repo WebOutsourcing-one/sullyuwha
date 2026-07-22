@@ -15,7 +15,7 @@ export const heroData: HeroContent = {
     "전통의 아름다움 위에 현대의 감각을 더해\n단 하나의 예복을 짓습니다.",
   primaryCta: { label: "COLLECTION VIEW", href: "#collection" },
   secondaryCta: { label: "BRAND STORY", href: "#about" },
-  image: image("hero/main", "설유화 예복", 3 / 4),
+  image: image("hero/main", "한복 예복을 입은 여인", 3 / 4),
 };
 
 /** 브랜드 소개(About). */
