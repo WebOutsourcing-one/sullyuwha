@@ -56,36 +56,34 @@ export function IconTradition(props: IconProps) {
   );
 }
 
-/** CRAFTSMANSHIP — 바늘과 실(장인) */
+/** CRAFTSMANSHIP — 고귀한 선(하나의 우아한 곡선) */
 export function IconCraft(props: IconProps) {
   return (
     <svg {...base} {...props}>
       <circle cx={12} cy={12} r={10.5} />
-      <path d="M7.5 16.5 16 8" />
-      <circle cx={7} cy={17} r={1.1} />
-      <path d="M16 8c1.2-.6 1.7.9 .6 1.5-1 .5-1.9-.2-1.2-1.2" />
+      <path d="M6.8 15.4c2.4-1.8 3.4-5.2 5.2-5.2s2.8 3.4 5.2 1.6" />
     </svg>
   );
 }
 
-/** BESPOKE — 원 안의 마름모(맞춤) */
+/** BESPOKE — 자(치수·맞춤) */
 export function IconBespoke(props: IconProps) {
   return (
     <svg {...base} {...props}>
       <circle cx={12} cy={12} r={10.5} />
-      <path d="M12 6.5 16.5 12 12 17.5 7.5 12z" />
-      <path d="M12 9.5 14.2 12 12 14.5 9.8 12z" />
+      <rect x={5.5} y={10.3} width={13} height={3.4} rx={0.5} />
+      <path d="M8.3 10.3v1.5M10.7 10.3v2M13.1 10.3v1.5M15.5 10.3v2" />
     </svg>
   );
 }
 
-/** HERITAGE — 동심원 + 점(이어짐) */
+/** HERITAGE — 맞물린 두 고리(이어짐·계승) */
 export function IconHeritage(props: IconProps) {
   return (
     <svg {...base} {...props}>
       <circle cx={12} cy={12} r={10.5} />
-      <circle cx={12} cy={12} r={6.2} />
-      <circle cx={12} cy={12} r={2} />
+      <circle cx={9.7} cy={12} r={3.5} />
+      <circle cx={14.3} cy={12} r={3.5} />
     </svg>
   );
 }
