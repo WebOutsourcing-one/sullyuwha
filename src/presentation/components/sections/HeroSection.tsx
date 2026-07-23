@@ -14,13 +14,13 @@ export function HeroSection({ hero }: HeroSectionProps) {
   return (
     <section
       id="top"
-      className="relative flex min-h-screen overflow-hidden bg-ivory"
+      className="flex min-h-screen flex-col overflow-hidden bg-ivory lg:flex-row"
       aria-label="설유화 소개"
     >
-      {/* 메인 이미지 — 우측 */}
+      {/* 이미지 — 모바일: 상단, 데스크톱: 우측 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 flex w-[70vw] items-center justify-center lg:w-[70%]"
+        className="relative flex min-h-[50vh] w-full items-center justify-center lg:min-h-full lg:w-[70%] lg:order-last"
       >
         <Image
           src="/main.png"
@@ -28,14 +28,14 @@ export function HeroSection({ hero }: HeroSectionProps) {
           width={1254}
           height={1254}
           priority
-          className="h-auto max-h-full w-full object-contain"
+          className="h-full w-full object-contain"
         />
       </div>
 
-      {/* 텍스트 콘텐츠 — 좌측 */}
-      <div className="relative z-10 flex w-full items-center px-6 lg:px-12">
-        <div className="max-w-xl">
-          <Reveal>
+      {/* 텍스트 콘텐츠 */}
+      <div className="flex w-full items-center px-6 py-12 lg:w-[30%] lg:px-12 lg:py-0">
+        <Reveal>
+          <div className="max-w-xl">
             <h1 className="whitespace-pre font-serif text-[clamp(2.5rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
               {hero.slogan}
             </h1>
@@ -58,8 +58,8 @@ export function HeroSection({ hero }: HeroSectionProps) {
               </span>
               <IconArrow className="h-4 w-4 transition-transform duration-300 ease-silk group-hover:translate-x-1" />
             </a>
-          </Reveal>
-        </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
