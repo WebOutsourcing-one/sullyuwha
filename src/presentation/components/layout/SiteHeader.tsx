@@ -30,11 +30,7 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header
-      className={`sticky top-0 z-50 border-b border-line/60 backdrop-blur-md transition-colors duration-300 ${
-        open ? "bg-ivory" : "bg-ivory/80"
-      }`}
-    >
+    <header className="sticky top-0 z-50 border-b border-line/60 bg-ivory">
       <Container>
         <div className="flex h-16 items-center justify-between md:h-20">
           {/* 워드마크 + 엠블럼 */}
