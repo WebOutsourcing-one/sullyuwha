@@ -14,26 +14,23 @@ export function HeroSection({ hero }: HeroSectionProps) {
   return (
     <section
       id="top"
-      className="relative overflow-hidden bg-ivory"
+      className="relative min-h-screen overflow-hidden bg-ivory"
       aria-label="설유화 소개"
     >
-      {/* 이미지 */}
-      <div
-        aria-hidden
-        className="relative h-[45vh] w-full lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-[70%]"
-      >
+      {/* 배경 이미지 */}
+      <div aria-hidden className="absolute inset-0">
         <Image
           src="/main.png"
           alt=""
-          width={1254}
-          height={1254}
+          fill
+          sizes="100vw"
+          className="object-cover"
           priority
-          className="h-full w-full object-cover"
         />
       </div>
 
       {/* 텍스트 콘텐츠 */}
-      <div className="flex min-h-[55vh] items-center px-6 py-10 lg:min-h-screen lg:px-12">
+      <div className="absolute inset-0 flex items-center px-6 lg:px-12">
         <Reveal>
           <div className="max-w-xl">
             <h1 className="whitespace-pre font-serif text-[clamp(2.5rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
