@@ -21,15 +21,15 @@ export function HeroSection({ hero }: HeroSectionProps) {
       {/* 메인 이미지 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[70vw] lg:w-[70%]"
+        className="pointer-events-none absolute right-0 top-0 z-0 flex h-screen w-[70vw] items-center justify-center lg:w-[70%]"
       >
         <Image
           src="/main.png"
           alt=""
-          fill
-          sizes="70vw"
-          className="object-cover object-right"
+          width={1254}
+          height={1254}
           priority
+          className="h-auto max-h-full w-full object-contain"
         />
       </div>
 
