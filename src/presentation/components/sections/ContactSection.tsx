@@ -18,7 +18,7 @@ export function ContactSection({ contact }: ContactSectionProps) {
       <Container>
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
           {/* 정보 */}
-          <Reveal>
+          <Reveal className="order-2 lg:order-1">
             <div className="flex flex-col gap-8">
               <SectionHeading
                 eyebrow="VISIT & CONTACT"
@@ -65,8 +65,8 @@ export function ContactSection({ contact }: ContactSectionProps) {
             </div>
           </Reveal>
 
-          {/* 명함 — 반전한 설유화 꽃가지 + 좌측 상단부터 세로 타이포 */}
-          <Reveal delay={100}>
+          {/* 명함 */}
+          <Reveal delay={100} className="order-1 lg:order-2">
             <div className="flex w-full items-center justify-center lg:h-full">
               <div className="relative aspect-[3/7] w-full max-w-[18rem] overflow-hidden rounded-sm bg-ivory ring-1 ring-black/5 shadow-[0_40px_90px_-50px_rgba(61,53,43,0.6)]">
                 {/* 명함 배경 */}
