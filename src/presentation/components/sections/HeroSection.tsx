@@ -18,18 +18,18 @@ export function HeroSection({ hero }: HeroSectionProps) {
       className="relative overflow-hidden bg-ivory"
       aria-label="설유화 소개"
     >
-      {/* 어른거리는 나뭇잎 그림자 (좌측, 아주 옅게) */}
+      {/* 좌측 브랜치 이미지 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-[8%] -top-[10%] hidden h-[70%] w-[48%] opacity-[0.04] lg:block"
+        className="pointer-events-none absolute inset-y-0 left-0 z-0 hidden w-[45%] opacity-70 lg:block"
       >
         <Image
-          src="/branch-ink.png"
+          src="/main-2.png"
           alt=""
           fill
           sizes="45vw"
-          className="object-contain blur-[2px]"
-          style={{ transform: "scaleY(-1) rotate(6deg)" }}
+          className="object-cover object-left"
+          priority
         />
       </div>
 
