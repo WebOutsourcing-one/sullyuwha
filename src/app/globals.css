@@ -51,6 +51,14 @@
 
 html {
   scroll-behavior: smooth;
+  /* sticky 헤더 높이(모바일 64px)만큼 앵커 이동 시 여백 확보 */
+  scroll-padding-top: 4rem;
+}
+@media (min-width: 768px) {
+  html {
+    /* md 이상 헤더 높이 80px */
+    scroll-padding-top: 5rem;
+  }
 }
 
 body {

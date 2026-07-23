@@ -1,45 +1,70 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import NextImage from "next/image";
 import type { Image as ImageEntity } from "@/domain/value-objects/Image";
 import { assetResolver } from "@/composition/assets";
 
 interface R2ImageProps {
   image: ImageEntity;
-  /** next/image sizes 속성 — 반응형 해상도 최적화에 필수 */
   sizes: string;
   className?: string;
   priority?: boolean;
 }
 
-/**
- * R2 에셋을 렌더링하는 이미지 컴포넌트.
- * 부모는 반드시 `position: relative` + 크기(또는 aspect-ratio)를 가져야 한다(`fill` 사용).
- *
- * - 리졸버가 설정되어 있으면 next/image로 최적화 서빙
- * - 미설정(로컬 개발)이면 샴페인 그라디언트 플레이스홀더로 우아하게 대체
- */
-export function R2Image({ image, sizes, className, priority }: R2ImageProps) {
-  const url = assetResolver.resolve(image.asset, image.ext);
+const FALLBACK_SRC = "/placeholder.png";
+const LOADING_SRC = "/loding.png";
 
-  if (!url) {
-    return <SilkPlaceholder alt={image.alt} className={className} />;
-  }
+export function R2Image({ image, sizes, className, priority }: R2ImageProps) {
+  const resolvedUrl = assetResolver.resolve(image.asset, image.ext);
+  const [imgSrc, setImgSrc] = useState(FALLBACK_SRC);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (resolvedUrl) {
+      setImgSrc(resolvedUrl);
+    } else {
+      setIsLoading(false);
+    }
+  }, [resolvedUrl]);
+
+  const handleError = () => {
+    setImgSrc(FALLBACK_SRC);
+    setIsLoading(false);
+  };
 
   return (
-    <NextImage
-      src={url}
-      alt={image.alt}
-      fill
-      sizes={sizes}
-      priority={priority}
-      // GIF는 최적화 시 애니메이션이 유실될 수 있어 원본 그대로 서빙한다.
-      unoptimized={image.ext === "gif"}
-      className={`object-cover ${className ?? ""}`}
-    />
+    <>
+      {isLoading && (
+        <div
+          role="img"
+          aria-label={image.alt}
+          className={`absolute inset-0 ${className ?? ""}`}
+        >
+          <NextImage
+            src={LOADING_SRC}
+            alt=""
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+      <NextImage
+        src={imgSrc}
+        alt={image.alt}
+        fill
+        sizes={sizes}
+        priority={priority}
+        unoptimized={image.ext === "gif"}
+        className={`object-cover ${className ?? ""}`}
+        onLoad={() => setIsLoading(false)}
+        onError={handleError}
+      />
+    </>
   );
 }
 
-/** R2 미설정 시 표시되는 실크 톤 플레이스홀더. */
-function SilkPlaceholder({
+function LoadingPlaceholder({
   alt,
   className,
 }: {
@@ -50,18 +75,37 @@ function SilkPlaceholder({
     <div
       role={alt ? "img" : undefined}
       aria-label={alt || undefined}
-      className={`absolute inset-0 flex items-center justify-center overflow-hidden bg-champagne ${className ?? ""}`}
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, #efe9de 0%, #e7dfd0 55%, #ddceb6 100%)",
-      }}
+      className={`absolute inset-0 ${className ?? ""}`}
     >
-      <span
-        className="font-serif text-5xl font-light text-charcoal/12 select-none"
-        aria-hidden
-      >
-        설
-      </span>
+      <NextImage
+        src="/loding.png"
+        alt=""
+        fill
+        className="object-cover"
+      />
+    </div>
+  );
+}
+
+function FallbackPlaceholder({
+  alt,
+  className,
+}: {
+  alt: string;
+  className?: string;
+}) {
+  return (
+    <div
+      role={alt ? "img" : undefined}
+      aria-label={alt || undefined}
+      className={`absolute inset-0 ${className ?? ""}`}
+    >
+      <NextImage
+        src="/placeholder.png"
+        alt=""
+        fill
+        className="object-cover"
+      />
     </div>
   );
 }

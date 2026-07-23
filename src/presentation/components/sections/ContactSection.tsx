@@ -69,13 +69,13 @@ export function ContactSection({ contact }: ContactSectionProps) {
           <Reveal delay={100}>
             <div className="flex w-full items-center justify-center lg:h-full">
               <div className="relative aspect-[3/7] w-full max-w-[18rem] overflow-hidden rounded-sm bg-ivory ring-1 ring-black/5 shadow-[0_40px_90px_-50px_rgba(61,53,43,0.6)]">
-                {/* 반전한 꽃가지 (컬러, 흰 배경은 카드에 녹임) */}
+                {/* 명함 배경 */}
                 <Image
-                  src="/branch-photo-vertical.jpg"
-                  alt="설유화 꽃가지"
+                  src="/name-card.png"
+                  alt="설유화 명함"
                   fill
                   sizes="320px"
-                  className="scale-x-[-1] object-cover object-[42%_60%] mix-blend-multiply"
+                  className="object-cover"
                 />
 
                 {/* 좌측 상단 타이포 가독성용 아이보리 스크림 */}

@@ -1,6 +1,9 @@
 import { StaticProductRepository } from "@/infrastructure/repositories/StaticProductRepository";
 import { StaticGalleryRepository } from "@/infrastructure/repositories/StaticGalleryRepository";
 import { StaticBrandContentRepository } from "@/infrastructure/repositories/StaticBrandContentRepository";
+import { DbProductRepository } from "@/infrastructure/repositories/DbProductRepository";
+import { DbGalleryRepository } from "@/infrastructure/repositories/DbGalleryRepository";
+import { DbBrandContentRepository } from "@/infrastructure/repositories/DbBrandContentRepository";
 import { GetHeroContent } from "@/application/use-cases/GetHeroContent";
 import { GetBrandStory } from "@/application/use-cases/GetBrandStory";
 import { GetCollection } from "@/application/use-cases/GetCollection";
@@ -8,16 +11,20 @@ import { GetProduct } from "@/application/use-cases/GetProduct";
 import { GetSilkFeatures } from "@/application/use-cases/GetSilkFeatures";
 import { GetGallery } from "@/application/use-cases/GetGallery";
 import { GetContactInfo } from "@/application/use-cases/GetContactInfo";
+import { getAssetResolver } from "./assets";
 
-/**
- * 조립 루트(Composition Root).
- * 인프라 구현을 도메인 계약에 주입해 유스케이스를 완성한다.
- * 저장소 구현(Static → CMS/파일서버)이 바뀌어도 이 파일만 수정하면 된다.
- */
+const useDatabase = process.env.DATA_SOURCE === "database";
+
 function createContainer() {
-  const productRepository = new StaticProductRepository();
-  const galleryRepository = new StaticGalleryRepository();
-  const brandContentRepository = new StaticBrandContentRepository();
+  const productRepository = useDatabase
+    ? new DbProductRepository()
+    : new StaticProductRepository();
+  const galleryRepository = useDatabase
+    ? new DbGalleryRepository()
+    : new StaticGalleryRepository();
+  const brandContentRepository = useDatabase
+    ? new DbBrandContentRepository(getAssetResolver())
+    : new StaticBrandContentRepository();
 
   return {
     getHero: new GetHeroContent(brandContentRepository),

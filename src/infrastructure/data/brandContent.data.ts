@@ -12,7 +12,7 @@ export const heroData: HeroContent = {
   eyebrow: "SULLYUWHA — KOREAN COUTURE HANBOK",
   slogan: "고귀함이 서려있는\n기품있는 선",
   subcopy:
-    "전통의 아름다움 위에 현대의 감각을 더해\n단 하나의 예복을 짓습니다.",
+    "전통의 아름다움 위에\n현대의 감각을 더해\n단 하나의 예복을 짓습니다.",
   primaryCta: { label: "COLLECTION VIEW", href: "#collection" },
   secondaryCta: { label: "BRAND STORY", href: "#about" },
   image: image("hero/main", "한복 예복을 입은 여인", 3 / 4),

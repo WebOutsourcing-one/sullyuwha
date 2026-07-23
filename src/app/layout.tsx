@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Cormorant_Garamond, Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/presentation/components/layout/SiteHeader";
@@ -47,10 +48,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ko"
-      className={`${notoSans.variable} ${notoSerif.variable} ${cormorant.variable} h-full antialiased`}
-    >
+      <html
+        lang="ko"
+        className={`${notoSans.variable} ${notoSerif.variable} ${cormorant.variable} h-full antialiased`}
+      >
+        {process.env.NODE_ENV === "development" && (
+          <head>
+            <Script
+              src="//unpkg.com/react-grab/dist/index.global.js"
+              crossOrigin="anonymous"
+              strategy="beforeInteractive"
+            />
+          </head>
+        )}
       <body className="flex min-h-full flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>
