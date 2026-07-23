@@ -18,13 +18,13 @@ export function HeroSection({ hero }: HeroSectionProps) {
       className="relative overflow-hidden bg-ivory"
       aria-label="설유화 소개"
     >
-      {/* 메인 이미지 — main-2 180도 회전 */}
+      {/* 메인 이미지 */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[70vw] lg:w-[70%]"
       >
         <Image
-          src="/main-2-rotated.png"
+          src="/main.png"
           alt=""
           fill
           sizes="70vw"
