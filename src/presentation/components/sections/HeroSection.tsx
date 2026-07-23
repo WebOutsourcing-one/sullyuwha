@@ -52,14 +52,14 @@ export function HeroSection({ hero }: HeroSectionProps) {
         {/* 이미지 */}
         <div
           aria-hidden
-          className="relative flex w-full flex-1 items-center justify-center lg:justify-end"
+          className="relative flex w-full items-center justify-center lg:w-1/2 lg:justify-end"
         >
-          <div className="relative w-full max-w-md aspect-square">
+          <div className="relative aspect-square w-full max-w-[min(50vw,30rem)]">
             <Image
               src="/main.png"
               alt=""
               fill
-              sizes="(max-width: 1024px) 100vw, 40vw"
+              sizes="(max-width: 1024px) 80vw, 35vw"
               className="object-contain"
               priority
             />
