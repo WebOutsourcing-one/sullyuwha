@@ -14,13 +14,13 @@ export function HeroSection({ hero }: HeroSectionProps) {
   return (
     <section
       id="top"
-      className="flex min-h-screen flex-col overflow-hidden bg-ivory lg:flex-row"
+      className="relative overflow-hidden bg-ivory"
       aria-label="설유화 소개"
     >
-      {/* 이미지 — 모바일: 상단, 데스크톱: 우측 */}
+      {/* 이미지 */}
       <div
         aria-hidden
-        className="relative flex min-h-[50vh] w-full items-center justify-center lg:min-h-full lg:w-[70%] lg:order-last"
+        className="relative h-[45vh] w-full lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-[70%]"
       >
         <Image
           src="/main.png"
@@ -28,12 +28,12 @@ export function HeroSection({ hero }: HeroSectionProps) {
           width={1254}
           height={1254}
           priority
-          className="h-full w-full object-contain"
+          className="h-full w-full object-cover"
         />
       </div>
 
       {/* 텍스트 콘텐츠 */}
-      <div className="flex w-full items-center px-6 py-12 lg:w-[30%] lg:px-12 lg:py-0">
+      <div className="flex min-h-[55vh] items-center px-6 py-10 lg:min-h-screen lg:px-12">
         <Reveal>
           <div className="max-w-xl">
             <h1 className="whitespace-pre font-serif text-[clamp(2.5rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
