@@ -43,7 +43,7 @@ export function HeroSection({ hero }: HeroSectionProps) {
           alt=""
           fill
           sizes="70vw"
-          className="object-contain object-right"
+          className="object-cover object-right"
           priority
         />
       </div>
