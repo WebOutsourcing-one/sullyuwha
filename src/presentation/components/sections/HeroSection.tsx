@@ -15,12 +15,24 @@ export function HeroSection({ hero }: HeroSectionProps) {
   return (
     <section
       id="top"
-      className="min-h-screen bg-ivory"
+      className="min-h-screen"
       aria-label="설유화 소개"
     >
-      <Container className="flex min-h-screen flex-col items-center lg:flex-row">
+      <Container className="relative flex min-h-screen flex-col items-center lg:flex-row">
+        {/* 메인 이미지 (Container 영역 꽉 채움) */}
+        <div aria-hidden className="absolute inset-0">
+          <Image
+            src="/main.png"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-contain"
+            priority
+          />
+        </div>
+
         {/* 텍스트 */}
-        <div className="flex w-full flex-1 items-center py-12 lg:py-0">
+        <div className="relative z-10 flex w-full flex-1 items-center py-12 lg:py-0">
           <Reveal>
             <div className="max-w-xl">
               <h1 className="whitespace-pre font-serif text-[clamp(2.5rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
@@ -47,23 +59,6 @@ export function HeroSection({ hero }: HeroSectionProps) {
               </a>
             </div>
           </Reveal>
-        </div>
-
-        {/* 이미지 */}
-        <div
-          aria-hidden
-          className="relative flex w-full items-center justify-center lg:w-1/2 lg:justify-end"
-        >
-          <div className="relative aspect-square w-full max-w-[min(50vw,30rem)]">
-            <Image
-              src="/main.png"
-              alt=""
-              fill
-              sizes="(max-width: 1024px) 80vw, 35vw"
-              className="object-contain"
-              priority
-            />
-          </div>
         </div>
       </Container>
     </section>
