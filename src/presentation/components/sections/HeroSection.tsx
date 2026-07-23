@@ -18,28 +18,13 @@ export function HeroSection({ hero }: HeroSectionProps) {
       className="relative overflow-hidden bg-ivory"
       aria-label="설유화 소개"
     >
-      {/* 좌측 브랜치 이미지 */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 z-0 hidden w-[45%] opacity-70 lg:block"
-      >
-        <Image
-          src="/main-2.png"
-          alt=""
-          fill
-          sizes="45vw"
-          className="object-cover object-left"
-          priority
-        />
-      </div>
-
-      {/* 메인 이미지 */}
+      {/* 메인 이미지 — main-2 180도 회전 */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[70vw] lg:w-[70%]"
       >
         <Image
-          src="/main.png"
+          src="/main-2-rotated.png"
           alt=""
           fill
           sizes="70vw"
