@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { Container } from "../ui/Container";
 import { Emblem } from "../ui/Icons";
 
@@ -12,8 +13,16 @@ const NAV_LINKS = [
   { label: "CONTACT", href: "/#contact" },
 ] as const;
 
+const LOGIN_PROVIDERS = [
+  { id: "kakao", label: "카카오 로그인" },
+  { id: "naver", label: "네이버 로그인" },
+] as const;
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -28,6 +37,24 @@ export function SiteHeader() {
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDropdownOpen(false);
+    };
+    const onClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("mousedown", onClick);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("mousedown", onClick);
+    };
+  }, [dropdownOpen]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-line/60 bg-ivory">
@@ -64,6 +91,54 @@ export function SiteHeader() {
                 {link.label}
               </a>
             ))}
+
+            {/* 로그인 */}
+            <div className="relative" ref={dropdownRef}>
+              {status === "authenticated" ? (
+                <div className="flex items-center gap-3">
+                  <a
+                    href="/sull-admin"
+                    className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
+                  >
+                    Admin
+                  </a>
+                  <span className="text-xs text-taupe">
+                    {session.user?.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => signOut()}
+                    className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setDropdownOpen((v) => !v)}
+                    className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
+                  >
+                    Login
+                  </button>
+                  {dropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-44 rounded-sm border border-line/60 bg-ivory py-1 shadow-lg">
+                      {LOGIN_PROVIDERS.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => signIn(p.id)}
+                          className="flex w-full items-center px-4 py-2.5 text-sm text-charcoal transition-colors duration-200 hover:bg-mist/50"
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </nav>
 
           {/* 모바일 토글 */}
@@ -109,6 +184,45 @@ export function SiteHeader() {
                 {link.label}
               </a>
             ))}
+
+            {/* 모바일 로그인 */}
+            {status === "authenticated" ? (
+              <div className="flex items-center justify-between border-b border-line/60 py-4">
+                <div className="flex items-center gap-3">
+                  <a
+                    href="/sull-admin"
+                    onClick={() => setOpen(false)}
+                    className="font-serif text-xl font-light tracking-[0.05em] text-charcoal"
+                  >
+                    Admin
+                  </a>
+                  <span className="text-sm text-taupe">/</span>
+                  <span className="font-serif text-xl font-light text-charcoal">
+                    {session.user?.name}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setOpen(false); signOut(); }}
+                  className="text-xs uppercase tracking-[0.16em] text-taupe"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col border-b border-line/60 py-2">
+                {LOGIN_PROVIDERS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => { setOpen(false); signIn(p.id); }}
+                    className="py-3 text-left font-serif text-xl font-light tracking-[0.05em] text-charcoal"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </nav>
         </div>
       )}

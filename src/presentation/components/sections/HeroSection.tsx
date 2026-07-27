@@ -15,24 +15,25 @@ export function HeroSection({ hero }: HeroSectionProps) {
   return (
     <section
       id="top"
-      className="min-h-screen"
+      className="relative min-h-screen overflow-hidden"
       aria-label="설유화 소개"
     >
-      <Container className="relative flex min-h-screen flex-col items-center lg:flex-row">
-        {/* 메인 이미지 (Container 영역 꽉 채움) */}
-        <div aria-hidden className="absolute inset-0">
-          <Image
-            src="/main.png"
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-contain"
-            priority
-          />
-        </div>
+      {/* main_branch 배경 — 모바일 전용 (텍스트 아래 깔림) */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center lg:hidden">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-ivory/30 to-ivory/80" />
+        <Image
+          src="/main_branch.png"
+          alt=""
+          width={600}
+          height={400}
+          sizes="80vw"
+          className="h-auto w-full max-w-[clamp(14rem,80vw,28rem)] object-contain opacity-25"
+        />
+      </div>
 
+      <Container className="relative z-10 flex min-h-screen flex-col items-center lg:flex-row">
         {/* 텍스트 */}
-        <div className="relative z-10 flex w-full flex-1 items-center py-12 lg:py-0">
+        <div className="flex w-full flex-1 items-center py-12 lg:py-0">
           <Reveal>
             <div className="max-w-xl">
               <h1 className="whitespace-pre font-serif text-[clamp(2.5rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
@@ -59,6 +60,18 @@ export function HeroSection({ hero }: HeroSectionProps) {
               </a>
             </div>
           </Reveal>
+        </div>
+
+        {/* main_branch 이미지 — 데스크탑 전용 */}
+        <div className="hidden flex-1 items-center justify-center py-12 lg:flex lg:py-0">
+          <Image
+            src="/main_branch.png"
+            alt=""
+            width={600}
+            height={400}
+            sizes="(max-width:1024px) 60vw, 30vw"
+            className="h-auto w-full max-w-[clamp(14rem,40vw,28rem)] object-contain"
+          />
         </div>
       </Container>
     </section>

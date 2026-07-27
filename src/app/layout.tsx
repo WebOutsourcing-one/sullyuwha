@@ -4,6 +4,7 @@ import { Cormorant_Garamond, Noto_Sans_KR, Noto_Serif_KR } from "next/font/googl
 import "./globals.css";
 import { SiteHeader } from "@/presentation/components/layout/SiteHeader";
 import { SiteFooter } from "@/presentation/components/layout/SiteFooter";
+import { SessionProvider } from "@/presentation/components/ui/SessionProvider";
 
 const notoSans = Noto_Sans_KR({
   variable: "--font-noto-sans",
@@ -62,9 +63,11 @@ export default function RootLayout({
           </head>
         )}
       <body className="flex min-h-full flex-col">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <SessionProvider>
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+        </SessionProvider>
       </body>
     </html>
   );
