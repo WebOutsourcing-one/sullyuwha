@@ -165,8 +165,14 @@ function Result({
 
       <div className="mt-10 flex flex-wrap justify-center gap-3">
         <Link
-          href="/#collection"
+          href="/orders"
           className="rounded-sm bg-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-[320ms] ease-silk hover:bg-gold"
+        >
+          주문 내역
+        </Link>
+        <Link
+          href="/#collection"
+          className="rounded-sm border border-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-[320ms] ease-silk hover:bg-charcoal hover:text-ivory"
         >
           컬렉션 보기
         </Link>

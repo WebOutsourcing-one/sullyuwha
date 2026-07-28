@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ANONYMOUS,
   loadTossPayments,
@@ -20,6 +21,9 @@ const TOSS_CLIENT_KEY = loadPublicEnv().tossClientKey;
 interface CheckoutFormProps {
   productId: string;
   unitPrice: number;
+  /** 로그인 계정에서 가져온 초기값. 배송 정보와 다를 수 있으므로 수정 가능하게 둔다. */
+  defaultName?: string;
+  defaultEmail?: string;
 }
 
 interface FormState {
@@ -42,8 +46,18 @@ const EMPTY_FORM: FormState = {
   shippingMemo: "",
 };
 
-export function CheckoutForm({ productId, unitPrice }: CheckoutFormProps) {
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+export function CheckoutForm({
+  productId,
+  unitPrice,
+  defaultName = "",
+  defaultEmail = "",
+}: CheckoutFormProps) {
+  const router = useRouter();
+  const [form, setForm] = useState<FormState>({
+    ...EMPTY_FORM,
+    customerName: defaultName,
+    customerEmail: defaultEmail,
+  });
   const [quantity, setQuantity] = useState(1);
   const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
   const [widgetError, setWidgetError] = useState<string | null>(
@@ -132,6 +146,13 @@ export function CheckoutForm({ productId, unitPrice }: CheckoutFormProps) {
 
       const data = await res.json();
       if (!res.ok) {
+        // 결제 중 세션이 만료된 경우. 폼을 다시 그리도록 새로고침해 로그인 안내를 띄운다.
+        if (res.status === 401) {
+          setError("로그인이 만료되었습니다. 다시 로그인한 뒤 진행해 주세요.");
+          setSubmitting(false);
+          router.refresh();
+          return;
+        }
         setError(data?.error ?? "주문서를 만들지 못했습니다.");
         setSubmitting(false);
         return;

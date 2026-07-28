@@ -29,8 +29,15 @@ export interface PlaceOrderInput {
   readonly quantity: number;
   readonly customer: OrderCustomer;
   readonly shipping: ShippingAddress;
-  /** 로그인 상태면 사용자 id, 비회원이면 null. */
-  readonly userId: string | null;
+  /**
+   * 주문자 계정 id. 로그인 필수이므로 항상 값이 있다.
+   *
+   * 비회원 주문을 받지 않는 이유 — 주문 조회를 하려면 본인 확인이 필요한데,
+   * 이메일·SMS 발송이 연동돼 있지 않아 주문번호를 고객에게 전달할 수단이 없다.
+   * 이름+휴대폰만으로 조회하게 두면 남의 주문과 배송지를 열람할 수 있다.
+   * 카카오·네이버 세션 자체를 본인 확인으로 쓰는 편이 안전하고 단순하다.
+   */
+  readonly userId: string;
 }
 
 /** 주문서를 만들지 못한 이유. 호출자가 HTTP 상태로 옮긴다. */

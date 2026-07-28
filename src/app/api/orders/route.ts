@@ -9,12 +9,10 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 const MAX_BODY_BYTES = 8 * 1024;
 
 /**
- * 결제 전 주문서를 만든다. 비회원도 호출할 수 있다.
+ * 결제 전 주문서를 만든다. **로그인이 필요하다.**
  *
  * 금액은 받지 않는다 — 상품 id와 수량만 받고 서버가 DB 가격으로 계산한다.
  * 응답의 amount는 결제위젯에 넘길 값이자, 승인 단계에서 대조할 기준값이다.
- *
- * 인증이 없는 쓰기 엔드포인트이므로 속도 제한을 건다.
  */
 export async function POST(request: NextRequest) {
   const crossOrigin = denyCrossOrigin(request);
@@ -27,6 +25,15 @@ export async function POST(request: NextRequest) {
     windowMs: 60_000,
   });
   if (limited) return limited;
+
+  // 로그인 필수. 주문은 반드시 계정에 붙어야 이후 본인이 조회할 수 있다.
+  const userId = await resolveUserId();
+  if (!userId) {
+    return NextResponse.json(
+      { error: "로그인이 필요합니다.", code: "UNAUTHENTICATED" },
+      { status: 401 },
+    );
+  }
 
   const declaredLength = Number(request.headers.get("content-length") ?? "0");
   if (declaredLength > MAX_BODY_BYTES) {
@@ -62,7 +69,7 @@ export async function POST(request: NextRequest) {
         detail: str(input.shippingDetail) || undefined,
         memo: str(input.shippingMemo) || undefined,
       },
-      userId: await resolveUserId(),
+      userId,
     });
   } catch (error) {
     // DB 장애 등. 원문에는 스키마·접속 정보가 섞여 있으므로 그대로 내보내지 않는다.
@@ -112,11 +119,11 @@ function toQuantity(value: unknown): number {
 }
 
 /**
- * 로그인 상태면 사용자 id, 아니면 null.
+ * 로그인한 사용자 id. 세션이 없거나 DB에 없는 계정이면 null.
  *
  * DB에 실재하는지 한 번 확인하는 이유 — 세션은 JWT라 DB가 초기화되거나
  * 사용자가 삭제돼도 한동안 살아 있다. 없는 id를 그대로 쓰면 주문 생성이
- * 외래키 위반으로 실패한다. 주문은 비회원도 가능하므로 조용히 null로 떨어뜨린다.
+ * 외래키 위반으로 500이 된다. 여기서 걸러 401로 안내한다.
  */
 async function resolveUserId(): Promise<string | null> {
   const session = await auth();

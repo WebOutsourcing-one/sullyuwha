@@ -15,7 +15,12 @@ import { DbOrderRepository } from "@/infrastructure/repositories/DbOrderReposito
 import { PlaceOrder } from "@/application/use-cases/PlaceOrder";
 import { ConfirmPayment, SyncPaymentStatus } from "@/application/use-cases/ConfirmPayment";
 import { CancelPayment } from "@/application/use-cases/CancelPayment";
-import { GetOrder, ListOrders } from "@/application/use-cases/ListOrders";
+import {
+  GetMyOrder,
+  GetMyOrders,
+  GetOrder,
+  ListOrders,
+} from "@/application/use-cases/ListOrders";
 import { getAssetResolver } from "./assets.server";
 
 const useDatabase = process.env.DATA_SOURCE === "database";
@@ -51,6 +56,8 @@ function createContainer() {
     cancelPayment: new CancelPayment(orderRepository),
     listOrders: new ListOrders(orderRepository),
     getOrder: new GetOrder(orderRepository),
+    getMyOrders: new GetMyOrders(orderRepository),
+    getMyOrder: new GetMyOrder(orderRepository),
   } as const;
 }
 

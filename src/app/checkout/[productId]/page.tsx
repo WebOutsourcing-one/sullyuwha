@@ -6,6 +6,8 @@ import { formatKrw, isPayableKrw } from "@/domain/value-objects/Money";
 import { Container } from "@/presentation/components/ui/Container";
 import { R2Image } from "@/presentation/components/ui/R2Image";
 import { CheckoutForm } from "@/presentation/components/checkout/CheckoutForm";
+import { LoginRequired } from "@/presentation/components/checkout/LoginRequired";
+import { auth } from "@/lib/auth";
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -22,9 +24,15 @@ export const metadata: Metadata = {
 
 export default async function CheckoutPage({ params }: PageProps) {
   const { productId } = await params;
-  const product = await container.getProduct.execute(productId);
+  const [product, session] = await Promise.all([
+    container.getProduct.execute(productId),
+    auth(),
+  ]);
 
   if (!product) notFound();
+
+  const purchasable = isPayableKrw(product.price);
+  const userId = session?.user?.id;
 
   return (
     <Container className="pb-24 pt-10 md:pt-14">
@@ -51,9 +59,7 @@ export default async function CheckoutPage({ params }: PageProps) {
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_22rem] lg:gap-16">
         <div className="order-2 lg:order-1">
-          {isPayableKrw(product.price) ? (
-            <CheckoutForm productId={product.id} unitPrice={product.price} />
-          ) : (
+          {!purchasable ? (
             <div className="flex flex-col items-start gap-5 border border-line bg-mist/50 px-6 py-8">
               <p className="text-sm leading-relaxed text-taupe">
                 이 품목은 아직 판매가가 책정되지 않았습니다. 맞춤 제작 상담을 통해
@@ -66,6 +72,15 @@ export default async function CheckoutPage({ params }: PageProps) {
                 구매 문의
               </Link>
             </div>
+          ) : userId ? (
+            <CheckoutForm
+              productId={product.id}
+              unitPrice={product.price}
+              defaultName={session?.user?.name ?? ""}
+              defaultEmail={session?.user?.email ?? ""}
+            />
+          ) : (
+            <LoginRequired callbackUrl={`/checkout/${product.id}`} />
           )}
         </div>
 
@@ -86,7 +101,7 @@ export default async function CheckoutPage({ params }: PageProps) {
                 </span>
                 <span className="text-xs text-taupe">{product.material}</span>
                 <span className="mt-1 text-sm text-charcoal">
-                  {isPayableKrw(product.price) ? formatKrw(product.price) : "가격 문의"}
+                  {purchasable ? formatKrw(product.price) : "가격 문의"}
                 </span>
               </div>
             </div>

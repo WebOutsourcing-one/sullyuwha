@@ -153,7 +153,8 @@ export default function AdminOrderDetailPage() {
             order.userId ? (
               <span className="font-mono text-xs">{order.userId}</span>
             ) : (
-              <span className="text-neutral-400">비회원 주문</span>
+              // 주문에는 항상 계정이 붙지만, 회원이 탈퇴하면 FK가 null이 된다.
+              <span className="text-neutral-400">탈퇴한 계정</span>
             )
           }
         />

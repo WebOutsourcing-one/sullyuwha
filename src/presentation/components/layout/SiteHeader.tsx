@@ -98,11 +98,19 @@ export function SiteHeader() {
               {status === "authenticated" ? (
                 <div className="flex items-center gap-3">
                   <Link
-                    href="/sull-admin"
+                    href="/orders"
                     className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
                   >
-                    Admin
+                    Orders
                   </Link>
+                  {session.user?.role === "admin" && (
+                    <Link
+                      href="/sull-admin"
+                      className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
+                    >
+                      Admin
+                    </Link>
+                  )}
                   <span className="text-xs text-taupe">
                     {session.user?.name}
                   </span>
@@ -197,12 +205,21 @@ export function SiteHeader() {
                 <p className="mt-2 text-sm text-taupe">{session.user?.name}</p>
                 <div className="mt-3 flex gap-2">
                   <Link
-                    href="/sull-admin"
+                    href="/orders"
                     onClick={() => setOpen(false)}
                     className="flex-1 border border-line px-4 py-3 text-center text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
                   >
-                    Admin
+                    Orders
                   </Link>
+                  {session.user?.role === "admin" && (
+                    <Link
+                      href="/sull-admin"
+                      onClick={() => setOpen(false)}
+                      className="flex-1 border border-line px-4 py-3 text-center text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
+                    >
+                      Admin
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={() => { setOpen(false); signOut(); }}

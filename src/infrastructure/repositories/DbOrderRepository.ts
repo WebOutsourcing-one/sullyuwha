@@ -52,7 +52,10 @@ export class DbOrderRepository implements OrderRepository {
 
   async list(query: OrderListQuery = {}): Promise<OrderListPage> {
     const prisma = getPrisma();
-    const where = query.status ? { status: query.status } : {};
+    const where = {
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.userId ? { userId: query.userId } : {}),
+    };
     const take = Math.min(query.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
 
     const [rows, total] = await Promise.all([

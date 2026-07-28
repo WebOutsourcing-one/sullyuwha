@@ -16,12 +16,15 @@ export interface CreateOrderInput {
   readonly line: OrderLine;
   readonly customer: OrderCustomer;
   readonly shipping: ShippingAddress;
-  readonly userId: string | null;
+  /** 주문에는 반드시 계정이 붙는다(로그인 필수). */
+  readonly userId: string;
 }
 
 /** 목록 조회 필터. */
 export interface OrderListQuery {
   readonly status?: OrderStatus;
+  /** 지정하면 해당 계정의 주문만 반환한다. 고객용 주문 내역에 쓴다. */
+  readonly userId?: string;
   readonly limit?: number;
   readonly offset?: number;
 }
