@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Container } from "../ui/Container";
 import { Emblem } from "../ui/Icons";
@@ -61,7 +62,7 @@ export function SiteHeader() {
       <Container>
         <div className="flex h-16 items-center justify-between md:h-20">
           {/* 워드마크 + 엠블럼 */}
-          <a
+          <Link
             href="/#top"
             className="flex items-center gap-2.5"
             aria-label="설유화 홈"
@@ -75,7 +76,7 @@ export function SiteHeader() {
                 Sullyuwha
               </span>
             </span>
-          </a>
+          </Link>
 
           {/* 데스크톱 내비 */}
           <nav
@@ -83,25 +84,25 @@ export function SiteHeader() {
             aria-label="주요 메뉴"
           >
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
 
             {/* 로그인 */}
             <div className="relative" ref={dropdownRef}>
               {status === "authenticated" ? (
                 <div className="flex items-center gap-3">
-                  <a
+                  <Link
                     href="/sull-admin"
                     className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
                   >
                     Admin
-                  </a>
+                  </Link>
                   <span className="text-xs text-taupe">
                     {session.user?.name}
                   </span>
@@ -175,14 +176,14 @@ export function SiteHeader() {
         <div className="fixed inset-0 top-16 z-40 bg-ivory md:hidden">
           <nav className="flex flex-col gap-1 px-6 py-8" aria-label="모바일 메뉴">
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
                 className="border-b border-line/60 py-4 font-serif text-xl font-light tracking-[0.05em] text-charcoal"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
 
             {/* 모바일 로그인 — 내비게이션의 하위 액션이므로 산세리프 소형 라벨로
@@ -195,13 +196,13 @@ export function SiteHeader() {
                 </p>
                 <p className="mt-2 text-sm text-taupe">{session.user?.name}</p>
                 <div className="mt-3 flex gap-2">
-                  <a
+                  <Link
                     href="/sull-admin"
                     onClick={() => setOpen(false)}
                     className="flex-1 border border-line px-4 py-3 text-center text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
                   >
                     Admin
-                  </a>
+                  </Link>
                   <button
                     type="button"
                     onClick={() => { setOpen(false); signOut(); }}

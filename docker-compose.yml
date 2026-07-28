@@ -6,7 +6,11 @@ services:
     ports:
       # 루프백에만 바인딩한다. "5432:5432"로 두면 0.0.0.0에 열려
       # 같은 네트워크(카페 wifi 등)의 누구나 약한 개발용 비밀번호로 접속할 수 있다.
-      - "127.0.0.1:5432:5432"
+      #
+      # 호스트 포트는 바꿀 수 있게 열어둔다 — 다른 프로젝트의 postgres가 이미
+      # 5432를 쓰고 있으면 컨테이너가 뜨지 않는다. 그럴 때 POSTGRES_PORT=5433 처럼
+      # 지정하고 DATABASE_URL의 포트도 같이 바꾸면 된다.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: sullyuwha
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sullyuwha_local}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { BrandStory } from "@/domain/entities/BrandStory";
 import { Container } from "../ui/Container";
 import { R2Image } from "../ui/R2Image";
@@ -48,7 +49,7 @@ export function StorySection({ story }: StorySectionProps) {
                 ))}
               </div>
 
-              <a
+              <Link
                 href="/#collection"
                 className="group mt-3 inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-charcoal"
               >
@@ -56,7 +57,7 @@ export function StorySection({ story }: StorySectionProps) {
                   Brand Story
                 </span>
                 <IconArrow className="h-4 w-4 transition-transform duration-300 ease-silk group-hover:translate-x-1" />
-              </a>
+              </Link>
             </div>
           </Reveal>
         </div>
