@@ -3,7 +3,9 @@ import type { DefaultSession } from "next-auth";
 import Kakao from "next-auth/providers/kakao";
 import Naver from "next-auth/providers/naver";
 import Credentials from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { scryptSync, timingSafeEqual } from "node:crypto";
+import { getPrisma } from "@/infrastructure/db/prisma";
 
 /** 길이를 흘리지 않고 문자열을 비교한다. */
 function timingSafeEqualStr(a: string, b: string): boolean {
@@ -54,6 +56,7 @@ declare module "next-auth" {
     role?: string;
   }
   interface Session {
+    // user.id는 next-auth가 이미 제공한다(주문을 계정에 연결할 때 쓴다).
     user: {
       role?: string;
     } & DefaultSession["user"];
@@ -66,9 +69,15 @@ declare module "@auth/core/jwt" {
   }
 }
 
-async function ensureAdminUser() {
+/**
+ * 관리자 계정 행을 보장하고 그 id를 돌려준다.
+ *
+ * id를 돌려주는 이유 — 세션의 사용자 id가 DB에 실재해야 주문을 계정에 연결할 수 있다.
+ * 예전처럼 `"admin"` 같은 가짜 id를 쓰면 orders.user_id 외래키가 깨진다.
+ */
+async function ensureAdminUser(): Promise<string | null> {
   const adminEmail = process.env.AUTH_ADMIN_EMAIL;
-  if (!adminEmail) return;
+  if (!adminEmail) return null;
 
   const { getPrisma } = await import("@/infrastructure/db/prisma");
   const prisma = getPrisma();
@@ -78,15 +87,31 @@ async function ensureAdminUser() {
   });
 
   if (!existing) {
-    await prisma.user.create({
+    const created = await prisma.user.create({
       data: { email: adminEmail, name: "Admin", role: "admin" },
     });
-  } else if (existing.role !== "admin") {
+    return created.id;
+  }
+
+  if (existing.role !== "admin") {
     await prisma.user.update({
       where: { id: existing.id },
       data: { role: "admin" },
     });
   }
+  return existing.id;
+}
+
+/**
+ * 어댑터는 DATABASE_URL이 있을 때만 붙인다.
+ *
+ * 어댑터를 붙이면 카카오·네이버 로그인 사용자가 users/accounts에 저장되고,
+ * 그래야 주문을 계정에 연결할 수 있다. 다만 DB 없이 도는 정적 개발 모드에서는
+ * 어댑터 생성이 곧바로 터지므로 조건부로 둔다.
+ */
+function createAdapter() {
+  if (!process.env.DATABASE_URL) return undefined;
+  return PrismaAdapter(getPrisma());
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -108,14 +133,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!timingSafeEqualStr(email, adminEmail)) return null;
         if (!verifyPassword(password, storedHash)) return null;
 
-        await ensureAdminUser();
+        const id = await ensureAdminUser();
 
-        return { id: "admin", email: adminEmail, name: "Admin", role: "admin" };
+        return { id: id ?? "admin", email: adminEmail, name: "Admin", role: "admin" };
       },
     }),
     Kakao,
     Naver,
   ],
+  adapter: createAdapter(),
+  // 어댑터가 붙으면 Auth.js의 기본 세션 전략이 "database"로 바뀐다.
+  // 그러면 proxy.ts의 getToken()이 아무것도 못 읽어 관리자 페이지가 전부 막힌다.
+  // JWT 전략을 명시적으로 고정한다.
+  session: { strategy: "jwt" },
   // Vercel이 아닌 자체 호스팅(Lightsail)에서는 이 값이 없으면 Auth.js가
   // 모든 인증 요청을 UntrustedHost로 거부한다 — 관리자 로그인이 전부 실패한다.
   //
@@ -128,7 +158,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (session.user) session.user.role = token.role;
+      if (session.user) {
+        session.user.role = token.role;
+        // JWT 전략에서는 세션에 사용자 id가 자동으로 실리지 않는다.
+        // token.sub은 로그인 직후 채워지지만 타입상 optional이라 확인 후 넣는다.
+        if (token.sub) session.user.id = token.sub;
+      }
       return session;
     },
   },

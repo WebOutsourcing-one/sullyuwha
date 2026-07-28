@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@/domain/entities/Product";
+import { formatKrw, isPayableKrw } from "@/domain/value-objects/Money";
 import { R2Image } from "./R2Image";
 
 interface ProductCardProps {
@@ -42,6 +43,10 @@ export function ProductCard({
         </h3>
 
         <span className="text-xs text-taupe">{product.material}</span>
+
+        <span className="text-sm text-charcoal">
+          {isPayableKrw(product.price) ? formatKrw(product.price) : "가격 문의"}
+        </span>
 
         <p className="mt-1 flex-1 text-sm leading-relaxed text-taupe">
           {product.description}

@@ -1,4 +1,5 @@
 import type { Image } from "../value-objects/Image";
+import type { Krw } from "../value-objects/Money";
 
 /** 상세 페이지의 스펙 표 한 줄(라벨-값). */
 export interface ProductSpec {
@@ -19,6 +20,11 @@ export interface Product {
   readonly material: string;
   /** 카드·요약용 짧은 소개 */
   readonly description: string;
+  /**
+   * 판매가(정수 원). `0`은 "가격 미정"을 뜻하며 결제 버튼 대신 문의 CTA가 나간다.
+   * 맞춤 제작 품목은 가격을 확정하기 전까지 0으로 두면 된다.
+   */
+  readonly price: Krw;
   /** 대표(커버) 이미지 — 카드·OG·갤러리 첫 컷에 사용 */
   readonly image: Image;
   /**

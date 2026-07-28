@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@/domain/entities/Product";
+import { formatKrw, isPayableKrw } from "@/domain/value-objects/Money";
 import { Container } from "../ui/Container";
 import { ProductCard } from "../ui/ProductCard";
 import { ProductGallery } from "../ui/ProductGallery";
@@ -23,6 +24,9 @@ export function ProductDetail({
 }: ProductDetailProps) {
   // 대표 컷 + 추가 갤러리(사진·GIF)를 하나의 미디어 목록으로 합친다.
   const media = [product.image, ...(product.gallery ?? [])];
+
+  // 가격이 0이면 아직 판매가가 정해지지 않은 품목이다 — 결제로 보내지 않고 문의로 돌린다.
+  const purchasable = isPayableKrw(product.price);
 
   return (
     <article aria-labelledby="product-title">
@@ -67,6 +71,9 @@ export function ProductDetail({
               {product.name}
             </h1>
             <span className="text-sm text-taupe">{product.material}</span>
+            <span className="font-serif text-2xl font-light text-charcoal">
+              {purchasable ? formatKrw(product.price) : "가격 문의"}
+            </span>
           </header>
 
           <span className="block h-px w-10 bg-gold" aria-hidden />
@@ -128,18 +135,37 @@ export function ProductDetail({
           )}
 
           <div className="mt-2 flex flex-wrap gap-3">
-            <Link
-              href="/#contact"
-              className="rounded-sm bg-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-[320ms] ease-silk hover:bg-gold"
-            >
-              구매 · 입점 문의
-            </Link>
-            <Link
-              href="/#collection"
-              className="rounded-sm border border-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-[320ms] ease-silk hover:bg-charcoal hover:text-ivory"
-            >
-              컬렉션 전체 보기
-            </Link>
+            {purchasable ? (
+              <>
+                <Link
+                  href={`/checkout/${product.id}`}
+                  className="rounded-sm bg-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-[320ms] ease-silk hover:bg-gold"
+                >
+                  구매하기
+                </Link>
+                <Link
+                  href="/#contact"
+                  className="rounded-sm border border-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-[320ms] ease-silk hover:bg-charcoal hover:text-ivory"
+                >
+                  맞춤 문의
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/#contact"
+                  className="rounded-sm bg-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-[320ms] ease-silk hover:bg-gold"
+                >
+                  구매 · 입점 문의
+                </Link>
+                <Link
+                  href="/#collection"
+                  className="rounded-sm border border-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-[320ms] ease-silk hover:bg-charcoal hover:text-ivory"
+                >
+                  컬렉션 전체 보기
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </Container>

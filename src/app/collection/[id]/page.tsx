@@ -7,6 +7,15 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * 정적 생성된 상세 페이지를 주기적으로 다시 만든다(ISR).
+ *
+ * 이 값이 없으면 빌드 시점 데이터로 고정되어, 관리자가 판매가를 넣어도
+ * 상세 페이지는 계속 "가격 문의"에 머물고 구매하기 버튼이 나오지 않는다.
+ * (체크아웃 페이지는 동적이라 값이 달라 보이는 불일치도 생긴다)
+ */
+export const revalidate = 60;
+
 /** 빌드 타임에 모든 품목 상세를 정적 생성(SSG)한다. */
 export async function generateStaticParams() {
   const products = await container.getCollection.execute();

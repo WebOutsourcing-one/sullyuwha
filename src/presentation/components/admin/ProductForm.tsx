@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 
@@ -10,6 +10,7 @@ interface ProductFormData {
   category: string;
   material: string;
   description: string;
+  price: string;
   imageAssetKey: string;
   imageAlt: string;
   imageExt: string;
@@ -27,6 +28,7 @@ const DEFAULT_FORM: ProductFormData = {
   category: "",
   material: "",
   description: "",
+  price: "0",
   imageAssetKey: "",
   imageAlt: "",
   imageExt: "",
@@ -65,6 +67,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
     const body = {
       ...form,
       sortOrder: Number(form.sortOrder),
+      price: Number(form.price.replace(/,/g, "")) || 0,
       imageAspectRatio: form.imageAspectRatio ? Number(form.imageAspectRatio) : null,
       imageExt: form.imageExt || null,
       tags: safeJson(form.tags),
@@ -159,6 +162,25 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
             <input value={form.material} onChange={set("material")} required className={inputCls} placeholder="예: 명주 100%" />
           </Field>
         </div>
+        <Field
+          label="판매가 (원)"
+          help="0이면 '가격 문의'로 표시되고 결제 버튼이 나가지 않는다"
+        >
+          <input
+            type="number"
+            min={0}
+            step={1000}
+            value={form.price}
+            onChange={set("price")}
+            className={inputCls}
+            placeholder="예: 1800000"
+          />
+          {Number(form.price) > 0 && (
+            <p className="mt-1 text-xs text-neutral-400">
+              {Number(form.price).toLocaleString("ko-KR")}원으로 판매됩니다
+            </p>
+          )}
+        </Field>
         <Field label="설명">
           <textarea value={form.description} onChange={set("description")} rows={3} className={inputCls} placeholder="상품에 대한 간단한 설명을 입력하세요" />
         </Field>

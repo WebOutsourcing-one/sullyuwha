@@ -11,6 +11,11 @@ import { GetProduct } from "@/application/use-cases/GetProduct";
 import { GetSilkFeatures } from "@/application/use-cases/GetSilkFeatures";
 import { GetGallery } from "@/application/use-cases/GetGallery";
 import { GetContactInfo } from "@/application/use-cases/GetContactInfo";
+import { DbOrderRepository } from "@/infrastructure/repositories/DbOrderRepository";
+import { PlaceOrder } from "@/application/use-cases/PlaceOrder";
+import { ConfirmPayment, SyncPaymentStatus } from "@/application/use-cases/ConfirmPayment";
+import { CancelPayment } from "@/application/use-cases/CancelPayment";
+import { GetOrder, ListOrders } from "@/application/use-cases/ListOrders";
 import { getAssetResolver } from "./assets.server";
 
 const useDatabase = process.env.DATA_SOURCE === "database";
@@ -26,6 +31,11 @@ function createContainer() {
     ? new DbBrandContentRepository(getAssetResolver())
     : new StaticBrandContentRepository();
 
+  // 주문은 정적 구현이 성립하지 않는다(어딘가에 남아야 하므로) — 항상 DB를 쓴다.
+  // DATA_SOURCE가 database가 아니면 상품 가격이 0인 정적 데이터라
+  // PlaceOrder가 "가격 미정"으로 먼저 막는다.
+  const orderRepository = new DbOrderRepository();
+
   return {
     getHero: new GetHeroContent(brandContentRepository),
     getStory: new GetBrandStory(brandContentRepository),
@@ -34,6 +44,13 @@ function createContainer() {
     getSilkFeatures: new GetSilkFeatures(brandContentRepository),
     getGallery: new GetGallery(galleryRepository),
     getContact: new GetContactInfo(brandContentRepository),
+
+    placeOrder: new PlaceOrder(productRepository, orderRepository),
+    confirmPayment: new ConfirmPayment(orderRepository),
+    syncPaymentStatus: new SyncPaymentStatus(orderRepository),
+    cancelPayment: new CancelPayment(orderRepository),
+    listOrders: new ListOrders(orderRepository),
+    getOrder: new GetOrder(orderRepository),
   } as const;
 }
 

@@ -10,6 +10,7 @@ interface FormData {
   category: string;
   material: string;
   description: string;
+  price: string;
   imageAssetKey: string;
   imageAlt: string;
   imageExt: string;
@@ -36,6 +37,7 @@ export default function EditProductPage() {
           category: p.category,
           material: p.material,
           description: p.description,
+          price: String(p.price ?? 0),
           imageAssetKey: p.imageAssetKey,
           imageAlt: p.imageAlt,
           imageExt: p.imageExt ?? "",

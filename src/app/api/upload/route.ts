@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { loadServerEnv } from "@/infrastructure/config/server-env";
 import { S3AssetResolver } from "@/infrastructure/assets/S3AssetResolver";
 import { requireAdmin } from "@/lib/require-admin";
+import { denyCrossOrigin } from "@/lib/same-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,6 +69,10 @@ function sanitizePrefix(raw: string): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  // 교차 출처에서 관리자 쿠키를 태워 파일을 밀어 넣지 못하게 막는다.
+  const crossOrigin = denyCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
+
   // 관리자 세션만 업로드할 수 있다.
   // `proxy.ts`는 /sull-admin 페이지만 막으므로 API는 스스로 인증을 확인해야 한다.
   const denied = await requireAdmin();

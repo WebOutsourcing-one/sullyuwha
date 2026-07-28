@@ -19,6 +19,12 @@ export interface ServerEnv {
   readonly s3SecretKey: string;
   readonly s3Bucket: string;
   readonly s3PublicUrl: string | null;
+  /**
+   * 토스페이먼츠 시크릿 키. 이 값이 있으면 임의의 금액을 승인·환불할 수 있으므로
+   * 절대 `NEXT_PUBLIC_` 접두사를 붙이거나 클라이언트로 내려보내면 안 된다.
+   * 없으면 결제 승인은 실패한다(성공으로 폴백하지 않는다).
+   */
+  readonly tossSecretKey: string | null;
 }
 
 export function loadServerEnv(): ServerEnv {
@@ -30,6 +36,7 @@ export function loadServerEnv(): ServerEnv {
     s3SecretKey: env("S3_SECRET_KEY") ?? "",
     s3Bucket: env("S3_BUCKET") ?? "sullyuwha-assets",
     s3PublicUrl: env("S3_PUBLIC_URL"),
+    tossSecretKey: env("TOSS_SECRET_KEY"),
   };
 }
 

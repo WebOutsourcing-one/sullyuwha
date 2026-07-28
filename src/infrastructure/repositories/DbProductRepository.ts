@@ -29,6 +29,7 @@ type RowWithImages = {
   category: string;
   material: string;
   description: string;
+  price: number;
   imageAssetKey: string;
   imageAlt: string;
   imageAspectRatio: number | null;
@@ -48,6 +49,7 @@ function toProduct(row: RowWithImages): Product {
     category: row.category,
     material: row.material,
     description: row.description,
+    price: row.price,
     image: {
       asset: assetKey(row.imageAssetKey),
       alt: row.imageAlt,

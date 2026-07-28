@@ -1,7 +1,14 @@
 import type { Product } from "@/domain/entities/Product";
 import { image } from "./image";
 
-/** 컬렉션(한복 예복) 정적 데이터. BEST COLLECTION · 상세 페이지에 사용. */
+/**
+ * 컬렉션(한복 예복) 정적 데이터. BEST COLLECTION · 상세 페이지에 사용.
+ *
+ * `price: 0`은 "가격 미정"이며 상세 페이지에 결제 버튼 대신 문의 CTA가 나간다.
+ * 실제 판매가는 임의로 정할 수 없으므로 여기서는 0으로 두고,
+ * 관리자 화면(`/sull-admin/products`)에서 품목별로 입력한다.
+ * 즉 결제 흐름을 타려면 `DATA_SOURCE=database`로 실제 DB를 써야 한다.
+ */
 export const productsData: readonly Product[] = [
   {
     id: "dangui-subok",
@@ -10,6 +17,7 @@ export const productsData: readonly Product[] = [
     material: "본견(실크) · 손자수",
     description:
       "수(壽)와 복(福)을 새긴 손자수 당의. 예를 갖추는 자리에 기품을 더합니다.",
+    price: 0,
     image: image("collection/dangui-subok", "수복문 당의", 3 / 4),
     gallery: [
       image("collection/dangui-subok-back", "수복문 당의 뒷태", 3 / 4),
@@ -38,6 +46,7 @@ export const productsData: readonly Product[] = [
     material: "노방 · 금박",
     description:
       "노방 위에 금박을 올린 스란치마. 걸음마다 은은한 층을 이룹니다.",
+    price: 0,
     image: image("collection/seuran-skirt", "궁중 노방 스란치마", 3 / 4),
     gallery: [
       image("collection/seuran-skirt-detail", "스란단 금박 디테일", 3 / 4),
@@ -66,6 +75,7 @@ export const productsData: readonly Product[] = [
     material: "본견(실크) · 자수",
     description:
       "목화 꽃을 수놓은 당의. 담백한 색과 절제된 자수로 현대적입니다.",
+    price: 0,
     image: image("collection/mokhwa-dangui", "목화문 당의", 3 / 4),
     gallery: [
       image("collection/mokhwa-dangui-detail", "목화문 자수 디테일", 3 / 4),
@@ -93,6 +103,7 @@ export const productsData: readonly Product[] = [
     material: "본견(실크)",
     description:
       "정갈한 선의 남성 두루마기. 격식과 편안함을 함께 담았습니다.",
+    price: 0,
     image: image("collection/durumagi", "남성 두루마기 예복", 3 / 4),
     gallery: [
       image("collection/durumagi-detail", "두루마기 고름 디테일", 3 / 4),

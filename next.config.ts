@@ -25,6 +25,24 @@ const isDev = process.env.NODE_ENV === "development";
 const assetOrigins = resolveRemoteHosts().map((h) => `${h.protocol}://${h.hostname}`);
 
 /**
+ * 토스페이먼츠 결제위젯이 필요로 하는 출처.
+ *
+ * 위젯은 `js.tosspayments.com`에서 SDK를 받아 결제수단 UI를 iframe으로 띄우고,
+ * 결제 진행 중 `*.tosspayments.com`으로 XHR·폴링을 한다.
+ * 이 출처들이 빠지면 체크아웃 화면에서 위젯이 아예 렌더되지 않는다.
+ *
+ * 실제 카드사·은행 인증 화면은 토스 도메인에서 새 창/리다이렉트로 열리므로
+ * 우리 문서의 CSP 관할 밖이다 — 카드사 도메인을 여기 나열할 필요는 없다.
+ */
+const TOSS_SCRIPT = "https://js.tosspayments.com";
+// api·event·polling 외에도 결제 수단에 따라 다른 서브도메인을 쓴다.
+// 개별 호스트를 나열하면 특정 결제 수단에서만 조용히 실패하므로 토스 도메인 전체를 연다.
+// 여전히 tosspayments.com으로 한정되므로 임의 외부 출처가 열리는 것은 아니다.
+const TOSS_CONNECT = "https://*.tosspayments.com";
+const TOSS_FRAME = "https://js.tosspayments.com https://*.tosspayments.com";
+const TOSS_IMG = "https://static.tosspayments.com";
+
+/**
  * 정적 마케팅 사이트 기준 CSP.
  * - 개발 모드에서는 Next의 HMR/리프레시가 eval을 쓰므로 'unsafe-eval'을 허용한다.
  * - 프로덕션에는 인라인 스크립트가 없어야 하지만, Next의 부트스트랩 인라인 스크립트 때문에
@@ -32,15 +50,17 @@ const assetOrigins = resolveRemoteHosts().map((h) => `${h.protocol}://${h.hostna
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://unpkg.com" : ""}`,
+  `script-src 'self' 'unsafe-inline' ${TOSS_SCRIPT}${isDev ? " 'unsafe-eval' https://unpkg.com" : ""}`,
   // next/font(구글 폰트)는 빌드 타임에 self-host되므로 외부 도메인이 필요 없다.
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  `img-src 'self' blob: data: ${assetOrigins.join(" ")}`.trim(),
-  "connect-src 'self'",
+  `img-src 'self' blob: data: ${TOSS_IMG} ${assetOrigins.join(" ")}`.trim(),
+  `connect-src 'self' ${TOSS_CONNECT}`,
+  `frame-src 'self' ${TOSS_FRAME}`,
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  // 일부 결제 수단은 토스 도메인으로 폼을 submit한다.
+  "form-action 'self' https://*.tosspayments.com",
   "frame-ancestors 'none'",
   "upgrade-insecure-requests",
 ].join("; ");
