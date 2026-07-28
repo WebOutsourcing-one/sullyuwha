@@ -14,8 +14,8 @@ const NAV_LINKS = [
 ] as const;
 
 const LOGIN_PROVIDERS = [
-  { id: "kakao", label: "카카오 로그인" },
-  { id: "naver", label: "네이버 로그인" },
+  { id: "kakao", label: "카카오 로그인", short: "Kakao" },
+  { id: "naver", label: "네이버 로그인", short: "Naver" },
 ] as const;
 
 export function SiteHeader() {
@@ -185,42 +185,49 @@ export function SiteHeader() {
               </a>
             ))}
 
-            {/* 모바일 로그인 */}
+            {/* 모바일 로그인 — 내비게이션의 하위 액션이므로 산세리프 소형 라벨로
+                한 단계 낮춘다. font-serif(Cormorant)는 라틴 전용이라 한글이
+                Noto Serif KR로 대체되며 같은 크기에서도 훨씬 크고 무겁게 보인다. */}
             {status === "authenticated" ? (
-              <div className="flex items-center justify-between border-b border-line/60 py-4">
-                <div className="flex items-center gap-3">
+              <div className="mt-8">
+                <p className="text-[0.6rem] uppercase tracking-[0.28em] text-gold">
+                  Account
+                </p>
+                <p className="mt-2 text-sm text-taupe">{session.user?.name}</p>
+                <div className="mt-3 flex gap-2">
                   <a
                     href="/sull-admin"
                     onClick={() => setOpen(false)}
-                    className="font-serif text-xl font-light tracking-[0.05em] text-charcoal"
+                    className="flex-1 border border-line px-4 py-3 text-center text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
                   >
                     Admin
                   </a>
-                  <span className="text-sm text-taupe">/</span>
-                  <span className="font-serif text-xl font-light text-charcoal">
-                    {session.user?.name}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setOpen(false); signOut(); }}
+                    className="flex-1 border border-line px-4 py-3 text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
+                  >
+                    Logout
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => { setOpen(false); signOut(); }}
-                  className="text-xs uppercase tracking-[0.16em] text-taupe"
-                >
-                  Logout
-                </button>
               </div>
             ) : (
-              <div className="flex flex-col border-b border-line/60 py-2">
-                {LOGIN_PROVIDERS.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => { setOpen(false); signIn(p.id); }}
-                    className="py-3 text-left font-serif text-xl font-light tracking-[0.05em] text-charcoal"
-                  >
-                    {p.label}
-                  </button>
-                ))}
+              <div className="mt-8">
+                <p className="text-[0.6rem] uppercase tracking-[0.28em] text-gold">
+                  Login
+                </p>
+                <div className="mt-3 flex gap-2">
+                  {LOGIN_PROVIDERS.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => { setOpen(false); signIn(p.id); }}
+                      className="flex-1 border border-line px-4 py-3 text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
+                    >
+                      {p.short}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </nav>
