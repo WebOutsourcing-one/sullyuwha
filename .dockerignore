@@ -1,0 +1,33 @@
+# 빌드 컨텍스트에서 제외 — 비밀값과 로컬 상태가 이미지 레이어에 섞이는 것을 막는다.
+.git
+.gitignore
+
+# 실제 값이 담긴 env 파일은 절대 이미지에 넣지 않는다.
+# (런타임에 --env-file 또는 오케스트레이터의 secret으로 주입한다)
+.env
+.env.*
+!.env.example
+
+# 의존성 / 빌드 산출물 — 이미지 안에서 새로 설치·빌드한다.
+node_modules
+.next
+out
+build
+coverage
+*.tsbuildinfo
+
+# 로컬 툴링 상태
+.omc
+.claude
+.agents
+.windsurf
+docs
+
+# OS / 에디터
+.DS_Store
+**/.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

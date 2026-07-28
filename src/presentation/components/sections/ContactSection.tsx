@@ -8,6 +8,21 @@ interface ContactSectionProps {
   contact: ContactInfo;
 }
 
+/**
+ * DB에서 온 링크 URL을 안전한 스킴으로 제한한다.
+ * `socials`는 DB(JSON) 값이므로, `javascript:` 같은 스킴이 들어오면
+ * 클릭 시 스크립트가 실행되는 저장형 XSS가 된다.
+ * @returns 안전한 URL, 아니면 null(링크를 렌더링하지 않음)
+ */
+function safeExternalUrl(raw: string): string | null {
+  try {
+    const url = new URL(raw, "https://sullyuwha.com");
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
 export function ContactSection({ contact }: ContactSectionProps) {
   return (
     <section
@@ -50,17 +65,21 @@ export function ContactSection({ contact }: ContactSectionProps) {
               </dl>
 
               <div className="flex gap-3">
-                {contact.socials.map((s) => (
-                  <a
-                    key={s.label}
-                    href={s.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-sm border border-charcoal/25 px-5 py-2.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-300 ease-silk hover:bg-charcoal hover:text-ivory"
-                  >
-                    {s.label}
-                  </a>
-                ))}
+                {contact.socials.map((s) => {
+                  const href = safeExternalUrl(s.url);
+                  if (!href) return null;
+                  return (
+                    <a
+                      key={s.label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-sm border border-charcoal/25 px-5 py-2.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-300 ease-silk hover:bg-charcoal hover:text-ivory"
+                    >
+                      {s.label}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </Reveal>

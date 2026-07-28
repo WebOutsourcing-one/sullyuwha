@@ -55,8 +55,10 @@ export default function RootLayout({
       >
         {process.env.NODE_ENV === "development" && (
           <head>
+            {/* 프로토콜 상대 URL(`//`)은 http 페이지에서 http로 내려가 중간자 공격에
+                노출된다. 서드파티 스크립트는 항상 https로 고정한다. */}
             <Script
-              src="//unpkg.com/react-grab/dist/index.global.js"
+              src="https://unpkg.com/react-grab/dist/index.global.js"
               crossOrigin="anonymous"
               strategy="beforeInteractive"
             />

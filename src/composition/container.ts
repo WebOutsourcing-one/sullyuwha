@@ -11,7 +11,7 @@ import { GetProduct } from "@/application/use-cases/GetProduct";
 import { GetSilkFeatures } from "@/application/use-cases/GetSilkFeatures";
 import { GetGallery } from "@/application/use-cases/GetGallery";
 import { GetContactInfo } from "@/application/use-cases/GetContactInfo";
-import { getAssetResolver } from "./assets";
+import { getAssetResolver } from "./assets.server";
 
 const useDatabase = process.env.DATA_SOURCE === "database";
 

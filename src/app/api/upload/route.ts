@@ -1,11 +1,125 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadEnv } from "@/infrastructure/config/env";
+import { randomUUID } from "node:crypto";
+import { loadServerEnv } from "@/infrastructure/config/server-env";
 import { S3AssetResolver } from "@/infrastructure/assets/S3AssetResolver";
+import { requireAdmin } from "@/lib/require-admin";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/** 업로드 허용 최대 크기 (10MB). */
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+/** 실제 바이트로 판별된 이미지 포맷만 허용한다. */
+type ImageFormat = { mime: string; ext: string };
+
+/**
+ * 매직 바이트로 실제 파일 포맷을 판별한다.
+ * `file.type`/`file.name`은 클라이언트가 자유롭게 위조할 수 있으므로 신뢰하지 않는다.
+ * 에셋은 공개 도메인(assets.sullyuwha.com)에서 서빙되므로, HTML/SVG가 섞여 들어오면
+ * 그 도메인에 저장형 XSS가 생긴다. 따라서 래스터 이미지만 통과시킨다.
+ */
+function sniffImageFormat(buf: Buffer): ImageFormat | null {
+  if (buf.length < 12) return null;
+
+  // JPEG: FF D8 FF
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return { mime: "image/jpeg", ext: "jpg" };
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    return { mime: "image/png", ext: "png" };
+  }
+  // GIF: "GIF87a" | "GIF89a"
+  const gif = buf.subarray(0, 6).toString("latin1");
+  if (gif === "GIF87a" || gif === "GIF89a") {
+    return { mime: "image/gif", ext: "gif" };
+  }
+  // WebP: "RIFF" .... "WEBP"
+  if (
+    buf.subarray(0, 4).toString("latin1") === "RIFF" &&
+    buf.subarray(8, 12).toString("latin1") === "WEBP"
+  ) {
+    return { mime: "image/webp", ext: "webp" };
+  }
+  // AVIF: .... "ftyp" + brand "avif" | "avis"
+  if (buf.subarray(4, 8).toString("latin1") === "ftyp") {
+    const brand = buf.subarray(8, 12).toString("latin1");
+    if (brand === "avif" || brand === "avis") {
+      return { mime: "image/avif", ext: "avif" };
+    }
+  }
+  return null;
+}
+
+/**
+ * 버킷 키 접두사를 정규화한다.
+ * 소문자/숫자/`-`/`_`/`/`만 허용해 경로 탈출(`../`)과 키 인젝션을 차단한다.
+ * @returns 유효한 접두사, 형식이 어긋나면 null
+ */
+function sanitizePrefix(raw: string): string | null {
+  const trimmed = raw.trim().replace(/^\/+|\/+$/g, "");
+  if (!trimmed) return null;
+  if (trimmed.length > 64) return null;
+  if (!/^[a-z0-9](?:[a-z0-9_-]*\/?)*[a-z0-9]$/.test(trimmed)) return null;
+  if (trimmed.includes("//") || trimmed.includes("..")) return null;
+  if (trimmed.split("/").length > 3) return null;
+  return trimmed;
+}
 
 export async function POST(request: NextRequest) {
-  const env = loadEnv();
-  if (!env.s3AccessKey) {
-    return NextResponse.json({ error: "S3 not configured" }, { status: 400 });
+  // 관리자 세션만 업로드할 수 있다.
+  // `proxy.ts`는 /sull-admin 페이지만 막으므로 API는 스스로 인증을 확인해야 한다.
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
+  const env = loadServerEnv();
+  if (!env.s3AccessKey || !env.s3SecretKey) {
+    return NextResponse.json({ error: "S3 not configured" }, { status: 503 });
+  }
+
+  // 본문을 메모리로 읽기 전에 선언된 크기부터 거른다.
+  const declaredLength = Number(request.headers.get("content-length") ?? "0");
+  if (declaredLength > MAX_UPLOAD_BYTES) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json({ error: "Invalid multipart body" }, { status: 400 });
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
+    return NextResponse.json({ error: "No file provided" }, { status: 400 });
+  }
+  if (file.size === 0) {
+    return NextResponse.json({ error: "Empty file" }, { status: 400 });
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  const rawPrefix = formData.get("prefix");
+  const prefix = typeof rawPrefix === "string" ? sanitizePrefix(rawPrefix) : "uploads";
+  if (!prefix) {
+    return NextResponse.json({ error: "Invalid prefix" }, { status: 400 });
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  if (buffer.byteLength > MAX_UPLOAD_BYTES) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  // 확장자와 Content-Type 모두 실제 바이트에서 도출한다 — 클라이언트 입력은 쓰지 않는다.
+  const format = sniffImageFormat(buffer);
+  if (!format) {
+    return NextResponse.json(
+      { error: "Unsupported file type (jpeg, png, gif, webp, avif only)" },
+      { status: 415 },
+    );
   }
 
   const resolver = new S3AssetResolver({
@@ -17,19 +131,14 @@ export async function POST(request: NextRequest) {
     publicUrl: env.s3PublicUrl ?? `https://${env.s3Bucket}.s3.${env.s3Region}.amazonaws.com`,
   });
 
-  const formData = await request.formData();
-  const file = formData.get("file") as File | null;
-  const prefix = (formData.get("prefix") as string) ?? "uploads";
+  const key = `${prefix}/${randomUUID()}.${format.ext}`;
 
-  if (!file) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 });
+  try {
+    const result = await resolver.upload(buffer, key, format.mime);
+    return NextResponse.json(result);
+  } catch (error) {
+    // 스토리지 오류 상세(버킷명·자격증명 힌트)는 클라이언트로 넘기지 않는다.
+    console.error("[upload] S3 upload failed", error);
+    return NextResponse.json({ error: "Upload failed" }, { status: 502 });
   }
-
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const key = `${prefix}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const result = await resolver.upload(buffer, key, file.type);
-
-  return NextResponse.json(result);
 }
