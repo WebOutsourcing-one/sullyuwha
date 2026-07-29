@@ -14,7 +14,6 @@ interface ProductFormData {
   imageAssetKey: string;
   imageAlt: string;
   imageExt: string;
-  imageAspectRatio: string;
   tags: string;
   story: string;
   specs: string;
@@ -32,7 +31,6 @@ const DEFAULT_FORM: ProductFormData = {
   imageAssetKey: "",
   imageAlt: "",
   imageExt: "",
-  imageAspectRatio: "",
   tags: "[]",
   story: "",
   specs: "[]",
@@ -68,7 +66,6 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       ...form,
       sortOrder: Number(form.sortOrder),
       price: Number(form.price.replace(/,/g, "")) || 0,
-      imageAspectRatio: form.imageAspectRatio ? Number(form.imageAspectRatio) : null,
       imageExt: form.imageExt || null,
       tags: safeJson(form.tags),
       specs: safeJson(form.specs),
@@ -209,15 +206,15 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
             <input value={form.imageAssetKey} onChange={set("imageAssetKey")} className={inputCls} />
           </Field>
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        {/* 가로세로비 입력은 제거했다 — R2Image가 next/image의 fill로 렌더하고
+            잘리는 비율은 배치한 컨테이너(3:4 등)가 정하므로, 이 값은 어디서도
+            쓰이지 않는 채 입력만 받고 있었다. */}
+        <div className="grid grid-cols-2 gap-4">
           <Field label="대체 텍스트">
             <input value={form.imageAlt} onChange={set("imageAlt")} className={inputCls} placeholder="이미지 설명" />
           </Field>
           <Field label="확장자">
             <input value={form.imageExt} onChange={set("imageExt")} className={inputCls} placeholder="jpg/png/gif" />
-          </Field>
-          <Field label="가로세로비" help="width/height">
-            <input value={form.imageAspectRatio} onChange={set("imageAspectRatio")} placeholder="예: 0.75" className={inputCls} />
           </Field>
         </div>
       </Section>

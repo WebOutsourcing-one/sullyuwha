@@ -52,7 +52,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         price: toPrice(body.price),
         imageAssetKey: body.imageAssetKey,
         imageAlt: body.imageAlt,
-        imageAspectRatio: body.imageAspectRatio ?? null,
+        // imageAspectRatio는 갱신하지 않는다 — 렌더에 쓰이지 않아 관리자 폼에서
+        // 입력칸을 뺐고, 여기서 `?? null`로 덮으면 기존 값이 조용히 지워진다.
         imageExt: body.imageExt ?? null,
         tags: body.tags ?? [],
         story: body.story ?? null,

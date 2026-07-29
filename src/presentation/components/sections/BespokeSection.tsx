@@ -7,12 +7,30 @@ interface BespokeSectionProps {
   bespoke: BespokeContent;
 }
 
-/** BESPOKE — 당신만을 위한 단 하나의 예복. */
+/**
+ * BESPOKE — 당신만을 위한 단 하나의 예복.
+ *
+ * 높이를 `h-screen`으로 잡지 않는 이유 —
+ * 전면 이미지가 `object-cover`라 컨테이너 비율대로 잘리는데, `h-screen`은 컨테이너
+ * 비율을 **뷰포트 비율 그대로** 만든다. 세로 폰(약 0.46)과 데스크톱(약 1.78)에서
+ * 4배 가까이 차이가 나 같은 사진이 전혀 다르게 잘렸고, 모바일에서 주소창이
+ * 접혔다 펴지는 것만으로도 잘리는 위치가 흔들렸다.
+ *
+ * 브레이크포인트별 고정 비율로 바꿔 뷰포트 높이 의존을 완전히 없앴다.
+ * 이제 창 높이를 바꾸거나 기기를 회전해도 잘리는 위치가 그대로다.
+ *
+ * 데스크톱을 16:9로 잡고 max-height를 두지 않는다 — 상한을 걸면 폭이 넓은 화면에서
+ * 비율이 다시 벌어져(2.0 이상) 편차를 줄인 의미가 사라진다. 16:9는 1920px 폭에서
+ * 1080px 높이라 기존 `h-screen`과 실질적으로 같은 크기다.
+ *
+ * `min-h`는 텍스트 오버레이가 `absolute`라 섹션 높이를 밀어내지 못하기 때문에 둔다.
+ * 이 값이 없으면 좁은 화면에서 제목·문단이 섹션 밖으로 넘쳐 `overflow-hidden`에 잘린다.
+ */
 export function BespokeSection({ bespoke }: BespokeSectionProps) {
   return (
     <section
       id="bespoke"
-      className="relative h-screen min-h-[40rem] overflow-hidden bg-champagne"
+      className="relative aspect-[4/5] min-h-[34rem] w-full overflow-hidden bg-champagne sm:aspect-[4/3] lg:aspect-[16/9]"
       aria-labelledby="bespoke-title"
     >
       <R2Image

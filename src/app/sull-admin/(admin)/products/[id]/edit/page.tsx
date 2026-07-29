@@ -14,7 +14,6 @@ interface FormData {
   imageAssetKey: string;
   imageAlt: string;
   imageExt: string;
-  imageAspectRatio: string;
   tags: string;
   story: string;
   specs: string;
@@ -41,7 +40,6 @@ export default function EditProductPage() {
           imageAssetKey: p.imageAssetKey,
           imageAlt: p.imageAlt,
           imageExt: p.imageExt ?? "",
-          imageAspectRatio: p.imageAspectRatio != null ? String(p.imageAspectRatio) : "",
           tags: JSON.stringify(p.tags),
           story: p.story ?? "",
           specs: JSON.stringify(p.specs),

@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
       price: toPrice(body.price),
       imageAssetKey: body.imageAssetKey,
       imageAlt: body.imageAlt,
-      imageAspectRatio: body.imageAspectRatio ?? null,
       imageExt: body.imageExt ?? null,
       tags: body.tags ?? [],
       story: body.story ?? null,
