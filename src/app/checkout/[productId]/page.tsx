@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { container } from "@/composition/container";
+import { thumbnailOf } from "@/domain/entities/Product";
 import { formatKrw, isPayableKrw } from "@/domain/value-objects/Money";
 import { Container } from "@/presentation/components/ui/Container";
 import { R2Image } from "@/presentation/components/ui/R2Image";
@@ -90,7 +91,7 @@ export default async function CheckoutPage({ params }: PageProps) {
             <h2 className="text-xs uppercase tracking-[0.18em] text-gold">주문 상품</h2>
             <div className="mt-5 flex gap-4">
               <div className="relative h-24 w-20 shrink-0 overflow-hidden bg-champagne">
-                <R2Image image={product.image} sizes="80px" />
+                <R2Image image={thumbnailOf(product)} sizes="80px" />
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[0.7rem] uppercase tracking-[0.18em] text-gold">

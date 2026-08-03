@@ -14,10 +14,14 @@ interface FormData {
   imageAssetKey: string;
   imageAlt: string;
   imageExt: string;
+  thumbnailAssetKey: string;
+  thumbnailAlt: string;
+  thumbnailExt: string;
   tags: string;
   story: string;
   specs: string;
   care: string;
+  detail: string;
   sortOrder: string;
 }
 
@@ -40,10 +44,16 @@ export default function EditProductPage() {
           imageAssetKey: p.imageAssetKey,
           imageAlt: p.imageAlt,
           imageExt: p.imageExt ?? "",
+          thumbnailAssetKey: p.thumbnailAssetKey ?? "",
+          thumbnailAlt: p.thumbnailAlt ?? "",
+          thumbnailExt: p.thumbnailExt ?? "",
           tags: JSON.stringify(p.tags),
           story: p.story ?? "",
           specs: JSON.stringify(p.specs),
           care: JSON.stringify(p.care),
+          // 컬럼이 비어 있으면 null이 와서 JSON.stringify가 "null"이 된다 —
+          // 폼은 객체를 기대하므로 빈 객체로 바꿔 넘긴다.
+          detail: JSON.stringify(p.detail ?? {}),
           sortOrder: String(p.sortOrder),
         }),
       )

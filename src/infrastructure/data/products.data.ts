@@ -11,6 +11,89 @@ import { image } from "./image";
  */
 export const productsData: readonly Product[] = [
   {
+    id: "dangui-bonghwang",
+    name: "봉황문 부금 당의",
+    category: "여성 예복",
+    material: "본견(명주) · 부금(금사) 자수",
+    description:
+      "봉황의 고귀함을 수놓아 왕비의 기품과 품위를 담은 예복입니다.",
+    price: 0,
+    image: image("collection/dangui-bonghwang", "봉황문 부금 당의", 3 / 4),
+    thumbnail: image(
+      "collection/dangui-bonghwang-thumb",
+      "봉황문 부금 당의",
+      3 / 4,
+    ),
+    tags: ["당의", "부금", "봉황문", "예식"],
+    // story는 두지 않는다 — 같은 문단이 detail.highlight.body에 있고,
+    // 상세 페이지는 highlight가 있으면 story를 렌더하지 않는다.
+    specs: [
+      { label: "제품명", value: "봉황문 부금 당의" },
+      { label: "색상", value: "진홍" },
+      { label: "소재", value: "겉감 : 실크(명주) / 자수 : 금사(부금)" },
+      { label: "안감", value: "명주(실크 100%)" },
+      { label: "구성", value: "당의, 스란치마, 부금수식" },
+      { label: "제작", value: "설유화" },
+    ],
+    care: [
+      "전문 한복 드라이클리닝 권장",
+      "부금은 마찰에 약하므로 접촉을 최소화",
+      "직사광선과 습기를 피해 걸어서 보관",
+    ],
+    detail: {
+      subtitle: "鳳凰紋 負衿 唐衣",
+      tagline: "귀한 순간을 더 빛나게 하는 품격의 예복",
+      intro: "봉황의 고귀함을 수놓아\n왕비의 기품과 품위를 담은 예복입니다.",
+      highlight: {
+        title: "봉황, 고귀함과 영원의 상징",
+        body: "봉황은 예로부터 덕과 지혜를 지닌 군자의 상징으로, 왕비의 기품과 복을 기원하는 의미를 담고 있습니다. 부금 자수로 정교하게 표현된 봉황문은 예복의 품격을 한층 더 높여줍니다.",
+        image: image(
+          "collection/dangui-bonghwang-embroidery",
+          "부금으로 수놓은 봉황문 자수",
+          4 / 3,
+        ),
+      },
+      features: [
+        {
+          title: "정교한 수복문 자수",
+          body: "옷 전체에 수복문을 금실로 수놓아 복과 장수를 기원하는 전통의 의미를 더하였습니다.",
+          image: image(
+            "collection/dangui-bonghwang-subok",
+            "당의 앞길의 수복문 금사 자수",
+            4 / 3,
+          ),
+        },
+        {
+          title: "부금 봉황문 자수",
+          body: "스란치마 하단에는 봉황을 중심으로 꽃과 구름을 수놓아 왕실의 위엄을 표현하였습니다.",
+          image: image(
+            "collection/dangui-bonghwang-seuran",
+            "스란치마 하단의 부금 봉황문",
+            4 / 3,
+          ),
+        },
+        {
+          title: "명주 안감",
+          body: "안감은 부드러운 명주로 제작되어 착용감이 우수하며, 자연스러운 광택이 고급스러움을 더합니다.",
+          image: image(
+            "collection/dangui-bonghwang-lining",
+            "당의 안쪽의 명주 안감",
+            4 / 3,
+          ),
+        },
+      ],
+      modelShots: [
+        image("collection/dangui-bonghwang-model-1", "봉황문 부금 당의 정면", 3 / 4),
+        image("collection/dangui-bonghwang-model-2", "봉황문 부금 당의 측면", 3 / 4),
+        image("collection/dangui-bonghwang-model-3", "봉황문 부금 당의 뒷태", 3 / 4),
+      ],
+      notes: [
+        "모니터의 해상도에 따라 색상이 다르게 보일 수 있습니다.",
+        "사이즈는 제작 과정에서 1~2cm의 오차가 있을 수 있습니다.",
+      ],
+    },
+  },
+  {
     id: "dangui-subok",
     name: "수복문 당의",
     category: "여성 예복",

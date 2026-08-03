@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@/domain/entities/Product";
+import { thumbnailOf } from "@/domain/entities/Product";
 import { formatKrw, isPayableKrw } from "@/domain/value-objects/Money";
 import { R2Image } from "./R2Image";
 
@@ -24,7 +25,7 @@ export function ProductCard({
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-champagne">
         <R2Image
-          image={product.image}
+          image={thumbnailOf(product)}
           sizes={sizes}
           priority={priority}
           className="transition-transform duration-[600ms] ease-silk group-hover:scale-[1.03]"
