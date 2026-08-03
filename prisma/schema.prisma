@@ -158,6 +158,12 @@ model User {
   emailVerified DateTime? @map("email_verified")
   image         String?
   role          String    @default("user")
+  /// 관리자 로그인용 scrypt 해시(`scrypt:<salt-hex>:<hash-hex>`).
+  /// 소셜 로그인 사용자는 비밀번호가 없으므로 null이다.
+  ///
+  /// env가 아니라 DB에 두는 이유 — `AUTH_ADMIN_PASSWORD`에 평문을 넣어 두면
+  /// 부팅 시 해싱해서 여기 저장하고, 그 뒤에는 env에서 평문을 지워도 로그인이 된다.
+  passwordHash  String?   @map("password_hash")
   accounts      Account[]
   sessions      Session[]
   orders        Order[]
