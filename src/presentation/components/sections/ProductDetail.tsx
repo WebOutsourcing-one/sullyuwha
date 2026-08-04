@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@/domain/entities/Product";
-import { formatKrw, isPayableKrw } from "@/domain/value-objects/Money";
+
 import { Container } from "../ui/Container";
 import { ProductCard } from "../ui/ProductCard";
 import { ProductGallery } from "../ui/ProductGallery";
@@ -35,9 +35,6 @@ export function ProductDetail({
   // 대표 컷 + 추가 갤러리(사진·GIF)를 하나의 미디어 목록으로 합친다.
   const media = [product.image, ...(product.gallery ?? [])];
 
-  // 가격이 0이면 아직 판매가가 정해지지 않은 품목이다 — 결제로 보내지 않고 문의로 돌린다.
-  const purchasable = isPayableKrw(product.price);
-
   const detail = product.detail;
   // 상징 해설 블록이 있으면 story는 그 본문과 겹치므로 위쪽에서 다시 쓰지 않는다.
   const showStory = Boolean(product.story) && !detail?.highlight;
@@ -71,9 +68,9 @@ export function ProductDetail({
 
       {/* 본문 — 이미지 + 정보 */}
       <Container className="grid gap-10 pb-16 pt-6 md:pb-20 lg:grid-cols-2 lg:gap-16">
-        <Reveal className="flex gap-5 md:gap-7">
+        <Reveal className="relative">
           {detail?.tagline && (
-            <div className="hidden shrink-0 flex-col items-center gap-4 pt-1 md:flex">
+            <div className="absolute left-4 top-6 z-10 flex flex-col items-center gap-3">
               <span className="font-serif text-sm tracking-[0.35em] text-charcoal [writing-mode:vertical-rl]">
                 설유화
               </span>
@@ -83,17 +80,15 @@ export function ProductDetail({
               </span>
             </div>
           )}
-          <div className="min-w-0 flex-1">
-            <ProductGallery images={media} priority />
-          </div>
+          <ProductGallery images={media} priority />
         </Reveal>
 
-        <div className="flex flex-col gap-7 self-start lg:sticky lg:top-28">
-          <header className="flex flex-col gap-3">
+        <div className="flex flex-col gap-5 self-start lg:sticky lg:top-28">
+          <header className="flex flex-col gap-1">
             <span className="u-label">{product.category}</span>
             <h1
               id="product-title"
-              className="text-[clamp(2rem,4.5vw,3.25rem)] font-light"
+              className="text-[clamp(1.875rem,4.5vw,3.125rem)] font-light"
             >
               {product.name}
             </h1>
@@ -105,7 +100,7 @@ export function ProductDetail({
           </header>
 
           {/* 마름모 구분 장식 */}
-          <div className="flex items-center gap-3" aria-hidden>
+          <div className="-my-3 flex items-center gap-3" aria-hidden>
             <span className="h-px w-10 bg-gold" />
             <span className="h-1.5 w-1.5 rotate-45 border border-gold" />
             <span className="h-px flex-1 bg-line" />
@@ -120,64 +115,10 @@ export function ProductDetail({
             <p className="leading-relaxed text-taupe">{product.story}</p>
           )}
 
-          <div className="flex flex-col gap-2 border-y border-line py-6">
-            <span className="text-sm text-taupe">{product.material}</span>
-            <span className="font-serif text-2xl font-light text-charcoal">
-              {purchasable ? formatKrw(product.price) : "가격 문의"}
-            </span>
-          </div>
-
-          {product.tags.length > 0 && (
-            <ul className="flex flex-wrap gap-2">
-              {product.tags.map((tag) => (
-                <li
-                  key={tag}
-                  className="rounded-sm border border-line px-3 py-1 text-xs text-taupe"
-                >
-                  {tag}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="mt-1 flex flex-wrap gap-3">
-            {purchasable ? (
-              <>
-                <Link
-                  href={`/checkout/${product.id}`}
-                  className="rounded-sm bg-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-[320ms] ease-silk hover:bg-gold"
-                >
-                  구매하기
-                </Link>
-                <Link
-                  href="/#contact"
-                  className="rounded-sm border border-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-[320ms] ease-silk hover:bg-charcoal hover:text-ivory"
-                >
-                  맞춤 문의
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/#contact"
-                  className="rounded-sm bg-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-ivory transition-colors duration-[320ms] ease-silk hover:bg-gold"
-                >
-                  구매 · 입점 문의
-                </Link>
-                <Link
-                  href="/#collection"
-                  className="rounded-sm border border-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-[320ms] ease-silk hover:bg-charcoal hover:text-ivory"
-                >
-                  컬렉션 전체 보기
-                </Link>
-              </>
-            )}
-          </div>
+          {/* 상징 해설 — 대표 문양 클로즈업 */}
+          {detail?.highlight && <ProductHighlight block={detail.highlight} />}
         </div>
       </Container>
-
-      {/* 상징 해설 — 대표 문양 클로즈업 */}
-      {detail?.highlight && <ProductHighlight block={detail.highlight} />}
 
       {/* 디테일 — 자수·소재·안감 */}
       {detail?.features && detail.features.length > 0 && (

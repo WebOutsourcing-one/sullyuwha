@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import NextImage from "next/image";
 import type { FormEvent } from "react";
 
 interface ProductFormData {
@@ -72,6 +73,9 @@ const DEFAULT_FORM: ProductFormData = {
   sortOrder: "0",
 };
 
+/** 업로드된 에셋 미리보기 URL. base URL이 없으면 이미지가 없는 것으로 본다. */
+const S3_BASE = process.env.NEXT_PUBLIC_ASSET_BASE_URL || "";
+
 function parseJsonArray<T>(val: string): T[] {
   try {
     const p = JSON.parse(val);
@@ -131,13 +135,41 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
   const set = (key: keyof ProductFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
+  // 대표 이미지 / 썸네일 — 도메인 DetailImage 형태로 들고 폼 필드에 펼친다.
+  const coverImage: DetailImage = {
+    assetKey: form.imageAssetKey,
+    alt: form.imageAlt,
+    ext: form.imageExt,
+  };
+  const setCoverImage = (next: DetailImage | null) =>
+    setForm((prev) => ({
+      ...prev,
+      imageAssetKey: next?.assetKey ?? "",
+      imageAlt: next?.alt ?? "",
+      imageExt: next?.ext ?? "",
+    }));
+  const thumbnailImage: DetailImage = {
+    assetKey: form.thumbnailAssetKey,
+    alt: form.thumbnailAlt,
+    ext: form.thumbnailExt,
+  };
+  const setThumbnailImage = (next: DetailImage | null) =>
+    setForm((prev) => ({
+      ...prev,
+      thumbnailAssetKey: next?.assetKey ?? "",
+      thumbnailAlt: next?.alt ?? "",
+      thumbnailExt: next?.ext ?? "",
+    }));
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     const body = {
       ...form,
-      sortOrder: Number(form.sortOrder),
+      // 신규 상품은 서버가 ID와 정렬순서를 붙인다(자동 증가·최신순).
+      // 정렬순서는 null로 보내서 서버가 "목록 맨 앞" 값을 주도록 한다.
+      sortOrder: isEdit ? Number(form.sortOrder) : null,
       price: Number(form.price.replace(/,/g, "")) || 0,
       imageExt: form.imageExt || null,
       tags: safeJson(form.tags),
@@ -152,11 +184,16 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
     const method = isEdit ? "PUT" : "POST";
 
     try {
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.error ?? "저장에 실패했습니다");
+        return;
+      }
       router.push("/sull-admin/products");
     } catch {
       alert("저장 중 오류가 발생했습니다");
@@ -165,28 +202,8 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    const uploaded = await uploadImage(file);
-    if (!uploaded) return alert("업로드 실패");
-    setForm((prev) => ({
-      ...prev,
-      imageAssetKey: uploaded.assetKey,
-      imageExt: uploaded.ext,
-    }));
-  };
-
-  const handleThumbnailUpload = async (file: File) => {
-    const uploaded = await uploadImage(file);
-    if (!uploaded) return alert("업로드 실패");
-    setForm((prev) => ({
-      ...prev,
-      thumbnailAssetKey: uploaded.assetKey,
-      thumbnailExt: uploaded.ext,
-    }));
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-6xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="font-serif text-2xl font-light">
@@ -214,19 +231,28 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
         </div>
       </div>
 
-      <Section title="기본 정보">
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="상품 ID" help="URL에 사용될 고유 식별자 (영문, 숫자, 하이픈)">
-            <input value={form.id} onChange={set("id")} required disabled={isEdit} className={inputCls} placeholder="예: dangui-bonghwang" />
-          </Field>
-          <Field label="정렬 순서" help="낮을수록 먼저 표시">
-            <input type="number" value={form.sortOrder} onChange={set("sortOrder")} className={inputCls} />
-          </Field>
+      {/* ── 상단 2단 — 대표 컷(갤러리) + 상품 정보 (상세 페이지 상단과 같은 배치) ── */}
+      <div className="grid gap-10 pb-16 pt-4 lg:grid-cols-2 lg:gap-16">
+        <div className="flex flex-col gap-8">
+          <div className="max-w-sm">
+            <ImageField
+              label="목록 썸네일 — 비우면 대표 컷 사용"
+              value={thumbnailImage}
+              onChange={setThumbnailImage}
+              aspect="aspect-[4/3]"
+            />
+          </div>
+          <div className="border-t border-neutral-200 pt-8">
+            <ImageField
+              label="대표 컷 — 상세 갤러리 첫 컷"
+              value={coverImage}
+              onChange={setCoverImage}
+              aspect="aspect-[16/10]"
+            />
+          </div>
         </div>
-        <Field label="상품명">
-          <input value={form.name} onChange={set("name")} required className={inputCls} placeholder="상품명을 입력하세요" />
-        </Field>
-        <div className="grid grid-cols-2 gap-4">
+
+        <div className="flex flex-col gap-5">
           <Field label="카테고리">
             <select value={form.category} onChange={set("category")} required className={inputCls}>
               <option value="">카테고리 선택</option>
@@ -235,204 +261,157 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
               ))}
             </select>
           </Field>
-          <Field label="소재">
-            <input value={form.material} onChange={set("material")} required className={inputCls} placeholder="예: 본견(명주) · 부금(금사) 자수" />
-          </Field>
-        </div>
-        <Field
-          label="판매가 (원)"
-          help="0이면 '가격 문의'로 표시되고 결제 버튼이 나가지 않는다"
-        >
-          <input
-            type="number"
-            min={0}
-            step={1000}
-            value={form.price}
-            onChange={set("price")}
-            className={inputCls}
-            placeholder="예: 1800000"
-          />
-          {Number(form.price) > 0 && (
-            <p className="mt-1 text-xs text-neutral-400">
-              {Number(form.price).toLocaleString("ko-KR")}원으로 판매됩니다
-            </p>
-          )}
-        </Field>
-        <Field label="설명" help="컬렉션 카드와 검색 결과에 나가는 한 줄 소개">
-          <textarea value={form.description} onChange={set("description")} rows={3} className={inputCls} placeholder="상품에 대한 간단한 설명을 입력하세요" />
-        </Field>
-      </Section>
-
-      <Section title="대표 이미지">
-        <p className="-mt-2 text-xs leading-relaxed text-neutral-400">
-          상세 페이지 갤러리의 첫 컷입니다. 목록에 걸리는 썸네일은 아래에서 따로 지정합니다.
-        </p>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-500">새 이미지 업로드</label>
+          <Field label="상품명">
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleImageUpload(file);
-              }}
-              className={fileCls}
+              value={form.name}
+              onChange={set("name")}
+              required
+              className={`${inputCls} text-xl font-light`}
+              placeholder="상품명을 입력하세요"
             />
-            {form.imageAssetKey && (
-              <div className="mt-2 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
-                업로드 완료
-              </div>
-            )}
+          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="한자 부제">
+              <input
+                value={detail.subtitle ?? ""}
+                onChange={(e) => patchDetail({ subtitle: e.target.value })}
+                className={inputCls}
+                placeholder="예: 壽福紋 唐衣"
+              />
+            </Field>
+            <Field label="세로 태그라인">
+              <input
+                value={detail.tagline ?? ""}
+                onChange={(e) => patchDetail({ tagline: e.target.value })}
+                className={inputCls}
+                placeholder="예: 수와 복을 새겨, 마음을 담다"
+              />
+            </Field>
           </div>
-          <Field label="에셋 키 (업로드 시 자동 입력)">
-            <input value={form.imageAssetKey} onChange={set("imageAssetKey")} className={inputCls} />
-          </Field>
-        </div>
-        {/* 가로세로비 입력은 제거했다 — R2Image가 next/image의 fill로 렌더하고
-            잘리는 비율은 배치한 컨테이너(3:4 등)가 정하므로, 이 값은 어디서도
-            쓰이지 않는 채 입력만 받고 있었다. */}
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="대체 텍스트">
-            <input value={form.imageAlt} onChange={set("imageAlt")} className={inputCls} placeholder="이미지 설명" />
-          </Field>
-          <Field label="확장자">
-            <input value={form.imageExt} onChange={set("imageExt")} className={inputCls} placeholder="jpg/png/gif" />
-          </Field>
-        </div>
-      </Section>
-
-      <Section title="목록 썸네일">
-        <p className="-mt-2 text-xs leading-relaxed text-neutral-400">
-          메인·컬렉션 목록과 주문 요약에 걸리는 컷입니다(3:4). 비워두면 대표 이미지가 대신 나갑니다.
-        </p>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-500">썸네일 업로드</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleThumbnailUpload(file);
-              }}
-              className={fileCls}
+          <Field label="도입부" help="제목 아래 문단. 줄바꿈은 그대로 유지된다">
+            <textarea
+              value={detail.intro ?? ""}
+              onChange={(e) => patchDetail({ intro: e.target.value })}
+              rows={3}
+              className={inputCls}
+              placeholder={"수(壽)와 복(福)을 새겨\n예를 갖추는 자리에 기품을 더합니다."}
             />
-            {form.thumbnailAssetKey && (
-              <button
-                type="button"
-                onClick={() =>
-                  setForm((prev) => ({
-                    ...prev,
-                    thumbnailAssetKey: "",
-                    thumbnailAlt: "",
-                    thumbnailExt: "",
-                  }))
-                }
-                className="mt-2 text-xs text-red-400 hover:text-red-600"
-              >
-                썸네일 지우고 대표 이미지 쓰기
-              </button>
+          </Field>
+          <Field label="판매가 (원)" help="0이면 '가격 문의'로 표시되고 결제 버튼이 나가지 않는다">
+            <input
+              type="number"
+              min={0}
+              step={1000}
+              value={form.price}
+              onChange={set("price")}
+              className={inputCls}
+              placeholder="예: 1800000"
+            />
+            {Number(form.price) > 0 && (
+              <p className="mt-1 text-xs text-neutral-400">
+                {Number(form.price).toLocaleString("ko-KR")}원으로 판매됩니다
+              </p>
             )}
-          </div>
-          <Field label="에셋 키 (업로드 시 자동 입력)">
-            <input value={form.thumbnailAssetKey} onChange={set("thumbnailAssetKey")} className={inputCls} placeholder="예: collection/dangui-bonghwang-thumb" />
           </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="대체 텍스트">
-            <input value={form.thumbnailAlt} onChange={set("thumbnailAlt")} className={inputCls} placeholder="비우면 대표 이미지의 설명을 쓴다" />
-          </Field>
-          <Field label="확장자">
-            <input value={form.thumbnailExt} onChange={set("thumbnailExt")} className={inputCls} placeholder="jpg/png/gif" />
-          </Field>
-        </div>
-      </Section>
 
-      <Section title="상세 정보">
-        <Field label="스토리" help="상징 해설 블록을 채우면 이 글은 상세 페이지에 나가지 않는다">
-          <textarea value={form.story} onChange={set("story")} rows={5} className={inputCls} placeholder="상품의 제작 스토리를 자유롭게 작성하세요" />
-        </Field>
-        <SpecsInput
-          values={parseJsonArray<{ label: string; value: string }>(form.specs)}
-          onChange={(specs) => setForm((prev) => ({ ...prev, specs: JSON.stringify(specs) }))}
-        />
-        <TagInput
-          label="태그"
-          values={parseJsonArray<string>(form.tags)}
-          onChange={(tags) => setForm((prev) => ({ ...prev, tags: JSON.stringify(tags) }))}
-        />
-      </Section>
-
-      <Section title="상세 페이지 구성">
-        <p className="-mt-2 text-xs leading-relaxed text-neutral-400">
-          디자이너 시안 구조입니다. 채운 블록만 상세 페이지에 나가고, 비워두면 그 구간은 통째로 생략됩니다.
-        </p>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="한자 부제" help="제품명 아래 한 줄">
-            <input
-              value={detail.subtitle ?? ""}
-              onChange={(e) => patchDetail({ subtitle: e.target.value })}
-              className={inputCls}
-              placeholder="예: 鳳凰紋 負衿 唐衣"
-            />
-          </Field>
-          <Field label="세로 태그라인" help="대표 컷 왼쪽에 세로쓰기로 흐른다">
-            <input
-              value={detail.tagline ?? ""}
-              onChange={(e) => patchDetail({ tagline: e.target.value })}
-              className={inputCls}
-              placeholder="예: 귀한 순간을 더 빛나게 하는 품격의 예복"
-            />
-          </Field>
-        </div>
-
-        <Field label="도입부" help="제목 아래 문단. 줄바꿈은 그대로 유지된다">
-          <textarea
-            value={detail.intro ?? ""}
-            onChange={(e) => patchDetail({ intro: e.target.value })}
-            rows={3}
-            className={inputCls}
-            placeholder={"봉황의 고귀함을 수놓아\n왕비의 기품과 품위를 담은 예복입니다."}
+          {/* 상징 해설 — 대표 문양 클로즈업 + 의미 */}
+          <BlockEditor
+            label="상징 해설 — 대표 문양 클로즈업 + 의미"
+            block={detail.highlight ?? null}
+            onChange={(highlight) => patchDetail({ highlight })}
+            titlePlaceholder="예: 수복문, 장수와 복의 기원"
+            bodyPlaceholder="문양이 지닌 의미를 풀어 쓰세요"
+            imageAspect="aspect-[16/10]"
           />
-        </Field>
+        </div>
+      </div>
 
-        <BlockEditor
-          label="상징 해설 — 대표 문양 클로즈업 + 의미"
-          block={detail.highlight ?? null}
-          onChange={(highlight) => patchDetail({ highlight })}
-          titlePlaceholder="예: 봉황, 고귀함과 영원의 상징"
-          bodyPlaceholder="문양이 지닌 의미를 풀어 쓰세요"
-        />
+      {/* ── 디테일 3단 — 자수·소재·안감 (상세 페이지 디테일 섹션과 같은 배치) ── */}
+      <section className="border-t border-line bg-mist py-16">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-8 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
+            디테일 — 자수·소재·안감
+          </h2>
+          <FeatureBlocks
+            blocks={detail.features ?? []}
+            onChange={(features) => patchDetail({ features })}
+          />
+        </div>
+      </section>
 
-        <FeatureBlocks
-          blocks={detail.features ?? []}
-          onChange={(features) => patchDetail({ features })}
-        />
+      {/* ── 제품 정보 + 모델 컷 (상세 페이지 하단과 같은 배치) ── */}
+      <div className="grid gap-10 border-t border-line py-16 lg:grid-cols-2 lg:gap-14">
+        <div className="flex flex-col gap-8 rounded-xl bg-neutral-50 px-7 py-8">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
+            제품 정보
+          </h2>
 
-        <ModelShots
-          shots={detail.modelShots ?? []}
-          onChange={(modelShots) => patchDetail({ modelShots })}
-        />
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="상품 ID">
+              {isEdit ? (
+                <input value={form.id} disabled className={inputCls} />
+              ) : (
+                <p className="rounded-lg bg-white px-3 py-2 text-sm text-neutral-500">
+                  자동 생성 — product-1, product-2 …
+                </p>
+              )}
+            </Field>
+            <Field label="정렬 순서" help={isEdit ? "낮을수록 먼저 표시" : undefined}>
+              {isEdit ? (
+                <input type="number" value={form.sortOrder} onChange={set("sortOrder")} className={inputCls} />
+              ) : (
+                <p className="rounded-lg bg-white px-3 py-2 text-sm text-neutral-500">
+                  자동 — 목록 맨 앞
+                </p>
+              )}
+            </Field>
+          </div>
 
-        <ListInput
-          label="유의사항"
-          values={detail.notes ?? []}
-          onChange={(notes) => patchDetail({ notes })}
-          placeholder="예: 모니터의 해상도에 따라 색상이 다르게 보일 수 있습니다."
-        />
-      </Section>
+          <SpecsInput
+            values={parseJsonArray<{ label: string; value: string }>(form.specs)}
+            onChange={(specs) => setForm((prev) => ({ ...prev, specs: JSON.stringify(specs) }))}
+          />
 
-      <Section title="관리 정보">
-        <ListInput
-          label="세탁 및 관리 방법"
-          values={parseJsonArray<string>(form.care)}
-          onChange={(care) => setForm((prev) => ({ ...prev, care: JSON.stringify(care) }))}
-        />
-      </Section>
+          <ListInput
+            label="세탁 및 관리 방법"
+            values={parseJsonArray<string>(form.care)}
+            onChange={(care) => setForm((prev) => ({ ...prev, care: JSON.stringify(care) }))}
+          />
 
-      <div className="flex justify-end gap-2 border-t border-neutral-200 pt-6">
+          <ListInput
+            label="유의사항"
+            values={detail.notes ?? []}
+            onChange={(notes) => patchDetail({ notes })}
+            placeholder="예: 모니터의 해상도에 따라 색상이 다르게 보일 수 있습니다."
+          />
+
+          <Field label="설명" help="컬렉션 카드와 검색 결과에 나가는 한 줄 소개">
+            <textarea value={form.description} onChange={set("description")} rows={3} className={inputCls} placeholder="상품에 대한 간단한 설명을 입력하세요" />
+          </Field>
+
+          <Field label="스토리" help="상징 해설 블록을 채우면 이 글은 상세 페이지에 나가지 않는다">
+            <textarea value={form.story} onChange={set("story")} rows={5} className={inputCls} placeholder="상품의 제작 스토리를 자유롭게 작성하세요" />
+          </Field>
+
+          <TagInput
+            label="태그"
+            values={parseJsonArray<string>(form.tags)}
+            onChange={(tags) => setForm((prev) => ({ ...prev, tags: JSON.stringify(tags) }))}
+          />
+        </div>
+
+        <div className="flex flex-col gap-5">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
+            모델 컷
+          </h2>
+          <ModelShots
+            shots={detail.modelShots ?? []}
+            onChange={(modelShots) => patchDetail({ modelShots })}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 border-t border-line pt-6">
         <button
           type="button"
           onClick={() => router.push("/sull-admin/products")}
@@ -452,15 +431,6 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mb-8 rounded-xl border border-neutral-200 bg-white p-6">
-      <h2 className="mb-5 text-xs font-semibold tracking-widest text-neutral-400 uppercase">{title}</h2>
-      <div className="space-y-4">{children}</div>
-    </section>
-  );
-}
-
 function Field({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
   return (
     <div>
@@ -476,9 +446,6 @@ function Field({ label, help, children }: { label: string; help?: string; childr
 const inputCls =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-400 focus:outline-none";
 
-const fileCls =
-  "w-full text-sm text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:text-neutral-700 file:transition-colors hover:file:bg-neutral-200";
-
 function safeJson(val: string): unknown {
   try {
     return JSON.parse(val);
@@ -487,104 +454,161 @@ function safeJson(val: string): unknown {
   }
 }
 
-/** 업로드 + 에셋 키·대체 텍스트를 함께 다루는 이미지 입력칸. */
-function ImageField({
+/** 클릭하면 파일 선택이 열리는 이미지 업로드 미리보기 박스. */
+function ClickImage({
   label,
   value,
   onChange,
+  aspect,
 }: {
   label: string;
-  value: DetailImage | null | undefined;
-  onChange: (image: DetailImage | null) => void;
+  value: DetailImage;
+  onChange: (next: DetailImage) => void;
+  /** 미리보기 박스의 가로세로비 클래스. 예) aspect-[3/4], aspect-[16/10] */
+  aspect?: string;
 }) {
   const [busy, setBusy] = useState(false);
-  const patch = (next: Partial<DetailImage>) =>
-    onChange({ assetKey: "", alt: "", ...value, ...next });
+  const inputRef = useRef<HTMLInputElement>(null);
+  const src =
+    value.assetKey && S3_BASE
+      ? `${S3_BASE}/${value.assetKey}.${value.ext || "jpg"}`
+      : null;
 
   const pick = async (file: File) => {
     setBusy(true);
     const uploaded = await uploadImage(file);
     setBusy(false);
     if (!uploaded) return alert("업로드 실패");
-    patch({ assetKey: uploaded.assetKey, ext: uploaded.ext });
+    const alt = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+    onChange({ ...value, assetKey: uploaded.assetKey, ext: uploaded.ext, alt });
   };
 
   return (
-    <div className="rounded-lg border border-dashed border-neutral-200 p-3">
-      <div className="mb-2 flex items-center justify-between">
+    <div>
+      <div className="mb-1 flex items-center justify-between">
         <span className="text-xs font-medium text-neutral-500">{label}</span>
-        {value?.assetKey && (
+        {value.assetKey && (
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => onChange({ assetKey: "", alt: "", ext: "" })}
             className="text-xs text-red-400 hover:text-red-600"
           >
             이미지 제거
           </button>
         )}
       </div>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className={`relative block w-full overflow-hidden rounded-lg border border-dashed border-neutral-300 bg-white transition-colors hover:border-neutral-400 hover:bg-neutral-50 ${aspect ?? "aspect-[4/3]"}`}
+      >
+        {src ? (
+          <NextImage
+            src={src}
+            alt={value.alt}
+            fill
+            sizes="(max-width: 1024px) 40vw, 20vw"
+            unoptimized={value.ext === "gif"}
+            className="object-cover"
+          />
+        ) : (
+          <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-neutral-400">
+            <span className="text-lg leading-none">+</span>
+            <span className="text-xs">이미지 업로드</span>
+          </span>
+        )}
+        {busy && (
+          <span className="absolute inset-0 flex items-center justify-center bg-neutral-900/40 text-sm text-white">
+            업로드 중...
+          </span>
+        )}
+      </button>
       <input
+        ref={inputRef}
         type="file"
         accept="image/*"
+        className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) pick(file);
+          e.currentTarget.value = "";
         }}
-        className={fileCls}
       />
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-2">
         <input
-          value={value?.assetKey ?? ""}
-          onChange={(e) => patch({ assetKey: e.target.value })}
-          className={inputCls}
-          placeholder="에셋 키 (예: collection/dangui-bonghwang-subok)"
-        />
-        <input
-          value={value?.alt ?? ""}
-          onChange={(e) => patch({ alt: e.target.value })}
+          value={value.alt}
+          onChange={(e) => onChange({ ...value, alt: e.target.value })}
           className={inputCls}
           placeholder="대체 텍스트"
         />
       </div>
-      {busy && <p className="mt-1 text-xs text-neutral-400">업로드 중...</p>}
     </div>
   );
 }
 
-/** 이미지 + 소제목 + 본문 한 블록 편집기. */
+/** 도메인 Image 형태(assetKey + alt + ext)를 ClickImage에 맞춰 흐르게 하는 어댑터. */
+function ImageField({
+  label,
+  value,
+  onChange,
+  aspect,
+}: {
+  label: string;
+  value: DetailImage | null | undefined;
+  onChange: (image: DetailImage | null) => void;
+  aspect?: string;
+}) {
+  const current = value ?? { assetKey: "", alt: "", ext: "" };
+  return (
+    <ClickImage
+      label={label}
+      value={current}
+      aspect={aspect}
+      onChange={(next) => onChange(next.assetKey || next.alt ? next : null)}
+    />
+  );
+}
+
+/** 이미지 + 소제목 + 본문 한 블록 편집기(상징 해설용). */
 function BlockEditor({
   label,
   block,
   onChange,
   titlePlaceholder,
   bodyPlaceholder,
-  onRemove,
+  imageAspect,
 }: {
   label: string;
   block: DetailBlock | null;
   onChange: (block: DetailBlock | null) => void;
   titlePlaceholder?: string;
   bodyPlaceholder?: string;
-  onRemove?: () => void;
+  imageAspect?: string;
 }) {
   const patch = (next: Partial<DetailBlock>) =>
     onChange({ title: "", body: "", ...block, ...next });
 
   return (
-    <div className="rounded-lg bg-neutral-50 p-4">
+    <div className="rounded-xl border border-neutral-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-medium text-neutral-500">{label}</span>
-        {onRemove && (
+        <span className="text-xs font-semibold tracking-widest text-neutral-400 uppercase">{label}</span>
+        {block?.image && (
           <button
             type="button"
-            onClick={onRemove}
+            onClick={() => patch({ image: null })}
             className="text-xs text-red-400 hover:text-red-600"
           >
-            블록 삭제
+            블록 이미지 제거
           </button>
         )}
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
+        <ImageField
+          label="이미지 (클릭해서 교체)"
+          value={block?.image}
+          aspect={imageAspect}
+          onChange={(image) => patch({ image })}
+        />
         <input
           value={block?.title ?? ""}
           onChange={(e) => patch({ title: e.target.value })}
@@ -594,21 +618,16 @@ function BlockEditor({
         <textarea
           value={block?.body ?? ""}
           onChange={(e) => patch({ body: e.target.value })}
-          rows={3}
+          rows={4}
           className={inputCls}
           placeholder={bodyPlaceholder ?? "본문"}
-        />
-        <ImageField
-          label="블록 이미지"
-          value={block?.image}
-          onChange={(image) => patch({ image })}
         />
       </div>
     </div>
   );
 }
 
-/** 디테일 블록 목록(시안은 자수·자수·안감 3단). */
+/** 디테일 블록 목록 — 상세 페이지처럼 한 줄에 3단으로 놓는다. */
 function FeatureBlocks({
   blocks,
   onChange,
@@ -616,40 +635,52 @@ function FeatureBlocks({
   blocks: DetailBlock[];
   onChange: (blocks: DetailBlock[]) => void;
 }) {
+  const setItem = (i: number, next: DetailBlock) =>
+    onChange(blocks.map((item, idx) => (idx === i ? next : item)));
+
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-neutral-500">
-        디테일 블록
-        <span className="ml-2 font-normal text-neutral-400">
-          — 자수·소재·안감처럼 가까이서 보여줄 요소 (3개 권장)
-        </span>
-      </label>
-      <div className="space-y-3">
+      <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {blocks.map((block, i) => (
-          <BlockEditor
-            key={i}
-            label={`디테일 ${i + 1}`}
-            block={block}
-            titlePlaceholder="예: 정교한 수복문 자수"
-            bodyPlaceholder="이 디테일이 무엇을 뜻하는지 적어주세요"
-            onChange={(next) =>
-              onChange(
-                blocks.map((item, idx) =>
-                  idx === i ? (next ?? { title: "", body: "" }) : item,
-                ),
-              )
-            }
-            onRemove={() => onChange(blocks.filter((_, idx) => idx !== i))}
-          />
+          <li key={i}>
+            <div className="flex flex-col gap-3">
+              <ImageField
+                label={`디테일 ${i + 1} 이미지`}
+                value={block.image}
+                aspect="aspect-[4/3]"
+                onChange={(image) => setItem(i, { ...block, image })}
+              />
+              <input
+                value={block.title}
+                onChange={(e) => setItem(i, { ...block, title: e.target.value })}
+                className={`${inputCls} font-light`}
+                placeholder="소제목 (예: 정교한 수복문 자수)"
+              />
+              <textarea
+                value={block.body}
+                onChange={(e) => setItem(i, { ...block, body: e.target.value })}
+                rows={4}
+                className={inputCls}
+                placeholder="본문 — 이 디테일이 무엇을 뜻하는지 적어주세요"
+              />
+              <button
+                type="button"
+                onClick={() => onChange(blocks.filter((_, idx) => idx !== i))}
+                className="self-start text-xs text-red-400 hover:text-red-600"
+              >
+                디테일 블록 삭제
+              </button>
+            </div>
+          </li>
         ))}
-        <button
-          type="button"
-          onClick={() => onChange([...blocks, { title: "", body: "" }])}
-          className="text-sm text-neutral-500 hover:text-neutral-700"
-        >
-          + 디테일 블록 추가
-        </button>
-      </div>
+      </ul>
+      <button
+        type="button"
+        onClick={() => onChange([...blocks, { title: "", body: "" }])}
+        className="mt-8 text-sm text-neutral-500 hover:text-neutral-700"
+      >
+        + 디테일 블록 추가
+      </button>
     </div>
   );
 }
@@ -663,36 +694,31 @@ function ModelShots({
   onChange: (shots: DetailImage[]) => void;
 }) {
   return (
-    <div>
-      <label className="mb-1 block text-xs font-medium text-neutral-500">
-        모델 컷
-        <span className="ml-2 font-normal text-neutral-400">
-          — 상세 페이지 하단에 나란히 놓인다 (3장 권장)
-        </span>
-      </label>
-      <div className="space-y-2">
-        {shots.map((shot, i) => (
-          <ImageField
-            key={i}
-            label={`모델 컷 ${i + 1}`}
-            value={shot}
-            onChange={(next) =>
-              onChange(
-                next
-                  ? shots.map((item, idx) => (idx === i ? next : item))
-                  : shots.filter((_, idx) => idx !== i),
-              )
-            }
-          />
-        ))}
+    <div className="space-y-6">
+      {shots.map((shot, i) => (
+        <ImageField
+          key={i}
+          label={`모델 컷 ${i + 1}`}
+          value={shot}
+          aspect="aspect-[3/4]"
+          onChange={(next) =>
+            onChange(
+              next
+                ? shots.map((item, idx) => (idx === i ? next : item))
+                : shots.filter((_, idx) => idx !== i),
+            )
+          }
+        />
+      ))}
+      {shots.length < 3 && (
         <button
           type="button"
           onClick={() => onChange([...shots, { assetKey: "", alt: "" }])}
-          className="text-sm text-neutral-500 hover:text-neutral-700"
+          className="w-full rounded-lg border border-dashed border-neutral-300 py-8 text-sm text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-600"
         >
           + 모델 컷 추가
         </button>
-      </div>
+      )}
     </div>
   );
 }
@@ -831,7 +857,7 @@ function ListInput({
       {values.length > 0 && (
         <ul className="mt-2 space-y-1">
           {values.map((v, i) => (
-            <li key={i} className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+            <li key={i} className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm text-neutral-700">
               <span>{v}</span>
               <button type="button" onClick={() => remove(i)} className="text-xs text-red-400 hover:text-red-600">삭제</button>
             </li>

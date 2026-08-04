@@ -1,7 +1,7 @@
 import type { ProductSpec } from "@/domain/entities/Product";
 import type { Image } from "@/domain/value-objects/Image";
 import { Container } from "../ui/Container";
-import { R2Image } from "../ui/R2Image";
+import { ModelShotCarousel } from "../ui/ModelShotCarousel";
 import { Reveal } from "../ui/Reveal";
 
 interface ProductInfoProps {
@@ -105,20 +105,7 @@ export function ProductInfo({
               <h2 className="text-[clamp(1.15rem,2vw,1.5rem)] font-light">
                 모델 컷
               </h2>
-              <ul className="grid grid-cols-3 gap-3 md:gap-4">
-                {modelShots!.map((shot, i) => (
-                  <li key={shot.asset.value}>
-                    <Reveal delay={(i % 3) * 90}>
-                      <div className="relative aspect-[3/4] overflow-hidden bg-champagne">
-                        <R2Image
-                          image={shot}
-                          sizes="(max-width: 1024px) 30vw, 18vw"
-                        />
-                      </div>
-                    </Reveal>
-                  </li>
-                ))}
-              </ul>
+              <ModelShotCarousel shots={modelShots!} />
             </div>
           )}
         </div>

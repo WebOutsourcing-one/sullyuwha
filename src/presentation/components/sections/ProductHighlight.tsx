@@ -1,5 +1,4 @@
 import type { ProductDetailBlock } from "@/domain/entities/Product";
-import { Container } from "../ui/Container";
 import { R2Image } from "../ui/R2Image";
 import { Reveal } from "../ui/Reveal";
 
@@ -15,38 +14,34 @@ interface ProductHighlightProps {
 export function ProductHighlight({ block }: ProductHighlightProps) {
   return (
     <section
-      className="border-t border-line py-16 md:py-24"
+      className="flex flex-col gap-10"
       aria-labelledby="product-highlight-title"
     >
-      <Container>
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          {block.image && (
-            <Reveal>
-              <div className="relative aspect-[4/3] overflow-hidden bg-champagne">
-                <R2Image
-                  image={block.image}
-                  sizes="(max-width: 1024px) 92vw, 46vw"
-                />
-              </div>
-            </Reveal>
-          )}
+      {block.image && (
+        <Reveal>
+          <div className="relative aspect-[16/10] overflow-hidden bg-champagne">
+            <R2Image
+              image={block.image}
+              sizes="(max-width: 672px) 92vw, 672px"
+            />
+          </div>
+        </Reveal>
+      )}
 
-          <Reveal delay={90}>
-            <div className="flex flex-col gap-5">
-              <span className="block h-px w-10 bg-gold" aria-hidden />
-              <h2
-                id="product-highlight-title"
-                className="text-[clamp(1.5rem,3vw,2.25rem)] font-light"
-              >
-                {block.title}
-              </h2>
-              <p className="text-[clamp(0.95rem,1.05vw,1.0625rem)] leading-[1.9] text-taupe">
-                {block.body}
-              </p>
-            </div>
-          </Reveal>
+      <Reveal delay={90}>
+        <div className="flex flex-col gap-5">
+          <span className="block h-px w-10 bg-gold" aria-hidden />
+          <h2
+            id="product-highlight-title"
+            className="text-[clamp(1.5rem,3vw,2.25rem)] font-light"
+          >
+            {block.title}
+          </h2>
+          <p className="text-[clamp(0.95rem,1.05vw,1.0625rem)] leading-[1.9] text-taupe">
+            {block.body}
+          </p>
         </div>
-      </Container>
+      </Reveal>
     </section>
   );
 }
