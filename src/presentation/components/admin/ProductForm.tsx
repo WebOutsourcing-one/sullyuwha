@@ -812,23 +812,57 @@ function ModelShots({
     }
   };
 
+  /** i번째를 delta칸 옮긴다. 캐러셀이 도는 순서가 곧 이 배열 순서다. */
+  const move = (i: number, delta: number) => {
+    const target = i + delta;
+    if (target < 0 || target >= shots.length) return;
+    const next = [...shots];
+    [next[i], next[target]] = [next[target], next[i]];
+    onChange(next);
+  };
+
   return (
     <div className="space-y-6">
       {shots.map((shot, i) => (
-        <ImageField
-          key={i}
-          label={`모델 컷 ${i + 1}`}
-          value={shot}
-          aspect="aspect-[3/4]"
-          alt={altFor(productName, ALT_ROLE.modelShot(i))}
-          onChange={(next) =>
-            onChange(
-              next
-                ? shots.map((item, idx) => (idx === i ? next : item))
-                : shots.filter((_, idx) => idx !== i),
-            )
-          }
-        />
+        // 인덱스가 아니라 에셋 키로 키를 잡는다 — 순서를 바꿀 때 인덱스 키를 쓰면
+        // React가 자리(위치) 기준으로 컴포넌트를 재사용해 업로드 중 상태가 엉뚱한
+        // 항목에 남는다.
+        <div key={shot.assetKey || `empty-${i}`}>
+          <ImageField
+            label={`모델 컷 ${i + 1}`}
+            value={shot}
+            aspect="aspect-[3/4]"
+            alt={altFor(productName, ALT_ROLE.modelShot(i))}
+            onChange={(next) =>
+              onChange(
+                next
+                  ? shots.map((item, idx) => (idx === i ? next : item))
+                  : shots.filter((_, idx) => idx !== i),
+              )
+            }
+          />
+          {shots.length > 1 && (
+            <div className="mt-2 flex items-center gap-1">
+              <MoveButton
+                label={`모델 컷 ${i + 1} 앞으로 옮기기`}
+                disabled={i === 0}
+                onClick={() => move(i, -1)}
+              >
+                ↑
+              </MoveButton>
+              <MoveButton
+                label={`모델 컷 ${i + 1} 뒤로 옮기기`}
+                disabled={i === shots.length - 1}
+                onClick={() => move(i, 1)}
+              >
+                ↓
+              </MoveButton>
+              <span className="ml-1 text-[0.7rem] text-neutral-400">
+                {i + 1} / {shots.length}
+              </span>
+            </div>
+          )}
+        </div>
       ))}
 
       {remaining > 0 && (
@@ -858,6 +892,32 @@ function ModelShots({
         </>
       )}
     </div>
+  );
+}
+
+/** 순서 이동 버튼. 화살표는 장식이라 읽히지 않게 두고 label로 용도를 알린다. */
+function MoveButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className="flex h-7 w-7 items-center justify-center rounded border border-neutral-200 text-xs text-neutral-500 transition-colors hover:border-neutral-400 hover:text-neutral-800 disabled:opacity-30 disabled:hover:border-neutral-200 disabled:hover:text-neutral-500"
+    >
+      <span aria-hidden>{children}</span>
+    </button>
   );
 }
 
