@@ -50,7 +50,9 @@ export function R2Image({ image, sizes, className, priority }: R2ImageProps) {
           aria-label={image.alt}
           className={`absolute inset-0 ${className ?? ""}`}
         >
-          <NextImage src={LOADING_SRC} alt="" fill className="object-cover" />
+          {/* sizes를 실제 이미지와 맞춘다. 빠뜨리면 fill의 기본값이 100vw라
+              로딩 표시 하나에 뷰포트 폭짜리 파생본을 받아 온다. */}
+          <NextImage src={LOADING_SRC} alt="" fill sizes={sizes} className="object-cover" />
         </div>
       )}
       <NextImage

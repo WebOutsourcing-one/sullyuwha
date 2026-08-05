@@ -15,7 +15,8 @@ export class DbProductRepository implements ProductRepository {
       orderBy: { sortOrder: "asc" },
       include: { images: { orderBy: { sortOrder: "asc" as const } } },
     });
-    return rows.map(toProduct);
+    // 한 행이 깨졌다고 목록 전체가 죽으면 안 된다 — 그 행만 빼고 나머지를 보여준다.
+    return rows.map(toProductOrNull).filter((p): p is Product => p !== null);
   }
 
   async getById(id: string): Promise<Product | null> {
@@ -24,7 +25,30 @@ export class DbProductRepository implements ProductRepository {
       where: { id },
       include: { images: { orderBy: { sortOrder: "asc" as const } } },
     });
-    return row ? toProduct(row) : null;
+    return row ? toProductOrNull(row) : null;
+  }
+}
+
+/**
+ * 매핑에 실패한 행은 null로 떨어뜨린다.
+ *
+ * 대표 이미지 키가 비어 있으면 `assetKey()`가 던지는데, 그 예외가 그대로 올라오면
+ * **한 행 때문에 컬렉션과 모든 상세 페이지가 500이 된다.** 관리자 폼이 대표 컷을
+ * 필수로 막지 않아 실제로 만들어질 수 있는 상태다.
+ *
+ * 조용히 숨기지 않도록 크게 로그를 남긴다 — 관리자 목록에는 그대로 보이므로
+ * (그쪽은 이 매퍼를 거치지 않는다) 이미지를 채워 넣으면 곧바로 복구된다.
+ */
+function toProductOrNull(row: RowWithImages): Product | null {
+  try {
+    return toProduct(row);
+  } catch (error) {
+    console.error(
+      "[products] 🚨 상품을 읽지 못해 목록에서 제외했습니다. 대표 이미지를 확인하세요:",
+      { id: row.id, name: row.name },
+      error,
+    );
+    return null;
   }
 }
 

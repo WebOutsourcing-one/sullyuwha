@@ -4,10 +4,31 @@ import Kakao from "next-auth/providers/kakao";
 import Naver from "next-auth/providers/naver";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import { getPrisma } from "@/infrastructure/db/prisma";
 
-/** 길이를 흘리지 않고 문자열을 비교한다. */
+/**
+ * scrypt를 비동기로 쓴다.
+ *
+ * `scryptSync`는 시도 한 번마다 수십 ms 동안 **이벤트 루프를 통째로 막는다**.
+ * 로그인 요청을 동시에 퍼부으면 로그인뿐 아니라 상품 페이지·결제까지 같이 멈춘다.
+ * 비동기 버전은 libuv 스레드풀에서 돌아 요청 처리를 막지 않는다.
+ * (무차별 대입 자체는 라우트의 속도 제한이 막는다 — api/auth/[...nextauth]/route.ts)
+ */
+const scrypt = promisify(scryptCb) as (
+  password: string,
+  salt: Buffer,
+  keylen: number,
+) => Promise<Buffer>;
+
+/**
+ * 문자열을 상수 시간으로 비교한다.
+ *
+ * 길이가 다르면 곧바로 false다 — timingSafeEqual이 같은 길이를 요구하기 때문이며,
+ * 여기서 길이는 새어 나간다. 관리자 이메일 길이는 비밀이 아니라 문제되지 않는다.
+ * 비밀번호에는 쓰지 말 것(verifyPassword가 해시끼리 비교한다).
+ */
 function timingSafeEqualStr(a: string, b: string): boolean {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
@@ -19,9 +40,9 @@ function timingSafeEqualStr(a: string, b: string): boolean {
 const HASH_PREFIX = "scrypt:";
 
 /** 평문 비밀번호를 `scrypt:<salt-hex>:<hash-hex>` 형태로 만든다. */
-function hashPassword(password: string): string {
+async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16);
-  const hash = scryptSync(password, salt, 64);
+  const hash = await scrypt(password, salt, 64);
   return `${HASH_PREFIX}${salt.toString("hex")}:${hash.toString("hex")}`;
 }
 
@@ -38,7 +59,7 @@ function hashPassword(password: string): string {
  * `!==` 비교는 상수 시간이 아니다.
  * 형식이 어긋나면 로그인을 거부한다(fail-closed). 평문으로 폴백하지 않는다.
  */
-function verifyPassword(password: string, stored: string): boolean {
+async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const parts = stored.split(":");
   if (parts.length !== 3 || parts[0] !== "scrypt") {
     console.error(
@@ -57,7 +78,7 @@ function verifyPassword(password: string, stored: string): boolean {
   }
   if (expected.length === 0) return false;
 
-  const actual = scryptSync(password, Buffer.from(saltHex, "hex"), expected.length);
+  const actual = await scrypt(password, Buffer.from(saltHex, "hex"), expected.length);
   return timingSafeEqual(actual, expected);
 }
 
@@ -78,7 +99,7 @@ interface EnvAdminPassword {
   readonly hash: string;
 }
 
-function readEnvAdminPassword(): EnvAdminPassword | null {
+async function readEnvAdminPassword(): Promise<EnvAdminPassword | null> {
   const raw = process.env.AUTH_ADMIN_PASSWORD?.trim();
   if (!raw) return null;
 
@@ -94,11 +115,14 @@ function readEnvAdminPassword(): EnvAdminPassword | null {
     return { plaintext: null, hash: raw };
   }
 
-  return { plaintext: raw, hash: hashPassword(raw) };
+  return { plaintext: raw, hash: await hashPassword(raw) };
 }
 
 /** env의 비밀번호가 저장된 해시와 같은 비밀번호를 가리키는가. */
-function envMatchesStored(env: EnvAdminPassword, storedHash: string): boolean {
+async function envMatchesStored(
+  env: EnvAdminPassword,
+  storedHash: string,
+): Promise<boolean> {
   // 평문이면 저장된 해시로 검증한다(salt가 달라 문자열 비교는 무의미하다).
   if (env.plaintext !== null) return verifyPassword(env.plaintext, storedHash);
   return env.hash === storedHash;
@@ -142,7 +166,7 @@ interface AdminCredential {
  * `"admin"` 같은 가짜 id를 쓰면 orders.user_id 외래키가 깨진다.
  */
 async function ensureAdminCredential(adminEmail: string): Promise<AdminCredential | null> {
-  const env = readEnvAdminPassword();
+  const env = await readEnvAdminPassword();
 
   // DB 없이 도는 정적 개발 모드. getPrisma()가 곧바로 던지므로 DB를 건드리지 않는다.
   // authorize() 안에서 던진 예외는 Auth.js가 Configuration 오류로 바꿔버려서
@@ -196,7 +220,7 @@ async function ensureAdminCredential(adminEmail: string): Promise<AdminCredentia
     return { id: existing.id, passwordHash: existing.passwordHash };
   }
 
-  if (!existing.passwordHash || !envMatchesStored(env, existing.passwordHash)) {
+  if (!existing.passwordHash || !(await envMatchesStored(env, existing.passwordHash))) {
     await prisma.user.update({
       where: { id: existing.id },
       data: { passwordHash: env.hash },
@@ -245,7 +269,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const admin = await ensureAdminCredential(adminEmail);
         if (!admin) return null;
-        if (!verifyPassword(password, admin.passwordHash)) return null;
+        if (!(await verifyPassword(password, admin.passwordHash))) return null;
 
         return { id: admin.id, email: adminEmail, name: "Admin", role: "admin" };
       },

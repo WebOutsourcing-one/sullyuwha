@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/infrastructure/db/prisma";
 import { requireAdmin } from "@/lib/require-admin";
-import { toPrice } from "@/lib/price";
+import { toProductData, validateProductInput } from "@/lib/product-input";
 import { denyCrossOrigin } from "@/lib/same-origin";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+/** 상품 하나를 수정하는 데 필요한 양은 이 정도면 충분하다(상세 콘텐츠 포함). */
+const MAX_BODY_BYTES = 256 * 1024;
 
 /** 레코드가 없을 때 Prisma가 던지는 코드. */
 const RECORD_NOT_FOUND = "P2025";
@@ -37,34 +40,34 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
+  const declaredLength = Number(request.headers.get("content-length") ?? "0");
+  if (declaredLength > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "요청이 너무 큽니다." }, { status: 413 });
+  }
+
   const { id } = await params;
-  const body = await request.json();
+
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
+  }
+  const invalid = validateProductInput(body);
+  if (invalid) {
+    return NextResponse.json({ error: invalid }, { status: 400 });
+  }
+
   const prisma = getPrisma();
 
   try {
     const product = await prisma.product.update({
       where: { id },
       data: {
-        name: body.name,
-        category: body.category,
-        material: body.material,
-        description: body.description,
-        price: toPrice(body.price),
-        imageAssetKey: body.imageAssetKey,
-        imageAlt: body.imageAlt,
-        // imageAspectRatio는 갱신하지 않는다 — 렌더에 쓰이지 않아 관리자 폼에서
-        // 입력칸을 뺐고, 여기서 `?? null`로 덮으면 기존 값이 조용히 지워진다.
-        imageExt: body.imageExt ?? null,
-        // 빈 문자열은 "썸네일 없음"이다 — null로 눕혀야 화면이 대표 컷으로 대체한다.
-        thumbnailAssetKey: body.thumbnailAssetKey || null,
-        thumbnailAlt: body.thumbnailAlt || null,
-        thumbnailExt: body.thumbnailExt || null,
-        tags: body.tags ?? [],
-        story: body.story ?? null,
-        specs: body.specs ?? null,
-        care: body.care ?? null,
-        detail: body.detail ?? null,
-        sortOrder: body.sortOrder ?? 0,
+        ...toProductData(body),
+        // 정렬순서를 안 보내면 기존 값을 유지한다.
+        // 예전에는 `?? 0`으로 덮어서, 폼이 값을 빠뜨리면 목록 순서가 조용히 흐트러졌다.
+        ...(typeof body.sortOrder === "number" ? { sortOrder: body.sortOrder } : {}),
       },
       include: { images: { orderBy: { sortOrder: "asc" } } },
     });

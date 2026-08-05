@@ -5,36 +5,33 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-interface ProductImage {
-  id: string;
-  assetKey: string;
-  alt: string;
-  aspectRatio: number | null;
-  ext: string | null;
-  sortOrder: number;
-}
-
+/** /api/admin/products가 목록용으로 골라 내려주는 칸들. */
 interface ProductRow {
   id: string;
   name: string;
   category: string;
   material: string;
-  description: string;
   price: number;
+  sortOrder: number;
+  thumbnailAssetKey: string | null;
+  thumbnailAlt: string | null;
+  thumbnailExt: string | null;
   imageAssetKey: string;
   imageAlt: string;
   imageExt: string | null;
-  tags: unknown;
-  sortOrder: number;
-  images: ProductImage[];
 }
 
 const S3_BASE = process.env.NEXT_PUBLIC_ASSET_BASE_URL || "";
 
+/**
+ * 목록에 거는 컷. 목록 썸네일이 있으면 그것, 없으면 대표 컷으로 대체한다.
+ * (도메인의 thumbnailOf와 같은 규칙 — 예전에는 여기만 대표 컷을 썼다)
+ */
 function thumbnailUrl(p: ProductRow): string | null {
-  const key = p.imageAssetKey;
-  if (!key || !S3_BASE) return null;
-  const ext = p.imageExt || "jpg";
+  if (!S3_BASE) return null;
+  const key = p.thumbnailAssetKey || p.imageAssetKey;
+  if (!key) return null;
+  const ext = (p.thumbnailAssetKey ? p.thumbnailExt : p.imageExt) || "jpg";
   return `${S3_BASE}/${key}.${ext}`;
 }
 
@@ -42,21 +39,47 @@ export default function AdminProductsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/products")
-      .then((r) => r.json())
-      .then((data) => setProducts(data))
-      .finally(() => setLoading(false));
+    const controller = new AbortController();
+
+    // 응답 상태를 확인한다. 예전에는 곧바로 json()을 읽어서, 401·500이면
+    // `{error: ...}`가 products에 들어가고 뒤의 .map에서 화면이 통째로 깨졌다.
+    fetch("/api/admin/products", { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("상품 목록을 불러오지 못했습니다.");
+        const data: unknown = await res.json();
+        if (!Array.isArray(data)) throw new Error("상품 목록 형식이 올바르지 않습니다.");
+        return data as ProductRow[];
+      })
+      .then((data) => {
+        setProducts(data);
+        setError(null);
+        setLoading(false);
+      })
+      .catch((e: unknown) => {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
+        setLoading(false);
+      });
+
+    return () => controller.abort();
   }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
-    await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+    // 삭제가 실패했는데 목록에서만 지우면 새로고침 때 되살아나 혼란스럽다.
+    const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("삭제하지 못했습니다.");
+      return;
+    }
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
   if (loading) return <p className="text-neutral-500">로딩 중...</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
 
   return (
     <div>

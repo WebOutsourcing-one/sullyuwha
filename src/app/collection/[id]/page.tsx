@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { container } from "@/composition/container";
+import { getCollectionCached, getProductCached } from "@/composition/queries";
 import { ProductDetail } from "@/presentation/components/sections/ProductDetail";
 
 interface PageProps {
@@ -18,7 +18,7 @@ export const revalidate = 60;
 
 /** 빌드 타임에 모든 품목 상세를 정적 생성(SSG)한다. */
 export async function generateStaticParams() {
-  const products = await container.getCollection.execute();
+  const products = await getCollectionCached();
   return products.map((product) => ({ id: product.id }));
 }
 
@@ -27,7 +27,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = await container.getProduct.execute(id);
+  const product = await getProductCached(id);
 
   if (!product) {
     return { title: "제품을 찾을 수 없습니다 | 설유화" };
@@ -52,8 +52,8 @@ export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
 
   const [product, products] = await Promise.all([
-    container.getProduct.execute(id),
-    container.getCollection.execute(),
+    getProductCached(id),
+    getCollectionCached(),
   ]);
 
   if (!product) {
