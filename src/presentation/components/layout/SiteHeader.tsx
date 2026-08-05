@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Container } from "../ui/Container";
 import { Emblem } from "../ui/Icons";
+import { SHOW_PAYMENT_UI } from "@/lib/features";
 
 const NAV_LINKS = [
   { label: "BRAND", href: "/#top" },
@@ -97,12 +98,16 @@ export function SiteHeader() {
             <div className="relative" ref={dropdownRef}>
               {status === "authenticated" ? (
                 <div className="flex items-center gap-3">
-                  <Link
-                    href="/orders"
-                    className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
-                  >
-                    Orders
-                  </Link>
+                  {/* 결제를 열기 전에는 항상 빈 목록이라 입구를 만들지 않는다.
+                      /orders 자체는 그대로 동작한다(주소로 접근 가능). */}
+                  {SHOW_PAYMENT_UI && (
+                    <Link
+                      href="/orders"
+                      className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
+                    >
+                      Orders
+                    </Link>
+                  )}
                   {session.user?.role === "admin" && (
                     <Link
                       href="/sull-admin"
@@ -204,13 +209,15 @@ export function SiteHeader() {
                 </p>
                 <p className="mt-2 text-sm text-taupe">{session.user?.name}</p>
                 <div className="mt-3 flex gap-2">
-                  <Link
-                    href="/orders"
-                    onClick={() => setOpen(false)}
-                    className="flex-1 border border-line px-4 py-3 text-center text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
-                  >
-                    Orders
-                  </Link>
+                  {SHOW_PAYMENT_UI && (
+                    <Link
+                      href="/orders"
+                      onClick={() => setOpen(false)}
+                      className="flex-1 border border-line px-4 py-3 text-center text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
+                    >
+                      Orders
+                    </Link>
+                  )}
                   {session.user?.role === "admin" && (
                     <Link
                       href="/sull-admin"

@@ -22,9 +22,13 @@ interface ProductDetailProps {
 /**
  * 품목 상세 페이지.
  *
- * 위쪽은 구매를 위한 영역(갤러리 + 가격 + CTA), 아래쪽은 디자이너 시안
- * (`public/detail_page.png`) 구조의 에디토리얼 — 상징 해설 → 디테일 → 제품 정보.
+ * 위쪽은 갤러리와 품목 소개, 아래쪽은 디자이너 시안 구조의 에디토리얼 —
+ * 상징 해설 → 디테일 → 제품 정보.
  * 시안 콘텐츠(`product.detail`)가 없는 품목은 위쪽 영역만 나가고 아래는 생략된다.
+ *
+ * 가격과 구매 CTA는 두지 않는다 — 결제를 열지 않은 단계라 문의로 받는다.
+ * 결제를 여는 시점에 이 위쪽 영역에 가격과 `/checkout/[id]` 링크를 되살리면 된다.
+ * (결제 코드 자체는 그대로 살아 있다: /checkout, /api/orders, 승인·웹훅)
  */
 export function ProductDetail({
   product,

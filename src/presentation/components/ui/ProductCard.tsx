@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Product } from "@/domain/entities/Product";
 import { thumbnailOf } from "@/domain/entities/Product";
 import { formatKrw, isPayableKrw } from "@/domain/value-objects/Money";
+import { SHOW_PAYMENT_UI } from "@/lib/features";
 import { R2Image } from "./R2Image";
 
 interface ProductCardProps {
@@ -45,9 +46,13 @@ export function ProductCard({
 
         <span className="text-xs text-taupe">{product.material}</span>
 
-        <span className="text-sm text-charcoal">
-          {isPayableKrw(product.price) ? formatKrw(product.price) : "가격 문의"}
-        </span>
+        {/* 결제를 열기 전에는 금액을 내걸지 않는다 — 살 수 없는 가격을 보여주면
+            바로 구매를 기대하게 된다. 기능은 그대로이고 노출만 끈 것이다. */}
+        {SHOW_PAYMENT_UI && (
+          <span className="text-sm text-charcoal">
+            {isPayableKrw(product.price) ? formatKrw(product.price) : "가격 문의"}
+          </span>
+        )}
 
         <p className="mt-1 flex-1 text-sm leading-relaxed text-taupe">
           {product.description}
