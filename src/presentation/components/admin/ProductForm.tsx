@@ -123,10 +123,13 @@ async function uploadImage(
 /**
  * 이미지 대체 텍스트를 상품명과 위치에서 만든다.
  *
- * 관리자에게 입력받지 않는 이유 — 예전에는 업로드한 파일명을 그대로 넣어서
- * "IMG 4523" 같은 값이 스크린리더에 읽히고 이미지 로드 실패 시 화면에 그대로
- * 노출됐다. 상품명 + 위치 조합이 급히 적은 것보다 일관되고, 저장할 때마다 다시
- * 만들기 때문에 나중에 상품명을 바꿔도 따라간다.
+ * 파일명을 쓰지 않는 이유 — 파일명이 "당의-정면-자수.jpg"처럼 내용을 설명하면
+ * 그게 더 정확하지만, 실제로 올라오는 이름은 IMG_4523·KakaoTalk_20260805 같은
+ * 것이 대부분이다. 그런 값이 alt에 들어가면 스크린리더에 그대로 읽히고 이미지가
+ * 깨졌을 때 화면에도 나간다. 무엇이 올라오든 결과를 예측할 수 있는 편이 낫다.
+ *
+ * 저장 시점에 다시 만든다(handleSubmit 참고). 그래서 이미지를 먼저 올리고
+ * 상품명을 나중에 적어도, 나중에 상품명을 바꿔도 최종 이름이 반영된다.
  */
 function altFor(productName: string, role: string): string {
   const base = productName.trim() || "상품 이미지";
@@ -190,7 +193,8 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
     setSaving(true);
 
     // alt는 저장 시점에 상품명으로 다시 만든다.
-    // 업로드 때 한 번만 정하면 나중에 상품명을 바꿨을 때 옛 이름이 남는다.
+    // 업로드 때 한 번만 정하면 나중에 상품명을 바꿨을 때 옛 이름이 남고,
+    // 이미지를 먼저 올리고 상품명을 나중에 적는 순서에서도 빈 이름이 굳는다.
     const withAlt = (image: DetailImage | null | undefined, role: string) =>
       image?.assetKey ? { ...image, alt: altFor(form.name, role) } : image;
 
@@ -585,6 +589,12 @@ function ClickImage({
           e.currentTarget.value = "";
         }}
       />
+      {/* 입력이 아니라 확인용이다 — 저장될 alt를 눈으로 볼 수 있게만 해 둔다. */}
+      {value.assetKey && (
+        <p className="mt-1 truncate text-[0.7rem] text-neutral-400" title={alt}>
+          대체 텍스트: {alt}
+        </p>
+      )}
     </div>
   );
 }
@@ -738,7 +748,20 @@ function FeatureBlocks({
   );
 }
 
-/** 하단 "모델 컷" 이미지 목록. */
+/**
+ * 모델 컷 개수 상한.
+ *
+ * 캐러셀(ModelShotCarousel)은 개수 제약이 없지만 우측 세로 썸네일 레일이
+ * 길어지면 큰 컷과 높이가 어긋난다. 화면이 감당하는 선에서 끊는다.
+ */
+const MAX_MODEL_SHOTS = 8;
+
+/**
+ * 하단 "모델 컷" 이미지 목록.
+ *
+ * 여러 장을 한 번에 고를 수 있다 — 모델 컷은 같은 촬영에서 나온 여러 컷을
+ * 한꺼번에 올리는 자리라, 슬롯을 하나씩 만들고 한 장씩 넣는 방식은 품이 많이 든다.
+ */
 function ModelShots({
   shots,
   onChange,
@@ -748,6 +771,47 @@ function ModelShots({
   onChange: (shots: DetailImage[]) => void;
   productName: string;
 }) {
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const remaining = MAX_MODEL_SHOTS - shots.length;
+
+  const addFiles = async (files: File[]) => {
+    // 상한을 넘겨 고르면 조용히 버리지 않고 몇 장이 빠졌는지 알린다.
+    const accepted = files.slice(0, remaining);
+    const skipped = files.length - accepted.length;
+
+    setBusy(true);
+    // 고른 순서를 유지해야 하므로 결과를 인덱스 그대로 받는다.
+    const uploaded = await Promise.all(
+      accepted.map(async (file, i): Promise<DetailImage | null> => {
+        const result = await uploadImage(file);
+        if (!result) return null;
+        return {
+          assetKey: result.assetKey,
+          ext: result.ext,
+          // 저장할 때 어차피 다시 만들지만, 미리보기가 곧바로 맞도록 채워 둔다.
+          alt: altFor(productName, ALT_ROLE.modelShot(shots.length + i)),
+        };
+      }),
+    );
+    setBusy(false);
+
+    const added = uploaded.filter((item): item is DetailImage => item !== null);
+    if (added.length > 0) onChange([...shots, ...added]);
+
+    const failed = accepted.length - added.length;
+    if (failed > 0 || skipped > 0) {
+      alert(
+        [
+          failed > 0 ? `${failed}장 업로드에 실패했습니다.` : "",
+          skipped > 0 ? `최대 ${MAX_MODEL_SHOTS}장까지라 ${skipped}장은 추가하지 않았습니다.` : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       {shots.map((shot, i) => (
@@ -766,14 +830,32 @@ function ModelShots({
           }
         />
       ))}
-      {shots.length < 3 && (
-        <button
-          type="button"
-          onClick={() => onChange([...shots, { assetKey: "", alt: "" }])}
-          className="w-full rounded-lg border border-dashed border-neutral-300 py-8 text-sm text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-600"
-        >
-          + 모델 컷 추가
-        </button>
+
+      {remaining > 0 && (
+        <>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => inputRef.current?.click()}
+            className="w-full rounded-lg border border-dashed border-neutral-300 py-8 text-sm text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-600 disabled:opacity-50"
+          >
+            {busy
+              ? "업로드 중..."
+              : `+ 모델 컷 추가 — 여러 장 선택 가능 (${remaining}장 더)`}
+          </button>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = Array.from(e.target.files ?? []);
+              if (files.length > 0) addFiles(files);
+              e.currentTarget.value = "";
+            }}
+          />
+        </>
       )}
     </div>
   );
