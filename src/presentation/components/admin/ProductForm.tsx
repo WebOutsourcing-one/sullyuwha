@@ -101,7 +101,12 @@ function hasDetailContent(detail: DetailContent): boolean {
   );
 }
 
-/** 업로드 후 에셋 키와 확장자를 돌려준다. 실패하면 null. */
+/**
+ * 업로드 후 에셋 키와 확장자를 돌려준다. 실패하면 null.
+ *
+ * 둘 다 서버 값을 그대로 쓴다 — 키에는 확장자가 붙어 있지 않고(붙으면 URL이
+ * `.png.png`가 된다), 확장자는 파일명이 아니라 매직 바이트로 판별한 값이다.
+ */
 async function uploadImage(
   file: File,
 ): Promise<{ assetKey: string; ext: string } | null> {
@@ -111,11 +116,30 @@ async function uploadImage(
   const res = await fetch("/api/upload", { method: "POST", body: fd });
   if (!res.ok) return null;
   const data = await res.json();
-  return {
-    assetKey: data.key ?? data.assetKey ?? "",
-    ext: file.name.split(".").pop() ?? "",
-  };
+  if (typeof data?.key !== "string" || typeof data?.ext !== "string") return null;
+  return { assetKey: data.key, ext: data.ext };
 }
+
+/**
+ * 이미지 대체 텍스트를 상품명과 위치에서 만든다.
+ *
+ * 관리자에게 입력받지 않는 이유 — 예전에는 업로드한 파일명을 그대로 넣어서
+ * "IMG 4523" 같은 값이 스크린리더에 읽히고 이미지 로드 실패 시 화면에 그대로
+ * 노출됐다. 상품명 + 위치 조합이 급히 적은 것보다 일관되고, 저장할 때마다 다시
+ * 만들기 때문에 나중에 상품명을 바꿔도 따라간다.
+ */
+function altFor(productName: string, role: string): string {
+  const base = productName.trim() || "상품 이미지";
+  return role ? `${base} ${role}` : base;
+}
+
+const ALT_ROLE = {
+  cover: "",
+  thumbnail: "썸네일",
+  highlight: "문양 클로즈업",
+  feature: (i: number) => `디테일 ${i + 1}`,
+  modelShot: (i: number) => `착용 컷 ${i + 1}`,
+} as const;
 
 // 정적 데이터(products.data.ts)가 쓰는 실제 분류값.
 const CATEGORIES = ["여성 예복", "남성 예복", "맞춤 예복", "소품"];
@@ -165,6 +189,26 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
     e.preventDefault();
     setSaving(true);
 
+    // alt는 저장 시점에 상품명으로 다시 만든다.
+    // 업로드 때 한 번만 정하면 나중에 상품명을 바꿨을 때 옛 이름이 남는다.
+    const withAlt = (image: DetailImage | null | undefined, role: string) =>
+      image?.assetKey ? { ...image, alt: altFor(form.name, role) } : image;
+
+    const detailWithAlt: DetailContent = {
+      ...detail,
+      highlight: detail.highlight
+        ? { ...detail.highlight, image: withAlt(detail.highlight.image, ALT_ROLE.highlight) }
+        : detail.highlight,
+      features: detail.features?.map((block, i) => ({
+        ...block,
+        image: withAlt(block.image, ALT_ROLE.feature(i)),
+      })),
+      modelShots: detail.modelShots?.map((shot, i) => ({
+        ...shot,
+        alt: altFor(form.name, ALT_ROLE.modelShot(i)),
+      })),
+    };
+
     const body = {
       ...form,
       // 신규 상품은 서버가 ID와 정렬순서를 붙인다(자동 증가·최신순).
@@ -172,10 +216,12 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       sortOrder: isEdit ? Number(form.sortOrder) : null,
       price: Number(form.price.replace(/,/g, "")) || 0,
       imageExt: form.imageExt || null,
+      imageAlt: form.imageAssetKey ? altFor(form.name, ALT_ROLE.cover) : "",
+      thumbnailAlt: form.thumbnailAssetKey ? altFor(form.name, ALT_ROLE.thumbnail) : "",
       tags: safeJson(form.tags),
       specs: safeJson(form.specs),
       care: safeJson(form.care),
-      detail: hasDetailContent(detail) ? detail : null,
+      detail: hasDetailContent(detailWithAlt) ? detailWithAlt : null,
     };
 
     const url = isEdit
@@ -240,6 +286,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
               value={thumbnailImage}
               onChange={setThumbnailImage}
               aspect="aspect-[4/3]"
+              alt={altFor(form.name, ALT_ROLE.thumbnail)}
             />
           </div>
           <div className="border-t border-neutral-200 pt-8">
@@ -248,6 +295,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
               value={coverImage}
               onChange={setCoverImage}
               aspect="aspect-[16/10]"
+              alt={altFor(form.name, ALT_ROLE.cover)}
             />
           </div>
         </div>
@@ -322,6 +370,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
             titlePlaceholder="예: 수복문, 장수와 복의 기원"
             bodyPlaceholder="문양이 지닌 의미를 풀어 쓰세요"
             imageAspect="aspect-[16/10]"
+            imageAlt={altFor(form.name, ALT_ROLE.highlight)}
           />
         </div>
       </div>
@@ -335,6 +384,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
           <FeatureBlocks
             blocks={detail.features ?? []}
             onChange={(features) => patchDetail({ features })}
+            productName={form.name}
           />
         </div>
       </section>
@@ -347,14 +397,12 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
+            {/* 신규·수정 모두 읽기 전용이다. 수정 모드에서 disabled input으로 두면
+                고칠 수 있는 칸처럼 보여서 신규 모드와 같은 평범한 텍스트로 보여준다. */}
             <Field label="상품 ID">
-              {isEdit ? (
-                <input value={form.id} disabled className={inputCls} />
-              ) : (
-                <p className="rounded-lg bg-white px-3 py-2 text-sm text-neutral-500">
-                  자동 생성 — product-1, product-2 …
-                </p>
-              )}
+              <p className="rounded-lg bg-white px-3 py-2 text-sm text-neutral-500">
+                {isEdit ? form.id : "자동 생성 — product-1, product-2 …"}
+              </p>
             </Field>
             <Field label="정렬 순서" help={isEdit ? "낮을수록 먼저 표시" : undefined}>
               {isEdit ? (
@@ -407,6 +455,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
           <ModelShots
             shots={detail.modelShots ?? []}
             onChange={(modelShots) => patchDetail({ modelShots })}
+            productName={form.name}
           />
         </div>
       </div>
@@ -460,12 +509,15 @@ function ClickImage({
   value,
   onChange,
   aspect,
+  alt,
 }: {
   label: string;
   value: DetailImage;
   onChange: (next: DetailImage) => void;
   /** 미리보기 박스의 가로세로비 클래스. 예) aspect-[3/4], aspect-[16/10] */
   aspect?: string;
+  /** 상품명에서 만든 대체 텍스트. 입력받지 않는다(altFor 주석 참고). */
+  alt: string;
 }) {
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -479,7 +531,6 @@ function ClickImage({
     const uploaded = await uploadImage(file);
     setBusy(false);
     if (!uploaded) return alert("업로드 실패");
-    const alt = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
     onChange({ ...value, assetKey: uploaded.assetKey, ext: uploaded.ext, alt });
   };
 
@@ -505,7 +556,7 @@ function ClickImage({
         {src ? (
           <NextImage
             src={src}
-            alt={value.alt}
+            alt={alt}
             fill
             sizes="(max-width: 1024px) 40vw, 20vw"
             unoptimized={value.ext === "gif"}
@@ -534,14 +585,6 @@ function ClickImage({
           e.currentTarget.value = "";
         }}
       />
-      <div className="mt-2">
-        <input
-          value={value.alt}
-          onChange={(e) => onChange({ ...value, alt: e.target.value })}
-          className={inputCls}
-          placeholder="대체 텍스트"
-        />
-      </div>
     </div>
   );
 }
@@ -552,11 +595,13 @@ function ImageField({
   value,
   onChange,
   aspect,
+  alt,
 }: {
   label: string;
   value: DetailImage | null | undefined;
   onChange: (image: DetailImage | null) => void;
   aspect?: string;
+  alt: string;
 }) {
   const current = value ?? { assetKey: "", alt: "", ext: "" };
   return (
@@ -564,7 +609,9 @@ function ImageField({
       label={label}
       value={current}
       aspect={aspect}
-      onChange={(next) => onChange(next.assetKey || next.alt ? next : null)}
+      alt={alt}
+      // alt는 이제 입력받지 않으므로 이미지 유무만으로 블록 유지 여부를 정한다.
+      onChange={(next) => onChange(next.assetKey ? next : null)}
     />
   );
 }
@@ -577,6 +624,7 @@ function BlockEditor({
   titlePlaceholder,
   bodyPlaceholder,
   imageAspect,
+  imageAlt,
 }: {
   label: string;
   block: DetailBlock | null;
@@ -584,6 +632,7 @@ function BlockEditor({
   titlePlaceholder?: string;
   bodyPlaceholder?: string;
   imageAspect?: string;
+  imageAlt: string;
 }) {
   const patch = (next: Partial<DetailBlock>) =>
     onChange({ title: "", body: "", ...block, ...next });
@@ -607,6 +656,7 @@ function BlockEditor({
           label="이미지 (클릭해서 교체)"
           value={block?.image}
           aspect={imageAspect}
+          alt={imageAlt}
           onChange={(image) => patch({ image })}
         />
         <input
@@ -631,9 +681,11 @@ function BlockEditor({
 function FeatureBlocks({
   blocks,
   onChange,
+  productName,
 }: {
   blocks: DetailBlock[];
   onChange: (blocks: DetailBlock[]) => void;
+  productName: string;
 }) {
   const setItem = (i: number, next: DetailBlock) =>
     onChange(blocks.map((item, idx) => (idx === i ? next : item)));
@@ -648,6 +700,7 @@ function FeatureBlocks({
                 label={`디테일 ${i + 1} 이미지`}
                 value={block.image}
                 aspect="aspect-[4/3]"
+                alt={altFor(productName, ALT_ROLE.feature(i))}
                 onChange={(image) => setItem(i, { ...block, image })}
               />
               <input
@@ -689,9 +742,11 @@ function FeatureBlocks({
 function ModelShots({
   shots,
   onChange,
+  productName,
 }: {
   shots: DetailImage[];
   onChange: (shots: DetailImage[]) => void;
+  productName: string;
 }) {
   return (
     <div className="space-y-6">
@@ -701,6 +756,7 @@ function ModelShots({
           label={`모델 컷 ${i + 1}`}
           value={shot}
           aspect="aspect-[3/4]"
+          alt={altFor(productName, ALT_ROLE.modelShot(i))}
           onChange={(next) =>
             onChange(
               next

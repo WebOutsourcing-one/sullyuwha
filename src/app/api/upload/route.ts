@@ -136,11 +136,21 @@ export async function POST(request: NextRequest) {
     publicUrl: env.s3PublicUrl ?? `https://${env.s3Bucket}.s3.${env.s3Region}.amazonaws.com`,
   });
 
-  const key = `${prefix}/${randomUUID()}.${format.ext}`;
+  // 논리 키(`key`)와 확장자(`ext`)를 **분리해서** 돌려준다.
+  //
+  // 도메인은 둘을 따로 들고 URL을 `{key}.{ext}`로 조립한다
+  // (R2AssetResolver.resolve, seed.ts의 "collection/dangui-subok" 관례).
+  // 예전처럼 확장자가 붙은 키를 그대로 돌려주면 저장 측에서 한 번 더 붙어
+  // `products/<uuid>.png.png`가 되고 이미지가 404가 된다.
+  //
+  // ext도 함께 돌려주는 이유 — 클라이언트가 파일명에서 뽑으면 실제 포맷과
+  // 어긋난다(`photo.jpeg`라는 이름의 PNG). 여기서 판별한 값이 사실이다.
+  const key = `${prefix}/${randomUUID()}`;
+  const objectKey = `${key}.${format.ext}`;
 
   try {
-    const result = await resolver.upload(buffer, key, format.mime);
-    return NextResponse.json(result);
+    const result = await resolver.upload(buffer, objectKey, format.mime);
+    return NextResponse.json({ key, ext: format.ext, url: result.url });
   } catch (error) {
     // 스토리지 오류 상세(버킷명·자격증명 힌트)는 클라이언트로 넘기지 않는다.
     console.error("[upload] S3 upload failed", error);
