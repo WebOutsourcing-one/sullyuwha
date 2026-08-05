@@ -326,24 +326,9 @@ DATABASE_URL=postgresql://...
 
 런타임에 `--env-file`로 아무리 넣어도 해결되지 않는다. 이미 번들에 박힌 뒤이기 때문이다.
 
-`Dockerfile`을 이렇게 고쳐야 한다:
-
-```dockerfile
-FROM oven/bun:1.3 AS builder
-WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-COPY . .
-
-# NEXT_PUBLIC_* 은 빌드 타임에 번들로 인라인되므로 build arg로 받아야 한다.
-# 런타임 주입(--env-file)으로는 이미 늦다.
-ARG NEXT_PUBLIC_TOSS_CLIENT_KEY
-ARG NEXT_PUBLIC_ASSET_BASE_URL
-ENV NEXT_PUBLIC_TOSS_CLIENT_KEY=$NEXT_PUBLIC_TOSS_CLIENT_KEY
-ENV NEXT_PUBLIC_ASSET_BASE_URL=$NEXT_PUBLIC_ASSET_BASE_URL
-
-RUN bun run build
-```
+**→ `Dockerfile`에 build arg를 추가해 해결했다.** 이제 아래처럼 값을 넘기면 된다.
+(넘기지 않으면 기본값이 빈 문자열이라 예전과 같은 증상이 그대로 재현되므로,
+빌드 명령에서 빠뜨리지 않는 것이 중요하다)
 
 빌드 명령:
 
@@ -439,13 +424,13 @@ ngrok http 5001
 
 - [ ] `.env.production`에 `NEXT_PUBLIC_TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY` **항목 추가**
 - [ ] `DATA_SOURCE=database` 설정 + 상품 가격 입력
-- [ ] **`Dockerfile`에 `NEXT_PUBLIC_*` build arg 추가**
-      ← 안 하면 프로덕션에서 결제 UI가 안 뜬다
+- [x] ~~`Dockerfile`에 `NEXT_PUBLIC_*` build arg 추가~~ (적용됨)
+- [ ] **빌드 시 `--build-arg`로 값 전달** ← 빠뜨리면 프로덕션에서 결제 UI가 안 뜬다
 - [ ] 웹훅 `PAYMENT_STATUS_CHANGED` 등록
 - [ ] 금액 위변조 / 새로고침 시나리오 테스트
 
 ---
 
-가장 먼저 손봐야 할 건 **Dockerfile build arg**다.
-나머지는 콘솔에서 값만 받아오면 되지만, 이건 코드 수정이 필요하고
-증상이 "설정을 다 했는데 왜 안 되지"로 나타나서 원인 찾기가 까다롭다.
+Dockerfile의 build arg는 적용해 두었다. 남은 것은 **빌드 명령에서 실제로 값을
+넘기는 것**이다 — 빠뜨리면 기본값인 빈 문자열이 번들에 굳어, "설정을 다 했는데
+왜 안 되지"로 나타나 원인 찾기가 까다롭다.

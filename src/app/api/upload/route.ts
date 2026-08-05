@@ -4,6 +4,7 @@ import { loadServerEnv } from "@/infrastructure/config/server-env";
 import { S3AssetResolver } from "@/infrastructure/assets/S3AssetResolver";
 import { requireAdmin } from "@/lib/require-admin";
 import { denyCrossOrigin } from "@/lib/same-origin";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -77,6 +78,20 @@ export async function POST(request: NextRequest) {
   // `proxy.ts`는 /sull-admin 페이지만 막으므로 API는 스스로 인증을 확인해야 한다.
   const denied = await requireAdmin();
   if (denied) return denied;
+
+  // 인증을 통과한 뒤에 센다 — 이 제한이 막으려는 것은 **세션이 탈취된 경우**의
+  // 피해 범위다. 인증 전에 세면 로그인하지 않은 외부인이 관리자 몫의 예산을
+  // 대신 소진시켜 정상 업로드를 막을 수 있다.
+  //
+  // 모델 컷을 한 번에 8장까지 올리므로 연속 작업이 걸리지 않을 만큼은 열어 둔다.
+  // 한 건이 최대 10MB를 읽고 S3에 쓰므로 상한 자체는 필요하다.
+  const limited = enforceRateLimit(request, {
+    name: "upload",
+    perIp: 40,
+    global: 120,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
 
   const env = loadServerEnv();
   if (!env.s3AccessKey || !env.s3SecretKey) {

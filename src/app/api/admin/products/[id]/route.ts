@@ -3,6 +3,7 @@ import { getPrisma } from "@/infrastructure/db/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { toProductData, validateProductInput } from "@/lib/product-input";
 import { denyCrossOrigin } from "@/lib/same-origin";
+import { PRODUCT_WRITE_LIMIT, enforceRateLimit } from "@/lib/rate-limit";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -39,6 +40,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
   const denied = await requireAdmin();
   if (denied) return denied;
+
+  const limited = enforceRateLimit(request, PRODUCT_WRITE_LIMIT);
+  if (limited) return limited;
 
   const declaredLength = Number(request.headers.get("content-length") ?? "0");
   if (declaredLength > MAX_BODY_BYTES) {
@@ -88,6 +92,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
   const denied = await requireAdmin();
   if (denied) return denied;
+
+  const limited = enforceRateLimit(request, PRODUCT_WRITE_LIMIT);
+  if (limited) return limited;
 
   const { id } = await params;
   const prisma = getPrisma();

@@ -71,6 +71,23 @@ function clientKey(request: NextRequest): string {
   return request.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
+/**
+ * 상품 쓰기(등록·수정·삭제) 제한.
+ *
+ * 세 라우트가 같은 예산을 나눠 쓰도록 여기에 둔다 — route 파일에서 상수를
+ * 내보내면 Next의 라우트 export 검사에 걸리고, 각자 선언하면 값이 갈린다.
+ *
+ * 어느 경우든 **인증을 통과한 뒤에** 센다. 막으려는 것은 세션이 탈취됐을 때의
+ * 피해 범위이고, 인증 전에 세면 외부인이 관리자 몫의 예산을 대신 소진시켜
+ * 정상 작업을 막을 수 있다.
+ */
+export const PRODUCT_WRITE_LIMIT: RateLimitOptions = {
+  name: "admin-product-write",
+  perIp: 60,
+  global: 200,
+  windowMs: 60_000,
+};
+
 export interface RateLimitOptions {
   /** 버킷 이름. 엔드포인트마다 다르게 준다. */
   readonly name: string;

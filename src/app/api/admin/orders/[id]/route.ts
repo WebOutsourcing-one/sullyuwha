@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { container } from "@/composition/container";
 import { requireAdmin } from "@/lib/require-admin";
 import { denyCrossOrigin } from "@/lib/same-origin";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -32,6 +33,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
   const denied = await requireAdmin();
   if (denied) return denied;
+
+  // 환불은 되돌릴 수 없고 한 번마다 토스 API 호출이 나간다.
+  // 세션이 탈취되면 주문 id를 훑어가며 환불을 연달아 걸 수 있으므로,
+  // 사람이 관리 화면에서 처리하는 속도보다 조금 넉넉한 선에서 끊는다.
+  const limited = enforceRateLimit(request, {
+    name: "admin-refund",
+    perIp: 20,
+    global: 60,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
 
   const { id } = await params;
 

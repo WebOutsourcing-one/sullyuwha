@@ -3,6 +3,7 @@ import { getPrisma } from "@/infrastructure/db/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { toProductData, validateProductInput } from "@/lib/product-input";
 import { denyCrossOrigin } from "@/lib/same-origin";
+import { PRODUCT_WRITE_LIMIT, enforceRateLimit } from "@/lib/rate-limit";
 
 /**
  * 관리자 상품 목록.
@@ -53,12 +54,16 @@ function nextProductId(ids: string[]): string {
 /** 상품 하나를 만드는 데 필요한 양은 이 정도면 충분하다(상세 콘텐츠 포함). */
 const MAX_BODY_BYTES = 256 * 1024;
 
+
 export async function POST(request: NextRequest) {
   const crossOrigin = denyCrossOrigin(request);
   if (crossOrigin) return crossOrigin;
 
   const denied = await requireAdmin();
   if (denied) return denied;
+
+  const limited = enforceRateLimit(request, PRODUCT_WRITE_LIMIT);
+  if (limited) return limited;
 
   const declaredLength = Number(request.headers.get("content-length") ?? "0");
   if (declaredLength > MAX_BODY_BYTES) {
