@@ -306,27 +306,31 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
         </div>
       </div>
 
+      {/* ── 목록 썸네일 — 컬렉션 카드·주문 요약에만 쓰이고 상세 페이지에는 나가지 않는다.
+             그래서 오른쪽 칸을 비워 둔다. 여기에 상품 정보를 끌어올리면 아래의
+             대표 컷 ↔ 상품 정보 짝이 상세 페이지와 다른 높이에 놓인다. ── */}
+      <div className="grid gap-10 pt-4 lg:grid-cols-2 lg:gap-16">
+        <div className="max-w-sm">
+          <ImageField
+            label="목록 썸네일 — 컬렉션 카드에 걸리는 컷 (비우면 대표 컷 사용)"
+            value={thumbnailImage}
+            onChange={setThumbnailImage}
+            aspect="aspect-[4/3]"
+            alt={altFor(form.name, ALT_ROLE.thumbnail)}
+          />
+        </div>
+      </div>
+
       {/* ── 상단 2단 — 대표 컷(갤러리) + 상품 정보 (상세 페이지 상단과 같은 배치) ── */}
-      <div className="grid gap-10 pb-16 pt-4 lg:grid-cols-2 lg:gap-16">
-        <div className="flex flex-col gap-8">
-          <div className="max-w-sm">
-            <ImageField
-              label="목록 썸네일 — 비우면 대표 컷 사용"
-              value={thumbnailImage}
-              onChange={setThumbnailImage}
-              aspect="aspect-[4/3]"
-              alt={altFor(form.name, ALT_ROLE.thumbnail)}
-            />
-          </div>
-          <div className="border-t border-neutral-200 pt-8">
-            <ImageField
-              label="대표 컷 — 상세 갤러리 첫 컷"
-              value={coverImage}
-              onChange={setCoverImage}
-              aspect="aspect-[16/10]"
-              alt={altFor(form.name, ALT_ROLE.cover)}
-            />
-          </div>
+      <div className="mt-10 grid gap-10 border-t border-neutral-200 pb-16 pt-10 lg:grid-cols-2 lg:gap-16">
+        <div>
+          <ImageField
+            label="대표 컷 — 상세 갤러리 첫 컷"
+            value={coverImage}
+            onChange={setCoverImage}
+            aspect="aspect-[16/10]"
+            alt={altFor(form.name, ALT_ROLE.cover)}
+          />
         </div>
 
         <div className="flex flex-col gap-5">
