@@ -47,7 +47,8 @@ interface DetailContent {
   tagline?: string;
   intro?: string;
   highlight?: DetailBlock | null;
-  features?: DetailBlock[];
+  /** null은 관리자가 비워둔 자리다. 저장 시 앞으로 당기지 않고 위치를 유지한다. */
+  features?: (DetailBlock | null)[];
   modelShots?: DetailImage[];
   notes?: string[];
 }
@@ -99,6 +100,20 @@ function hasDetailContent(detail: DetailContent): boolean {
   return Object.values(detail).some((value) =>
     Array.isArray(value) ? value.length > 0 : Boolean(value),
   );
+}
+
+/**
+ * 디테일 블록 슬롯 수.
+ *
+ * 상세 페이지가 3단 그리드(ProductFeatures)라 4개째부터는 줄이 어긋난다.
+ * 그래서 "+ 추가"로 늘리는 대신 처음부터 3칸을 고정으로 보여주고,
+ * 비어 있는 칸은 저장할 때 걸러낸다(hasFeatureContent).
+ */
+const FEATURE_SLOTS = 3;
+
+/** 이미지·소제목·본문 중 하나라도 채워졌으면 저장 대상이다. */
+function hasFeatureContent(block: DetailBlock): boolean {
+  return Boolean(block.title?.trim() || block.body?.trim() || block.image?.assetKey);
 }
 
 /**
@@ -203,10 +218,20 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       highlight: detail.highlight
         ? { ...detail.highlight, image: withAlt(detail.highlight.image, ALT_ROLE.highlight) }
         : detail.highlight,
-      features: detail.features?.map((block, i) => ({
-        ...block,
-        image: withAlt(block.image, ALT_ROLE.feature(i)),
-      })),
+      // 비어 있는 칸은 null로 남긴다 — 1·3번만 채우면 상세 페이지도
+      // 1·빈칸·3으로 나가야 하므로 뒤 블록을 앞으로 당기지 않는다.
+      // 뒤쪽 빈 칸은 화면에 아무것도 만들지 않으므로 잘라내고,
+      // 전부 비면 undefined로 둬서 JSON에 키 자체가 남지 않게 한다
+      // (그래야 기존에 저장돼 있던 디테일이 실제로 지워진다).
+      features: (() => {
+        const slots = (detail.features ?? []).map((block, i) =>
+          block && hasFeatureContent(block)
+            ? { ...block, image: withAlt(block.image, ALT_ROLE.feature(i)) }
+            : null,
+        );
+        while (slots.length > 0 && slots[slots.length - 1] === null) slots.pop();
+        return slots.length > 0 ? slots : undefined;
+      })(),
       modelShots: detail.modelShots?.map((shot, i) => ({
         ...shot,
         alt: altFor(form.name, ALT_ROLE.modelShot(i)),
@@ -693,57 +718,97 @@ function FeatureBlocks({
   onChange,
   productName,
 }: {
-  blocks: DetailBlock[];
-  onChange: (blocks: DetailBlock[]) => void;
+  /** null은 비워둔 자리다(저장 형태와 같은 모양으로 주고받는다). */
+  blocks: (DetailBlock | null)[];
+  onChange: (blocks: (DetailBlock | null)[]) => void;
   productName: string;
 }) {
+  // 상태 배열이 슬롯 수보다 짧을 수 있다(기존 상품·초기 상태). 빈 칸으로 채워 자리를 맞춘다.
+  const slots: DetailBlock[] = Array.from(
+    { length: FEATURE_SLOTS },
+    (_, i) => blocks[i] ?? { title: "", body: "" },
+  );
+
   const setItem = (i: number, next: DetailBlock) =>
-    onChange(blocks.map((item, idx) => (idx === i ? next : item)));
+    onChange(slots.map((item, idx) => (idx === i ? next : item)));
+
+  /** i번째 칸을 delta칸 옮긴다. 빈 칸과도 자리를 바꾼다(빈 칸으로 밀어 넣기). */
+  const move = (i: number, delta: number) => {
+    const target = i + delta;
+    if (target < 0 || target >= FEATURE_SLOTS) return;
+    const next = [...slots];
+    [next[i], next[target]] = [next[target], next[i]];
+    onChange(next);
+  };
 
   return (
     <div>
+      <p className="mb-6 text-xs text-neutral-400">
+        칸을 비워두면 그 자리는 상세 페이지에서도 빈 칸으로 남습니다.
+        1번과 3번만 채우면 2번 자리는 비운 채 나갑니다.
+      </p>
       <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {blocks.map((block, i) => (
-          <li key={i}>
-            <div className="flex flex-col gap-3">
-              <ImageField
-                label={`디테일 ${i + 1} 이미지`}
-                value={block.image}
-                aspect="aspect-[4/3]"
-                alt={altFor(productName, ALT_ROLE.feature(i))}
-                onChange={(image) => setItem(i, { ...block, image })}
-              />
-              <input
-                value={block.title}
-                onChange={(e) => setItem(i, { ...block, title: e.target.value })}
-                className={`${inputCls} font-light`}
-                placeholder="소제목 (예: 정교한 수복문 자수)"
-              />
-              <textarea
-                value={block.body}
-                onChange={(e) => setItem(i, { ...block, body: e.target.value })}
-                rows={4}
-                className={inputCls}
-                placeholder="본문 — 이 디테일이 무엇을 뜻하는지 적어주세요"
-              />
-              <button
-                type="button"
-                onClick={() => onChange(blocks.filter((_, idx) => idx !== i))}
-                className="self-start text-xs text-red-400 hover:text-red-600"
-              >
-                디테일 블록 삭제
-              </button>
-            </div>
-          </li>
-        ))}
+        {slots.map((block, i) => {
+          const filled = hasFeatureContent(block);
+          return (
+            <li key={i}>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-neutral-500">
+                    디테일 {i + 1}
+                    {!filled && <span className="ml-1.5 text-neutral-300">— 비어 있음</span>}
+                  </span>
+                  {filled && (
+                    <button
+                      type="button"
+                      onClick={() => setItem(i, { title: "", body: "", image: null })}
+                      className="text-xs text-red-400 hover:text-red-600"
+                    >
+                      비우기
+                    </button>
+                  )}
+                </div>
+                <ImageField
+                  label="이미지"
+                  value={block.image}
+                  aspect="aspect-[4/3]"
+                  alt={altFor(productName, ALT_ROLE.feature(i))}
+                  onChange={(image) => setItem(i, { ...block, image })}
+                />
+                <input
+                  value={block.title}
+                  onChange={(e) => setItem(i, { ...block, title: e.target.value })}
+                  className={`${inputCls} font-light`}
+                  placeholder="소제목 (예: 정교한 수복문 자수)"
+                />
+                <textarea
+                  value={block.body}
+                  onChange={(e) => setItem(i, { ...block, body: e.target.value })}
+                  rows={4}
+                  className={inputCls}
+                  placeholder="본문 — 이 디테일이 무엇을 뜻하는지 적어주세요"
+                />
+                <div className="flex items-center gap-1">
+                  <MoveButton
+                    label={`디테일 ${i + 1} 앞칸으로 옮기기`}
+                    disabled={i === 0}
+                    onClick={() => move(i, -1)}
+                  >
+                    ←
+                  </MoveButton>
+                  <MoveButton
+                    label={`디테일 ${i + 1} 뒷칸으로 옮기기`}
+                    disabled={i === FEATURE_SLOTS - 1}
+                    onClick={() => move(i, 1)}
+                  >
+                    →
+                  </MoveButton>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
-      <button
-        type="button"
-        onClick={() => onChange([...blocks, { title: "", body: "" }])}
-        className="mt-8 text-sm text-neutral-500 hover:text-neutral-700"
-      >
-        + 디테일 블록 추가
-      </button>
     </div>
   );
 }

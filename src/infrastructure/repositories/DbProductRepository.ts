@@ -116,13 +116,34 @@ function toBlock(raw: unknown): ProductDetailBlock | undefined {
   if (!isRecord(raw)) return undefined;
   const title = text(raw.title);
   const body = text(raw.body);
-  if (!title || !body) return undefined;
-  return { title, body, image: toDetailImage(raw.image) };
+  const image = toDetailImage(raw.image);
+  // 셋 중 하나라도 있으면 살린다.
+  // 예전에는 title과 body를 모두 요구했는데, 관리자가 이미지만 넣은 블록이
+  // 저장은 되고 화면에서는 조용히 사라져서 원인을 알기 어려웠다.
+  if (!title && !body && !image) return undefined;
+  return { title: title ?? "", body: body ?? "", image };
 }
 
 function mapDefined<T>(raw: unknown, map: (item: unknown) => T | undefined): readonly T[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const items = raw.map(map).filter((item): item is T => item !== undefined);
+  return items.length > 0 ? items : undefined;
+}
+
+/**
+ * 자리를 유지하며 매핑한다 — 비어 있는 항목은 걸러내지 않고 `null`로 남긴다.
+ *
+ * mapDefined를 쓸 수 없는 이유 — 관리자가 3칸 중 1·3번만 채웠을 때 2번을
+ * 걸러내면 3번이 2번 자리로 당겨져 상세 페이지 배치가 달라진다.
+ * 뒤쪽 빈 칸은 화면에 아무것도 만들지 않으므로 잘라낸다.
+ */
+function mapSlots<T>(
+  raw: unknown,
+  map: (item: unknown) => T | undefined,
+): readonly (T | null)[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const items = raw.map((item) => map(item) ?? null);
+  while (items.length > 0 && items[items.length - 1] === null) items.pop();
   return items.length > 0 ? items : undefined;
 }
 
@@ -134,7 +155,7 @@ function toDetail(raw: unknown): ProductDetailContent | undefined {
     tagline: text(raw.tagline),
     intro: text(raw.intro),
     highlight: toBlock(raw.highlight),
-    features: mapDefined(raw.features, toBlock),
+    features: mapSlots(raw.features, toBlock),
     modelShots: mapDefined(raw.modelShots, toDetailImage),
     notes: mapDefined(raw.notes, text),
   };

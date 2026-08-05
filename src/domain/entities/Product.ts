@@ -34,8 +34,13 @@ export interface ProductDetailContent {
   readonly intro?: string;
   /** 대표 문양·상징을 클로즈업으로 풀어내는 블록 */
   readonly highlight?: ProductDetailBlock;
-  /** 소재·자수·안감 등을 나눠 보여주는 블록들(시안은 3단) */
-  readonly features?: readonly ProductDetailBlock[];
+  /**
+   * 소재·자수·안감 등을 나눠 보여주는 블록들(시안은 3단).
+   *
+   * `null`은 **의도적으로 비워둔 자리**다 — 관리자가 3칸 중 1·3번만 채우면
+   * 상세 페이지도 1·빈칸·3 순서로 나가야 하므로, 앞으로 당기지 않고 위치를 남긴다.
+   */
+  readonly features?: readonly (ProductDetailBlock | null)[];
   /** 하단 "모델 컷"에 나란히 놓이는 이미지들 */
   readonly modelShots?: readonly Image[];
   /** 하단 유의사항. 예) 모니터의 해상도에 따라 색상이 다르게 보일 수 있습니다. */
