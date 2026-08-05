@@ -23,9 +23,33 @@ import {
 } from "@/application/use-cases/ListOrders";
 import { getAssetResolver } from "./assets.server";
 
-const useDatabase = process.env.DATA_SOURCE === "database";
+/**
+ * 상품·브랜드 콘텐츠를 어디서 읽을지 정한다.
+ *
+ * 기본값이 `DATABASE_URL` 유무를 따라간다 — DB를 붙였다는 것은 관리자 화면으로
+ * 상품을 관리하겠다는 뜻이기 때문이다. 예전에는 `DATA_SOURCE=database`를 따로
+ * 켜야만 해서, 그걸 빠뜨리면 **관리자가 등록한 상품이 고객 화면에 영영 안 나왔다.**
+ * 관리자 화면에는 보이는데 사이트에는 없으니 원인을 찾기 어려운 상태였다.
+ *
+ * `DATA_SOURCE`를 명시하면 그 값이 이긴다 — DB를 붙인 채로 정적 데이터를 보고
+ * 싶을 때(디자인 작업 등) 쓴다.
+ *
+ *   DATA_SOURCE=database  -> 항상 DB
+ *   DATA_SOURCE=static    -> 항상 정적 데이터
+ *   미지정 + DATABASE_URL -> DB
+ *   미지정 + DB 없음      -> 정적 데이터 (로컬에서 DB 없이 UI만 볼 때)
+ */
+const useDatabase = process.env.DATA_SOURCE
+  ? process.env.DATA_SOURCE === "database"
+  : Boolean(process.env.DATABASE_URL);
 
 function createContainer() {
+  // 어느 쪽으로 떴는지 로그로 남긴다 — "관리자에서 등록했는데 사이트에 없다"의
+  // 원인이 대부분 여기라, 기동 로그만 보고도 판별할 수 있어야 한다.
+  console.info(
+    `[data] 상품·콘텐츠 출처: ${useDatabase ? "데이터베이스" : "정적 데이터(관리자 등록분이 보이지 않음)"}`,
+  );
+
   const productRepository = useDatabase
     ? new DbProductRepository()
     : new StaticProductRepository();
