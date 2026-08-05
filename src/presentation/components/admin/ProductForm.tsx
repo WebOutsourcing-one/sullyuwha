@@ -328,7 +328,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
             label="대표 컷 — 상세 갤러리 첫 컷"
             value={coverImage}
             onChange={setCoverImage}
-            aspect="aspect-[16/10]"
+            aspect="aspect-[3/4]"
             alt={altFor(form.name, ALT_ROLE.cover)}
           />
         </div>
@@ -409,7 +409,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       </div>
 
       {/* ── 디테일 3단 — 자수·소재·안감 (상세 페이지 디테일 섹션과 같은 배치) ── */}
-      <section className="border-t border-line bg-mist py-16">
+      <section className="border-t border-line py-16">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-8 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             디테일 — 자수·소재·안감
@@ -428,25 +428,6 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
           <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             제품 정보
           </h2>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* 신규·수정 모두 읽기 전용이다. 수정 모드에서 disabled input으로 두면
-                고칠 수 있는 칸처럼 보여서 신규 모드와 같은 평범한 텍스트로 보여준다. */}
-            <Field label="상품 ID">
-              <p className="rounded-lg bg-white px-3 py-2 text-sm text-neutral-500">
-                {isEdit ? form.id : "자동 생성 — product-1, product-2 …"}
-              </p>
-            </Field>
-            <Field label="정렬 순서" help={isEdit ? "낮을수록 먼저 표시" : undefined}>
-              {isEdit ? (
-                <input type="number" value={form.sortOrder} onChange={set("sortOrder")} className={inputCls} />
-              ) : (
-                <p className="rounded-lg bg-white px-3 py-2 text-sm text-neutral-500">
-                  자동 — 목록 맨 앞
-                </p>
-              )}
-            </Field>
-          </div>
 
           <SpecsInput
             values={parseJsonArray<{ label: string; value: string }>(form.specs)}
@@ -841,6 +822,7 @@ function ModelShots({
   productName: string;
 }) {
   const [busy, setBusy] = useState(false);
+  const [reorderOpen, setReorderOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const remaining = MAX_MODEL_SHOTS - shots.length;
 
@@ -891,16 +873,16 @@ function ModelShots({
   };
 
   return (
-    <div className="space-y-6">
-      {shots.map((shot, i) => (
-        // 인덱스가 아니라 에셋 키로 키를 잡는다 — 순서를 바꿀 때 인덱스 키를 쓰면
-        // React가 자리(위치) 기준으로 컴포넌트를 재사용해 업로드 중 상태가 엉뚱한
-        // 항목에 남는다.
-        <div key={shot.assetKey || `empty-${i}`}>
-          <ImageField
-            label={`모델 컷 ${i + 1}`}
-            value={shot}
-            aspect="aspect-[3/4]"
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-3">
+        {shots.map((shot, i) => (
+          // 인덱스가 아니라 에셋 키로 키를 잡는다 — 순서를 바꿀 때 인덱스 키를 쓰면
+          // React가 자리(위치) 기준으로 컴포넌트를 재사용해 업로드 중 상태가 엉뚱한
+          // 항목에 남는다.
+          <ShotThumb
+            key={shot.assetKey || `empty-${i}`}
+            shot={shot}
+            index={i}
             alt={altFor(productName, ALT_ROLE.modelShot(i))}
             onChange={(next) =>
               onChange(
@@ -910,56 +892,230 @@ function ModelShots({
               )
             }
           />
-          {shots.length > 1 && (
-            <div className="mt-2 flex items-center gap-1">
-              <MoveButton
-                label={`모델 컷 ${i + 1} 앞으로 옮기기`}
-                disabled={i === 0}
-                onClick={() => move(i, -1)}
-              >
-                ↑
-              </MoveButton>
-              <MoveButton
-                label={`모델 컷 ${i + 1} 뒤로 옮기기`}
-                disabled={i === shots.length - 1}
-                onClick={() => move(i, 1)}
-              >
-                ↓
-              </MoveButton>
-              <span className="ml-1 text-[0.7rem] text-neutral-400">
-                {i + 1} / {shots.length}
-              </span>
-            </div>
-          )}
-        </div>
-      ))}
-
-      {remaining > 0 && (
-        <>
+        ))}
+        {shots.length > 0 && remaining > 0 && (
           <button
             type="button"
             disabled={busy}
             onClick={() => inputRef.current?.click()}
-            className="w-full rounded-lg border border-dashed border-neutral-300 py-8 text-sm text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-600 disabled:opacity-50"
+            className="h-32 w-24 rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-600 disabled:opacity-50"
+            title="모델 컷 추가"
           >
-            {busy
-              ? "업로드 중..."
-              : `+ 모델 컷 추가 — 여러 장 선택 가능 (${remaining}장 더)`}
+            {busy ? "업로드 중..." : "+"}
           </button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              const files = Array.from(e.target.files ?? []);
-              if (files.length > 0) addFiles(files);
-              e.currentTarget.value = "";
-            }}
-          />
-        </>
+        )}
+      </div>
+
+      {shots.length > 1 && (
+        <button
+          type="button"
+          onClick={() => setReorderOpen(true)}
+          className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-600 transition-colors hover:border-neutral-400 hover:text-neutral-800"
+        >
+          순서 변경
+        </button>
       )}
+
+      {shots.length === 0 && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+          className="w-full rounded-lg border border-dashed border-neutral-300 py-8 text-sm text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-600 disabled:opacity-50"
+        >
+          {busy ? "업로드 중..." : "+ 모델 컷 추가 — 여러 장 선택 가능"}
+        </button>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          if (files.length > 0) addFiles(files);
+          e.currentTarget.value = "";
+        }}
+      />
+
+      {reorderOpen && (
+        <ReorderDialog
+          shots={shots}
+          onClose={() => setReorderOpen(false)}
+          onMove={move}
+        />
+      )}
+    </div>
+  );
+}
+
+/** 모델 컷 하나를 보여주는 작은 썸네일. 클릭하면 교체, X로 삭제. */
+function ShotThumb({
+  shot,
+  index,
+  alt,
+  onChange,
+}: {
+  shot: DetailImage;
+  index: number;
+  alt: string;
+  onChange: (next: DetailImage | null) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const src =
+    shot.assetKey && S3_BASE
+      ? `${S3_BASE}/${shot.assetKey}.${shot.ext || "jpg"}`
+      : null;
+
+  const pick = async (file: File) => {
+    setBusy(true);
+    const uploaded = await uploadImage(file);
+    setBusy(false);
+    if (!uploaded) return alert("업로드 실패");
+    onChange({ ...shot, assetKey: uploaded.assetKey, ext: uploaded.ext, alt });
+  };
+
+  return (
+    <div className="group relative h-32 w-24 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="absolute inset-0 z-10"
+        aria-label={`모델 컷 ${index + 1} 교체`}
+      />
+      {src && (
+        <NextImage
+          src={src}
+          alt={alt}
+          fill
+          sizes="96px"
+          unoptimized={shot.ext === "gif"}
+          className="object-cover"
+        />
+      )}
+      {!src && (
+        <div className="absolute inset-0 flex items-center justify-center text-lg text-neutral-400">
+          +
+        </div>
+      )}
+      {busy && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-neutral-900/40 text-xs text-white">
+          업로드 중...
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChange(null);
+        }}
+        className="absolute right-1 top-1 z-30 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900/60 text-xs leading-none text-white opacity-0 transition-opacity group-hover:opacity-100"
+        aria-label={`모델 컷 ${index + 1} 삭제`}
+      >
+        &times;
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) pick(file);
+          e.currentTarget.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+/** 모델 컷 순서를 한눈에 보고 바꾸는 다이얼로그. 변경은 즉시 목록에 반영된다. */
+function ReorderDialog({
+  shots,
+  onClose,
+  onMove,
+}: {
+  shots: DetailImage[];
+  onClose: () => void;
+  onMove: (i: number, delta: number) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-neutral-900/50" onClick={onClose} />
+      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-neutral-900">모델 컷 순서</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-lg leading-none text-neutral-400 hover:text-neutral-700"
+            aria-label="닫기"
+          >
+            &times;
+          </button>
+        </div>
+        <ul className="max-h-[60vh] space-y-2 overflow-y-auto">
+          {shots.map((shot, i) => {
+            const src =
+              shot.assetKey && S3_BASE
+                ? `${S3_BASE}/${shot.assetKey}.${shot.ext || "jpg"}`
+                : null;
+            return (
+              <li
+                key={shot.assetKey || `empty-${i}`}
+                className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2"
+              >
+                <span className="w-4 text-center text-xs tabular-nums text-neutral-400">
+                  {i + 1}
+                </span>
+                <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded bg-neutral-200">
+                  {src && (
+                    <NextImage
+                      src={src}
+                      alt={shot.alt}
+                      fill
+                      sizes="40px"
+                      unoptimized={shot.ext === "gif"}
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+                <span className="flex-1 truncate text-xs text-neutral-500">
+                  모델 컷 {i + 1}
+                </span>
+                <div className="flex items-center gap-1">
+                  <MoveButton
+                    label={`모델 컷 ${i + 1} 위로`}
+                    disabled={i === 0}
+                    onClick={() => onMove(i, -1)}
+                  >
+                    ↑
+                  </MoveButton>
+                  <MoveButton
+                    label={`모델 컷 ${i + 1} 아래로`}
+                    disabled={i === shots.length - 1}
+                    onClick={() => onMove(i, 1)}
+                  >
+                    ↓
+                  </MoveButton>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+          >
+            완료
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
