@@ -4,7 +4,7 @@ import Image from "next/image";
  * 전역 로딩 화면.
  *
  * 뷰포트를 가득 덮어(헤더·푸터 포함) 브랜드 엠블럼만 보여준다.
- * `loding.png`는 크림 종이 질감이 통째로 구워진 정사각 이미지라,
+ * `placeholder.png`는 크림 종이 질감이 통째로 구워진 정사각 이미지라,
  * 배경을 그 종이색(#e5e2de, 우하단 비네팅 #dbd8d3)과 잇는 방사형 그라디언트로 깔아
  * 이미지 경계가 드러나지 않게 한다. (사이트 기본 --color-ivory #f3ece0 는 더 따뜻해서 이음새가 보인다)
  */
@@ -23,7 +23,7 @@ export function LoadingScreen() {
     >
       <div className="animate-silk-breath relative aspect-square w-[min(78vw,78vh,560px)]">
         <Image
-          src="/loding.png"
+          src="/placeholder.png"
           alt=""
           fill
           priority

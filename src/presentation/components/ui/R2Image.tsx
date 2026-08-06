@@ -12,8 +12,12 @@ interface R2ImageProps {
   priority?: boolean;
 }
 
-const FALLBACK_SRC = "/placeholder.png";
-const LOADING_SRC = "/loding.png";
+/**
+ * 로딩 표시와 실패 폴백에 같은 브랜드 엠블럼을 쓴다.
+ * 예전에는 loding.png / placeholder.png 두 파일이 바이트 단위로 같았다 —
+ * 같은 그림을 2.6MB씩 두 번 들고 있을 이유가 없어 하나로 합쳤다.
+ */
+const PLACEHOLDER_SRC = "/placeholder.png";
 
 /**
  * 에셋 URL을 해석해 렌더하고, 로딩 중·실패 시 플레이스홀더를 보여준다.
@@ -38,7 +42,7 @@ export function R2Image({ image, sizes, className, priority }: R2ImageProps) {
     setLoaded(false);
   }
 
-  const src = !resolvedUrl || failed ? FALLBACK_SRC : resolvedUrl;
+  const src = !resolvedUrl || failed ? PLACEHOLDER_SRC : resolvedUrl;
   // 해석된 URL이 없으면 기다릴 것이 없으므로 로딩 화면을 띄우지 않는다.
   const showLoading = Boolean(resolvedUrl) && !loaded && !failed;
 
@@ -52,7 +56,7 @@ export function R2Image({ image, sizes, className, priority }: R2ImageProps) {
         >
           {/* sizes를 실제 이미지와 맞춘다. 빠뜨리면 fill의 기본값이 100vw라
               로딩 표시 하나에 뷰포트 폭짜리 파생본을 받아 온다. */}
-          <NextImage src={LOADING_SRC} alt="" fill sizes={sizes} className="object-cover" />
+          <NextImage src={PLACEHOLDER_SRC} alt="" fill sizes={sizes} className="object-cover" />
         </div>
       )}
       <NextImage

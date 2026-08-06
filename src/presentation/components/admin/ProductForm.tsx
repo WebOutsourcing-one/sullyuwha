@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import NextImage from "next/image";
 import type { FormEvent } from "react";
+import { assetPreviewUrl } from "@/lib/asset-url";
 
 interface ProductFormData {
   id: string;
@@ -73,9 +74,6 @@ const DEFAULT_FORM: ProductFormData = {
   detail: "{}",
   sortOrder: "0",
 };
-
-/** 업로드된 에셋 미리보기 URL. base URL이 없으면 이미지가 없는 것으로 본다. */
-const S3_BASE = process.env.NEXT_PUBLIC_ASSET_BASE_URL || "";
 
 function parseJsonArray<T>(val: string): T[] {
   try {
@@ -535,10 +533,7 @@ function ClickImage({
 }) {
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const src =
-    value.assetKey && S3_BASE
-      ? `${S3_BASE}/${value.assetKey}.${value.ext || "jpg"}`
-      : null;
+  const src = assetPreviewUrl(value.assetKey, value.ext);
 
   const pick = async (file: File) => {
     setBusy(true);
@@ -965,10 +960,7 @@ function ShotThumb({
 }) {
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const src =
-    shot.assetKey && S3_BASE
-      ? `${S3_BASE}/${shot.assetKey}.${shot.ext || "jpg"}`
-      : null;
+  const src = assetPreviewUrl(shot.assetKey, shot.ext);
 
   const pick = async (file: File) => {
     setBusy(true);
@@ -1059,10 +1051,7 @@ function ReorderDialog({
         </div>
         <ul className="max-h-[60vh] space-y-2 overflow-y-auto">
           {shots.map((shot, i) => {
-            const src =
-              shot.assetKey && S3_BASE
-                ? `${S3_BASE}/${shot.assetKey}.${shot.ext || "jpg"}`
-                : null;
+            const src = assetPreviewUrl(shot.assetKey, shot.ext);
             return (
               <li
                 key={shot.assetKey || `empty-${i}`}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { assetPreviewUrl } from "@/lib/asset-url";
 
 /** /api/admin/products가 목록용으로 골라 내려주는 칸들. */
 interface ProductRow {
@@ -21,18 +22,14 @@ interface ProductRow {
   imageExt: string | null;
 }
 
-const S3_BASE = process.env.NEXT_PUBLIC_ASSET_BASE_URL || "";
-
 /**
  * 목록에 거는 컷. 목록 썸네일이 있으면 그것, 없으면 대표 컷으로 대체한다.
  * (도메인의 thumbnailOf와 같은 규칙 — 예전에는 여기만 대표 컷을 썼다)
  */
 function thumbnailUrl(p: ProductRow): string | null {
-  if (!S3_BASE) return null;
-  const key = p.thumbnailAssetKey || p.imageAssetKey;
-  if (!key) return null;
-  const ext = (p.thumbnailAssetKey ? p.thumbnailExt : p.imageExt) || "jpg";
-  return `${S3_BASE}/${key}.${ext}`;
+  return p.thumbnailAssetKey
+    ? assetPreviewUrl(p.thumbnailAssetKey, p.thumbnailExt)
+    : assetPreviewUrl(p.imageAssetKey, p.imageExt);
 }
 
 export default function AdminProductsPage() {
