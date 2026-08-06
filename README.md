@@ -14,12 +14,39 @@
 
 ## 시작하기
 
+DB 없이 화면만 볼 때는 이것으로 충분하다. 정적 데이터로 렌더된다.
+
 ```bash
 bun install
-bun run dev        # http://localhost:3000
+bun run dev        # http://localhost:5001
 ```
 
-R2를 아직 연결하지 않아도 **샴페인 톤 플레이스홀더**로 전체 레이아웃이 렌더링된다.
+관리자 화면에서 등록한 상품까지 보려면 DB를 붙인다.
+
+```bash
+# .env 를 만들고 (git에 올라가지 않는다)
+#   POSTGRES_PORT=5432                 # 이미 쓰는 포트면 비어 있는 번호로
+#   DATABASE_URL=postgresql://sullyuwha:sullyuwha_local@localhost:5432/sullyuwha
+#
+# .env.local 에는 로그인용 값을 넣는다
+#   AUTH_SECRET=<openssl rand -base64 32>
+#   AUTH_ADMIN_EMAIL=admin@sullyuwha.local
+#   AUTH_ADMIN_PASSWORD=<원하는 비밀번호>
+
+bun run db:up          # postgres + minio (docker)
+bun run db:migrate     # 스키마 반영
+bun run db:seed        # 브랜드 콘텐츠·샘플 상품
+bun run dev            # http://localhost:5001  → /sull-admin 으로 로그인
+```
+
+`DATABASE_URL` 이 있으면 상품·콘텐츠를 DB에서 읽고, 없으면 정적 데이터를 쓴다.
+`DATA_SOURCE=static` 으로 강제할 수도 있다.
+
+`DATABASE_URL` 을 `.env.local` 이 아니라 `.env` 에 두는 이유 — prisma CLI는
+`prisma.config.ts` 의 `dotenv/config` 를 거치는데 그건 `.env` 만 읽는다.
+`.env` 는 Next와 docker compose도 함께 읽어서 세 곳이 같은 값을 본다.
+
+R2/S3를 아직 연결하지 않아도 **브랜드 엠블럼 플레이스홀더**로 전체 레이아웃이 렌더링된다.
 
 ## Cloudflare R2 연동
 
