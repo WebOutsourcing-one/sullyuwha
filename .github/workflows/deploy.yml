@@ -1,0 +1,150 @@
+# main에 올라가면 이미지를 빌드해 GHCR에 올리고, Lightsail 인스턴스에서 교체한다.
+#
+# 인스턴스에서 직접 빌드하지 않는 이유 — Next 빌드는 메모리를 많이 써서
+# 1~2GB 인스턴스에서는 OOM으로 죽거나 서비스 중인 앱을 밀어낸다.
+#
+# 최초 세팅(시크릿·서버 준비)은 docs/deploy.md 참고.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # 같은 커밋을 다시 배포하거나 롤백할 때 수동으로 돌린다.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "배포할 커밋/태그 (비우면 현재 브랜치)"
+        required: false
+
+concurrency:
+  # 배포가 겹치면 컨테이너 교체가 뒤엉킨다. 뒤에 온 것만 돌린다.
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - id: meta
+        run: echo "tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 이미지 빌드가 곧 검증이다 — Dockerfile의 `bun run build`가
+      # prisma generate + next build(타입체크·ESLint 포함)를 돌린다.
+      # 여기서 실패하면 이미지가 푸시되지 않으므로 깨진 코드는 배포되지 않는다.
+      #
+      # ⚠️ NEXT_PUBLIC_* 는 빌드 타임에 번들로 인라인된다. 여기서 안 넘기면
+      #    빈 값으로 굳어 이미지가 플레이스홀더로 나간다(Dockerfile 주석 참고).
+      #    시크릿은 넣지 않는다 — build arg는 이미지 히스토리에 남는다.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+            ${{ env.IMAGE }}:latest
+          build-args: |
+            NEXT_PUBLIC_ASSET_BASE_URL=${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
+            NEXT_PUBLIC_TOSS_CLIENT_KEY=${{ vars.NEXT_PUBLIC_TOSS_CLIENT_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: SSH 키 준비
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # 호스트 키를 미리 고정한다. StrictHostKeyChecking=no 로 두면
+          # 중간자 공격을 감지하지 못한 채 배포 자격증명이 넘어간다.
+          echo "${{ secrets.LIGHTSAIL_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      # 서버에는 소스를 두지 않는다. 실행에 필요한 파일만 올린다.
+      - name: 구성 파일 전송
+        run: |
+          scp -i ~/.ssh/id_deploy \
+            docker-compose.prod.yml Caddyfile \
+            "${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/opt/sullyuwha/"
+          scp -i ~/.ssh/id_deploy \
+            scripts/backup-db.sh scripts/restore-db.sh \
+            "${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/opt/sullyuwha/scripts/"
+
+      - name: 배포
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          ssh -i ~/.ssh/id_deploy \
+            "${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}" \
+            "APP_IMAGE='${{ env.IMAGE }}:${TAG}' bash -s" <<'REMOTE'
+          set -euo pipefail
+          cd /opt/sullyuwha
+          chmod +x scripts/*.sh
+
+          echo "▸ 이미지 받기: $APP_IMAGE"
+          echo "${GHCR_TOKEN:-}" | docker login ghcr.io -u "${GHCR_USER:-}" --password-stdin 2>/dev/null || true
+          docker pull "$APP_IMAGE"
+
+          export APP_IMAGE
+          COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
+
+          echo "▸ DB 기동 확인"
+          $COMPOSE up -d postgres
+          # 마이그레이션 전에 DB가 실제로 받을 준비가 됐는지 본다.
+          for i in $(seq 1 30); do
+            $COMPOSE exec -T postgres pg_isready -U sullyuwha >/dev/null 2>&1 && break
+            sleep 2
+          done
+
+          echo "▸ 마이그레이션"
+          # 배포할 바로 그 이미지로 돌린다 — 코드와 스키마 버전이 어긋나지 않는다.
+          $COMPOSE run --rm --no-deps app bunx prisma migrate deploy
+
+          echo "▸ 컨테이너 교체"
+          $COMPOSE up -d --remove-orphans
+
+          echo "▸ 헬스체크"
+          ok=0
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:80/sull-admin/login; then ok=1; break; fi
+            sleep 3
+          done
+          if [ "$ok" != 1 ]; then
+            echo "헬스체크 실패 — 최근 로그:" >&2
+            $COMPOSE logs --tail=50 app >&2
+            exit 1
+          fi
+
+          echo "▸ 오래된 이미지 정리"
+          docker image prune -f --filter "until=168h" >/dev/null
+
+          echo "✅ 배포 완료: $APP_IMAGE"
+          REMOTE
+        # GHCR이 비공개면 서버도 로그인이 필요하다.
+        # 서버의 .env.production 에 GHCR_USER/GHCR_TOKEN 을 넣어 두면 위 login이 쓴다.

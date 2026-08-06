@@ -38,6 +38,19 @@ COPY --from=builder --chown=bun:bun /app/package.json ./package.json
 COPY --from=builder --chown=bun:bun /app/next.config.ts ./
 COPY --from=builder --chown=bun:bun /app/node_modules ./node_modules
 
+# 마이그레이션을 이 이미지로 돌리기 위해 스키마와 Prisma 설정을 함께 넣는다.
+# 없으면 배포할 때마다 서버에 소스를 따로 받아야 하고, 이미지와 스키마 버전이
+# 어긋날 수 있다. 같은 이미지로 돌려야 배포된 코드와 스키마가 항상 짝이 맞는다.
+#   docker compose run --rm app bunx prisma migrate deploy
+COPY --from=builder --chown=bun:bun /app/prisma ./prisma
+COPY --from=builder --chown=bun:bun /app/prisma.config.ts ./prisma.config.ts
+
+# 시드 스크립트가 생성된 Prisma 클라이언트를 직접 import 한다
+# (`prisma/seed.ts` → `../src/generated/prisma/client`).
+# 앱은 이 코드가 .next 번들에 들어가 있어 없어도 돌지만, 독립 실행 스크립트는
+# 원본 파일이 필요하다. 없으면 `bun prisma/seed.ts`가 모듈을 못 찾고 죽는다.
+COPY --from=builder --chown=bun:bun /app/src/generated ./src/generated
+
 USER bun
 
 EXPOSE 5001
