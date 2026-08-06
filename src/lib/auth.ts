@@ -303,5 +303,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  pages: { signIn: "/sull-admin/login" },
+  /**
+   * 로그인·오류 화면은 **고객용**을 가리킨다.
+   *
+   * 예전에는 둘 다 `/sull-admin/login`이었다. 그러면 카카오 로그인에 실패한 일반
+   * 고객이 관리자 이메일·비밀번호 폼을 보게 된다 — 원인을 알 수 없고 관리자
+   * 경로까지 드러난다. 특히 같은 이메일로 다른 공급자를 쓸 때 나는
+   * `OAuthAccountNotLinked`가 이 경로로 온다.
+   *
+   * 관리자 로그인은 이 설정과 무관하다 — proxy.ts와 관리자 레이아웃이
+   * `/sull-admin/login`을 직접 가리키고, 그 화면은 signIn("credentials")를
+   * 직접 호출한다.
+   */
+  pages: { signIn: "/login", error: "/login" },
 });

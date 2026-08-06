@@ -1,11 +1,4 @@
-"use client";
-
-import { signIn } from "next-auth/react";
-
-const PROVIDERS = [
-  { id: "kakao", label: "카카오로 계속하기" },
-  { id: "naver", label: "네이버로 계속하기" },
-] as const;
+import { SocialLoginButtons } from "../auth/SocialLoginButtons";
 
 /**
  * 결제 전 로그인 안내.
@@ -25,18 +18,7 @@ export function LoginRequired({ callbackUrl }: { callbackUrl: string }) {
         </p>
       </div>
 
-      <div className="flex w-full flex-col gap-2 sm:max-w-xs">
-        {PROVIDERS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => signIn(p.id, { callbackUrl })}
-            className="w-full border border-line px-5 py-3.5 text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+      <SocialLoginButtons callbackUrl={callbackUrl} />
     </div>
   );
 }
