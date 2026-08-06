@@ -9,8 +9,8 @@
 
 | 항목 | 코드 | 설정값 |
 |---|---|---|
-| 카카오/네이버 로그인 | 완료 — `src/lib/auth.ts:141-142` | ❌ `.env.production`에 키가 전부 빈 값 |
-| 토스 결제 (주문→결제창→승인→웹훅) | 완료 — 전 구간 | ❌ `.env.production`에 **키 항목 자체가 없음** |
+| 카카오/네이버 로그인 | 완료 — `src/lib/auth.ts:141-142` | ❌ 운영 서버 env에 키를 채워야 함 |
+| 토스 결제 (주문→결제창→승인→웹훅) | 완료 — 전 구간 | ❌ 운영 서버 env에 키를 채워야 함 |
 | CSP(토스 iframe 허용) | 완료 — `next.config.ts:37-43` | — |
 | Prisma 스키마(User/Account/Order) | 완료 | — |
 
@@ -290,7 +290,7 @@ bun run dev            # http://localhost:5001
 
 ## 4-3. 환경변수 추가
 
-**현재 `.env.production`에 토스 키 항목이 아예 없다.** 아래를 추가해야 한다:
+운영 서버의 `.env.production`(템플릿은 저장소의 `.env.production.example`)에 아래를 넣는다:
 
 ```bash
 # 토스페이먼츠
@@ -422,7 +422,7 @@ ngrok http 5001
 
 ## 결제
 
-- [ ] `.env.production`에 `NEXT_PUBLIC_TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY` **항목 추가**
+- [ ] 운영 서버 `.env.production`에 `NEXT_PUBLIC_TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY` 추가
 - [ ] `DATA_SOURCE=database` 설정 + 상품 가격 입력
 - [x] ~~`Dockerfile`에 `NEXT_PUBLIC_*` build arg 추가~~ (적용됨)
 - [ ] **빌드 시 `--build-arg`로 값 전달** ← 빠뜨리면 프로덕션에서 결제 UI가 안 뜬다

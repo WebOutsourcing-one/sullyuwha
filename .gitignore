@@ -36,10 +36,11 @@ yarn-error.log*
 
 # env files — 실제 값이 담긴 파일은 절대 커밋하지 않는다.
 # 아래 두 파일은 "값이 비어있는 템플릿"이므로 예외로 추적한다.
-# .env.production 에 실제 비밀값을 채워 넣지 말 것 (파일 상단 주의사항 참고).
+# 서버의 실제 .env.production 과 이름이 겹치지 않도록 템플릿은 .example 로 둔다 —
+# 이름이 같으면 서버 파일을 저장소로 복사해 오는 순간 비밀값이 그대로 커밋된다.
 .env*
 !.env.example
-!.env.production
+!.env.production.example
 
 # vercel
 .vercel
@@ -49,3 +50,10 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# AI 도구가 내려받는 스킬 캐시 — 세 디렉터리에 같은 내용이 복제된다.
+# 저장소가 아니라 각자 로컬에서 관리한다.
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
