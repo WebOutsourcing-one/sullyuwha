@@ -68,6 +68,11 @@ sudo chown -R $USER:$USER /opt/sullyuwha
 
 ## 1-4. `.env.production` (서버에만 둔다)
 
+> ⚠️ **저장소에도 같은 이름의 파일이 있고 그건 git에 추적된다.**
+> 저장소의 것은 값이 비어 있는 템플릿이고, 아래는 실제 비밀값이 들어가는
+> 서버 전용 파일이다. 이름이 같으니 서버 파일을 저장소로 복사해 오지 않도록
+> 주의한다 — 그대로 커밋되면 `AUTH_SECRET`과 DB 비밀번호가 공개된다.
+
 `/opt/sullyuwha/.env.production`:
 
 ```bash
