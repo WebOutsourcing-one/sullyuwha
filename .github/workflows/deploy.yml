@@ -21,9 +21,6 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false
 
-env:
-  IMAGE: ghcr.io/${{ github.repository }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,10 +29,16 @@ jobs:
       packages: write
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
+      image: ${{ steps.image.outputs.image }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.ref }}
+
+      # ghcr.io 리포지토리 이름은 반드시 소문자여야 한다.
+      # github.repository는 대소문자를 그대로 가져오므로 여기서 변환해둔다.
+      - id: image
+        run: echo "image=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - id: meta
         run: echo "tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
@@ -60,8 +63,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
-            ${{ env.IMAGE }}:latest
+            ${{ steps.image.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.image.outputs.image }}:latest
           build-args: |
             NEXT_PUBLIC_ASSET_BASE_URL=${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
             NEXT_PUBLIC_TOSS_CLIENT_KEY=${{ vars.NEXT_PUBLIC_TOSS_CLIENT_KEY }}
@@ -99,10 +102,11 @@ jobs:
       - name: 배포
         env:
           TAG: ${{ needs.build.outputs.tag }}
+          IMAGE: ${{ needs.build.outputs.image }}
         run: |
           ssh -i ~/.ssh/id_deploy \
             "${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}" \
-            "APP_IMAGE='${{ env.IMAGE }}:${TAG}' bash -s" <<'REMOTE'
+            "APP_IMAGE='${IMAGE}:${TAG}' bash -s" <<'REMOTE'
           set -euo pipefail
           cd /opt/sullyuwha
           chmod +x scripts/*.sh
