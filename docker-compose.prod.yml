@@ -17,6 +17,17 @@ services:
     image: "${APP_IMAGE:?APP_IMAGE 를 지정하세요. 예 ghcr.io/<org>/sullyuwha:latest}"
     container_name: sullyuwha-app
     restart: unless-stopped
+    # 폭주해도 호스트를 끌고 내려가지 않게 한다.
+    #
+    # `restart: unless-stopped` 는 컨테이너가 죽었을 때만 소용이 있다. 실제로 한 번
+    # 겪은 장애는 **호스트가 통째로 응답 불능**이 된 경우였고(ping 도 안 됐다),
+    # 그러면 도커도 함께 멈춰 재시작 정책이 작동하지 못한다. 콘솔에서 재부팅해야 했다.
+    # 상한을 걸면 커널이 이 컨테이너만 죽이고 도커가 곧바로 되살린다 —
+    # 30분 정전 대신 몇 초 끊기는 것으로 끝난다.
+    #
+    # 512m 은 실측(정상 162MiB)의 3배가 넘는다. 여기에 도커 기본값으로 같은 크기의
+    # 스왑이 더 붙어(총 1G) 이미지 최적화가 몰릴 때의 순간 최고치까지 덮는다.
+    mem_limit: 512m
     env_file:
       - .env.production
     environment:
@@ -40,6 +51,9 @@ services:
     image: postgres:16-alpine
     container_name: sullyuwha-db
     restart: unless-stopped
+    # 실측 7MiB. 여유가 큰 것은 shared_buffers(기본 128MB)와 정렬·백업 시
+    # 일시적으로 늘어나는 몫을 덮기 위해서다.
+    mem_limit: 256m
     # 포트를 호스트에 열지 않는다. 인터넷은 물론 호스트에서도 직접 붙지 않는다.
     # 필요하면 `docker compose exec postgres psql -U sullyuwha` 로 들어간다.
     environment:
@@ -60,6 +74,8 @@ services:
     image: caddy:2-alpine
     container_name: sullyuwha-proxy
     restart: unless-stopped
+    # 실측 27MiB. TLS 갱신과 동시 접속이 몰릴 때를 감안해도 넉넉하다.
+    mem_limit: 96m
     ports:
       - "80:80"
       - "443:443"
