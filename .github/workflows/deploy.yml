@@ -104,9 +104,10 @@ jobs:
           TAG: ${{ needs.build.outputs.tag }}
           IMAGE: ${{ needs.build.outputs.image }}
         run: |
+          set -o pipefail
           ssh -i ~/.ssh/id_deploy \
             "${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}" \
-            "APP_IMAGE='${IMAGE}:${TAG}' bash -s" <<'REMOTE'
+            "APP_IMAGE='${IMAGE}:${TAG}' bash -s" <<'REMOTE' | tee /tmp/deploy-out.log
           set -euo pipefail
           cd /opt/sullyuwha
           chmod +x scripts/*.sh
@@ -151,19 +152,27 @@ jobs:
           COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
 
           echo "▸ DB 기동 확인"
-          $COMPOSE up -d postgres
+          $COMPOSE up -d postgres </dev/null
           # 마이그레이션 전에 DB가 실제로 받을 준비가 됐는지 본다.
+          #
+          # ⚠️ stdin을 반드시 막는다(`</dev/null`).
+          #    이 스크립트는 `ssh ... "bash -s"` 의 **stdin으로 흘러들어온다.**
+          #    docker compose 의 exec·run 은 stdin을 읽으므로, 막지 않으면
+          #    남은 스크립트를 통째로 삼켜 버린다. 그러면 bash는 EOF를 만나
+          #    **종료 코드 0으로 조용히 끝나고** 워크플로는 초록불이 된다.
+          #    실제로 그렇게 마이그레이션·컨테이너 교체가 몇 주 동안 한 번도
+          #    실행되지 않은 채 배포가 "성공"했다.
           for i in $(seq 1 30); do
-            $COMPOSE exec -T postgres pg_isready -U sullyuwha >/dev/null 2>&1 && break
+            $COMPOSE exec -T postgres pg_isready -U sullyuwha </dev/null >/dev/null 2>&1 && break
             sleep 2
           done
 
           echo "▸ 마이그레이션"
           # 배포할 바로 그 이미지로 돌린다 — 코드와 스키마 버전이 어긋나지 않는다.
-          $COMPOSE run --rm --no-deps app bunx prisma migrate deploy
+          $COMPOSE run --rm --no-deps app bunx prisma migrate deploy </dev/null
 
           echo "▸ 컨테이너 교체"
-          $COMPOSE up -d --remove-orphans
+          $COMPOSE up -d --remove-orphans </dev/null
 
           # 정말 교체됐는지 확인한다.
           #
@@ -196,5 +205,18 @@ jobs:
 
           echo "✅ 배포 완료: $APP_IMAGE"
           REMOTE
+
+          # 원격 스크립트가 **끝까지** 실행됐는지 확인한다.
+          #
+          # 위 스크립트는 ssh의 stdin으로 흘러들어가므로, 중간에 stdin을 읽는 명령이
+          # 하나라도 있으면 나머지를 삼키고 bash가 EOF로 조용히 끝난다 — 종료 코드는 0이라
+          # ssh도 워크플로도 성공으로 본다. `</dev/null` 로 막아 뒀지만, 앞으로 이 스크립트에
+          # 명령을 추가하다 같은 실수를 반복할 수 있다. 마지막 줄이 실제로 찍혔는지 본다.
+          if ! grep -q "✅ 배포 완료" /tmp/deploy-out.log; then
+            echo "원격 스크립트가 끝까지 실행되지 않았습니다." >&2
+            echo "  stdin을 읽는 명령(docker compose exec/run 등)이 남은 스크립트를" >&2
+            echo "  삼켰을 가능성이 높습니다. 해당 명령에 '</dev/null' 을 붙이세요." >&2
+            exit 1
+          fi
         # GHCR이 비공개면 서버도 로그인이 필요하다.
         # 서버의 .env.production 에 GHCR_USER/GHCR_TOKEN 을 넣어 두면 위 login이 쓴다.
