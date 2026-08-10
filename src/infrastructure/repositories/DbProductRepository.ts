@@ -12,7 +12,9 @@ export class DbProductRepository implements ProductRepository {
   async getCollection(): Promise<readonly Product[]> {
     const prisma = getPrisma();
     const rows = await prisma.product.findMany({
-      orderBy: { sortOrder: "asc" },
+      // 최신순은 계약이다(ProductRepository 참고). id를 2차 정렬로 두는 이유 —
+      // 같은 시각에 등록된 행끼리 순서가 매번 달라지면 랜딩 카드가 새로고침마다 바뀐다.
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       include: { images: { orderBy: { sortOrder: "asc" as const } } },
     });
     // 한 행이 깨졌다고 목록 전체가 죽으면 안 된다 — 그 행만 빼고 나머지를 보여준다.
@@ -71,7 +73,7 @@ type RowWithImages = {
   specs: unknown;
   care: unknown;
   detail: unknown;
-  sortOrder: number;
+  isBest: boolean;
   images: { assetKey: string; alt: string; aspectRatio: number | null; ext: string | null; sortOrder: number }[];
 };
 
@@ -101,6 +103,7 @@ function toProduct(row: RowWithImages): Product {
       aspectRatio: img.aspectRatio ?? undefined,
       ext: img.ext ?? undefined,
     })),
+    isBest: row.isBest,
     tags: row.tags as string[],
     story: row.story ?? undefined,
     specs: row.specs ? (row.specs as { label: string; value: string }[]) : undefined,

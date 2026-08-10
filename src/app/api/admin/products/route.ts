@@ -18,14 +18,15 @@ export async function GET() {
 
   const prisma = getPrisma();
   const products = await prisma.product.findMany({
-    orderBy: { sortOrder: "asc" },
+    // 랜딩 컬렉션과 같은 순서로 본다 — 목록 맨 위가 곧 카테고리 카드에 걸릴 후보다.
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     select: {
       id: true,
       name: true,
       category: true,
       material: true,
       price: true,
-      sortOrder: true,
+      isBest: true,
       // 목록 썸네일 — 없으면 화면이 대표 컷으로 대체한다.
       thumbnailAssetKey: true,
       thumbnailAlt: true,
@@ -87,36 +88,26 @@ export async function POST(request: NextRequest) {
 
   const requestedId = typeof body.id === "string" ? body.id.trim() : "";
 
-  // 정렬순서 최솟값은 DB가 계산하게 둔다. 예전에는 전체 행을 읽어 와
-  // `Math.min(...배열)`로 구했는데, 상품이 늘수록 통째로 읽는 비용이 커지고
-  // 인자 전개는 배열이 아주 커지면 터진다.
-  const [minSort, existingIds] = await Promise.all([
-    prisma.product.aggregate({ _min: { sortOrder: true } }),
-    // ID 자동 생성에 필요한 것은 `product-N` 형태뿐이다.
-    requestedId
-      ? Promise.resolve([])
-      : prisma.product.findMany({
-          where: { id: { startsWith: "product-" } },
-          select: { id: true },
-        }),
-  ]);
+  // ID 자동 생성에 필요한 것은 `product-N` 형태뿐이다.
+  const existingIds = requestedId
+    ? []
+    : await prisma.product.findMany({
+        where: { id: { startsWith: "product-" } },
+        select: { id: true },
+      });
 
   const id = requestedId || nextProductId(existingIds.map((p) => p.id));
-
-  // 정렬순서를 안 보내면 새 상품이 목록 맨 앞에 오도록 가장 작은 값 - 1을 준다.
-  // (컬렉션은 sortOrder 오름차순 정렬이라 새 상품이 최신순으로 앞에 붙는다)
-  const sortOrder =
-    typeof body.sortOrder === "number"
-      ? body.sortOrder
-      : Math.min(minSort._min.sortOrder ?? 0, 0) - 1;
 
   const exists = await prisma.product.findUnique({ where: { id }, select: { id: true } });
   if (exists) {
     return NextResponse.json({ error: "이미 존재하는 상품 ID입니다" }, { status: 409 });
   }
 
+  // 정렬값을 계산하지 않는다 — 목록·컬렉션 순서는 createdAt이 정한다.
+  // 예전에는 새 상품이 앞에 오도록 `최솟값 - 1`을 넣었는데, 그 규칙이 코드에만
+  // 있어서 관리자가 정렬값을 손대면 이유 없이 순서가 뒤집혔다.
   const product = await prisma.product.create({
-    data: { id, ...toProductData(body), sortOrder },
+    data: { id, ...toProductData(body) },
     include: { images: { orderBy: { sortOrder: "asc" } } },
   });
 

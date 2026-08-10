@@ -58,7 +58,7 @@ export function ProductDetail({
             /
           </span>
           <Link
-            href="/#collection"
+            href="/collection"
             className="transition-colors hover:text-charcoal"
           >
             컬렉션

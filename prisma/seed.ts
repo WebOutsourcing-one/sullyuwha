@@ -119,6 +119,9 @@ async function main() {
       id: "dangui-subok",
       name: "수복문 당의",
       category: "여성 예복",
+      // BEST COLLECTION은 분류당 하나다. 시드가 아무것도 지정하지 않으면
+      // 처음 띄웠을 때 그 영역이 통째로 비어 화면이 덜 만들어진 것처럼 보인다.
+      isBest: true,
       material: "본견(실크) · 손자수",
       description: "수(壽)와 복(福)을 새긴 손자수 당의. 예를 갖추는 자리에 기품을 더합니다.",
       imageAssetKey: "collection/dangui-subok",
@@ -237,6 +240,7 @@ async function main() {
       id: "durumagi",
       name: "남성 두루마기 예복",
       category: "남성 예복",
+      isBest: true,
       material: "본견(실크)",
       description: "정갈한 선의 남성 두루마기. 격식과 편안함을 함께 담았습니다.",
       imageAssetKey: "collection/durumagi",
@@ -274,6 +278,9 @@ async function main() {
     },
   ];
 
+  // 컬렉션은 등록 시각 내림차순이다. 전부 같은 시각으로 넣으면 여기 적어 둔
+  // 순서가 사라지고 id 순으로 밀려 나간다 — 배열 앞의 것이 더 최신이 되도록 심는다.
+  const seededAt = Date.now();
   for (const [i, p] of products.entries()) {
     await prisma.product.upsert({
       where: { id: p.id },
@@ -281,7 +288,7 @@ async function main() {
       create: {
         ...p,
         imageAspectRatio: 3 / 4,
-        sortOrder: i,
+        createdAt: new Date(seededAt - i * 1000),
       },
     });
   }

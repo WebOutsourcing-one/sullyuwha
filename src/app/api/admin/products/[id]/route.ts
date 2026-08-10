@@ -67,12 +67,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const product = await prisma.product.update({
       where: { id },
-      data: {
-        ...toProductData(body),
-        // 정렬순서를 안 보내면 기존 값을 유지한다.
-        // 예전에는 `?? 0`으로 덮어서, 폼이 값을 빠뜨리면 목록 순서가 조용히 흐트러졌다.
-        ...(typeof body.sortOrder === "number" ? { sortOrder: body.sortOrder } : {}),
-      },
+      // 순서에 관한 값은 여기서 건드리지 않는다 — createdAt이 정하고, 수정으로
+      // 등록 시각이 바뀌면 오탈자 하나 고쳤을 뿐인데 컬렉션 맨 앞으로 튀어나온다.
+      data: toProductData(body),
       include: { images: { orderBy: { sortOrder: "asc" } } },
     });
     return NextResponse.json(product);

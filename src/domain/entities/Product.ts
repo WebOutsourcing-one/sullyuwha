@@ -76,6 +76,11 @@ export interface Product {
    * 사진과 GIF를 섞을 수 있다(각 Image의 `ext`로 포맷 지정).
    */
   readonly gallery?: readonly Image[];
+  /**
+   * BEST COLLECTION 노출 여부. 카테고리당 하나만 true다(DB의 부분 유니크 인덱스가 강제).
+   * 관리자 목록에서 토글로 지정한다.
+   */
+  readonly isBest: boolean;
   /** 특징/스타일 태그 */
   readonly tags: readonly string[];
   /** 상세 페이지용 — 소재·실루엣을 풀어낸 에디토리얼 문단(선택) */
@@ -94,4 +99,42 @@ export interface Product {
  */
 export function thumbnailOf(product: Product): Image {
   return product.thumbnail ?? product.image;
+}
+
+/**
+ * 분류별로 가장 최근에 등록된 상품 한 점씩을 고른다.
+ *
+ * `products`가 **최신순으로 정렬돼 있다고 가정한다** — `getCollection()`의 계약이다.
+ * 여기서 다시 정렬하지 않는 이유 — 등록 시각은 순서를 정하는 데만 쓰이고 화면에
+ * 나오지 않아 엔티티에 두지 않았다. 순서를 정하는 책임은 조회하는 쪽에 있다.
+ */
+export function latestByCategory(
+  products: readonly Product[],
+): ReadonlyMap<string, Product> {
+  const latest = new Map<string, Product>();
+  for (const product of products) {
+    // 최신순이므로 그 분류에서 처음 만난 것이 곧 최신이다.
+    if (!latest.has(product.category)) latest.set(product.category, product);
+  }
+  return latest;
+}
+
+/**
+ * BEST COLLECTION에 걸 상품들. 분류당 최대 하나다.
+ *
+ * `categoryOrder`가 노출 순서를 정한다 — 지정된 순서가 아니라 랜딩의 카드 순서와
+ * 같아야 위아래 두 영역이 같은 흐름으로 읽힌다.
+ * 아직 아무것도 지정하지 않은 분류는 그냥 빠진다(빈 칸을 남기지 않는다).
+ */
+export function bestByCategory(
+  products: readonly Product[],
+  categoryOrder: readonly string[],
+): readonly Product[] {
+  const best = new Map<string, Product>();
+  for (const product of products) {
+    if (product.isBest && !best.has(product.category)) best.set(product.category, product);
+  }
+  return categoryOrder
+    .map((category) => best.get(category))
+    .filter((product): product is Product => product !== undefined);
 }

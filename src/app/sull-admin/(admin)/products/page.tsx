@@ -13,7 +13,7 @@ interface ProductRow {
   category: string;
   material: string;
   price: number;
-  sortOrder: number;
+  isBest: boolean;
   thumbnailAssetKey: string | null;
   thumbnailAlt: string | null;
   thumbnailExt: string | null;
@@ -37,6 +37,8 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // 요청 중인 상품 id — 연타로 요청이 겹쳐 되돌림 상태가 엉키는 것을 막는다.
+  const [toggling, setToggling] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -63,6 +65,52 @@ export default function AdminProductsPage() {
 
     return () => controller.abort();
   }, []);
+
+  /**
+   * BEST COLLECTION 지정/해제. 분류당 하나뿐이라 지정하면 같은 분류의 기존 것이 내려간다.
+   *
+   * 화면을 먼저 바꾸고 요청을 보낸다(낙관적 갱신) — 토글은 누른 즉시 반응해야
+   * 여러 개를 견주며 바꾸는 흐름이 끊기지 않는다. 실패하면 이전 상태로 되돌린다.
+   */
+  const handleToggleBest = async (id: string) => {
+    const current = products.find((p) => p.id === id);
+    if (!current || toggling) return;
+
+    const next = !current.isBest;
+    const previous = products;
+
+    setToggling(id);
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id === id) return { ...p, isBest: next };
+        // 같은 분류의 기존 베스트는 내려간다 — 서버가 하는 일을 화면에도 그대로 반영한다.
+        if (next && p.category === current.category) return { ...p, isBest: false };
+        return p;
+      }),
+    );
+
+    try {
+      const res = await fetch(`/api/admin/products/${id}/best`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isBest: next }),
+      });
+      if (!res.ok) {
+        const data: unknown = await res.json().catch(() => null);
+        const message =
+          typeof data === "object" && data !== null && "error" in data
+            ? String((data as { error: unknown }).error)
+            : "베스트 설정을 바꾸지 못했습니다.";
+        setProducts(previous);
+        alert(message);
+      }
+    } catch {
+      setProducts(previous);
+      alert("베스트 설정을 바꾸지 못했습니다.");
+    } finally {
+      setToggling(null);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
@@ -102,7 +150,7 @@ export default function AdminProductsPage() {
               <th className="px-4 py-3 font-medium text-neutral-500">카테고리</th>
               <th className="px-4 py-3 font-medium text-neutral-500">소재</th>
               <th className="px-4 py-3 font-medium text-neutral-500">판매가</th>
-              <th className="px-4 py-3 font-medium text-neutral-500">정렬</th>
+              <th className="px-4 py-3 font-medium text-neutral-500">베스트</th>
               <th className="w-40 px-4 py-3 font-medium text-neutral-500">관리</th>
             </tr>
           </thead>
@@ -148,7 +196,25 @@ export default function AdminProductsPage() {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="font-mono text-xs text-neutral-400">{p.sortOrder}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBest(p.id)}
+                    disabled={toggling !== null}
+                    aria-pressed={p.isBest}
+                    title={
+                      p.isBest
+                        ? `${p.category} 베스트 — 눌러서 해제`
+                        : `${p.category} 베스트로 지정 (기존 베스트는 해제됩니다)`
+                    }
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors disabled:opacity-50 ${
+                      p.isBest
+                        ? "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                        : "border-neutral-200 text-neutral-400 hover:bg-neutral-100"
+                    }`}
+                  >
+                    <span aria-hidden>{p.isBest ? "★" : "☆"}</span>
+                    {p.isBest ? "베스트" : "지정"}
+                  </button>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1.5">

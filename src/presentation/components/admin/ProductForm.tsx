@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import NextImage from "next/image";
 import type { FormEvent } from "react";
 import { assetPreviewUrl } from "@/lib/asset-url";
+import { PRODUCT_CATEGORIES } from "@/domain/entities/Category";
 
 interface ProductFormData {
   id: string;
@@ -26,7 +27,6 @@ interface ProductFormData {
   care: string;
   /** 상세 페이지 콘텐츠(ProductDetailContent)를 JSON 문자열로 들고 있는다. */
   detail: string;
-  sortOrder: string;
 }
 
 /** 상세 페이지 블록에 딸린 이미지 — 도메인 Image의 관리자 입력 형태. */
@@ -72,7 +72,6 @@ const DEFAULT_FORM: ProductFormData = {
   specs: "[]",
   care: "[]",
   detail: "{}",
-  sortOrder: "0",
 };
 
 function parseJsonArray<T>(val: string): T[] {
@@ -158,7 +157,9 @@ const ALT_ROLE = {
 } as const;
 
 // 정적 데이터(products.data.ts)가 쓰는 실제 분류값.
-const CATEGORIES = ["여성 예복", "남성 예복", "맞춤 예복", "소품"];
+// 랜딩의 컬렉션 카드가 이 이름으로 상품을 찾는다 — 목록을 따로 들지 않고 한 곳에서 가져온다.
+// 예전에는 여기만 "소품"이었고 카드는 "장신구"라, 소품으로 등록한 상품은 어디에도 걸리지 않았다.
+const CATEGORIES = PRODUCT_CATEGORIES;
 
 export function ProductForm({ initial }: { initial?: ProductFormData }) {
   const router = useRouter();
@@ -238,9 +239,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
 
     const body = {
       ...form,
-      // 신규 상품은 서버가 ID와 정렬순서를 붙인다(자동 증가·최신순).
-      // 정렬순서는 null로 보내서 서버가 "목록 맨 앞" 값을 주도록 한다.
-      sortOrder: isEdit ? Number(form.sortOrder) : null,
+      // 순서는 보내지 않는다 — 등록 시각이 정한다. 수정해도 자리는 그대로다.
       price: Number(form.price.replace(/,/g, "")) || 0,
       imageExt: form.imageExt || null,
       imageAlt: form.imageAssetKey ? altFor(form.name, ALT_ROLE.cover) : "",

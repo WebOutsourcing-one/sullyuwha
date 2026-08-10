@@ -11,8 +11,10 @@ export default function ProductNotFound() {
       <p className="text-taupe">
         주소가 바뀌었거나 더 이상 제공하지 않는 품목일 수 있습니다.
       </p>
+      {/* 홈의 컬렉션 영역이 아니라 전체 목록으로 보낸다 —
+          없는 품목을 찾아온 사람에게 필요한 것은 나머지 목록이다. */}
       <Link
-        href="/#collection"
+        href="/collection"
         className="mt-2 rounded-sm border border-charcoal px-8 py-3.5 text-xs uppercase tracking-[0.12em] text-charcoal transition-colors duration-[320ms] ease-silk hover:bg-charcoal hover:text-ivory"
       >
         컬렉션으로 돌아가기

@@ -24,6 +24,7 @@ export const productsData: readonly Product[] = [
       "봉황문 부금 당의",
       3 / 4,
     ),
+    isBest: true,
     tags: ["당의", "부금", "봉황문", "예식"],
     // story는 두지 않는다 — 같은 문단이 detail.highlight.body에 있고,
     // 상세 페이지는 highlight가 있으면 story를 렌더하지 않는다.
@@ -102,6 +103,7 @@ export const productsData: readonly Product[] = [
       "수(壽)와 복(福)을 새긴 손자수 당의. 예를 갖추는 자리에 기품을 더합니다.",
     price: 0,
     image: image("collection/dangui-subok", "수복문 당의", 3 / 4),
+    isBest: false,
     tags: ["당의", "손자수", "예식"],
     specs: [
       { label: "구성", value: "당의 단품" },
@@ -176,6 +178,7 @@ export const productsData: readonly Product[] = [
       "노방 위에 금박을 올린 스란치마. 걸음마다 은은한 층을 이룹니다.",
     price: 0,
     image: image("collection/seuran-skirt", "궁중 노방 스란치마", 3 / 4),
+    isBest: false,
     tags: ["스란치마", "금박", "궁중"],
     specs: [
       { label: "구성", value: "스란치마 단품" },
@@ -252,6 +255,7 @@ export const productsData: readonly Product[] = [
       "목화 꽃을 수놓은 당의. 담백한 색과 절제된 자수로 현대적입니다.",
     price: 0,
     image: image("collection/mokhwa-dangui", "목화문 당의", 3 / 4),
+    isBest: false,
     tags: ["당의", "목화문", "모던"],
     specs: [
       { label: "구성", value: "당의 단품" },
@@ -326,6 +330,7 @@ export const productsData: readonly Product[] = [
       "정갈한 선의 남성 두루마기. 격식과 편안함을 함께 담았습니다.",
     price: 0,
     image: image("collection/durumagi", "남성 두루마기 예복", 3 / 4),
+    isBest: true,
     tags: ["두루마기", "남성", "예식"],
     specs: [
       { label: "구성", value: "두루마기 단품" },
