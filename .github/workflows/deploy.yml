@@ -121,10 +121,24 @@ jobs:
           echo "▸ 배포 대상 확인"
           DOMAIN_FIRST=$(grep -E '^DOMAIN=' .env.production | head -1 | cut -d= -f2- | cut -d, -f1 | tr -d ' "')
           MY_IP=$(curl -fsS --max-time 10 https://checkip.amazonaws.com | tr -d '[:space:]')
-          DNS_IP=$(getent hosts "$DOMAIN_FIRST" | awk '{print $1}' | head -1)
-          if [ -n "$DNS_IP" ] && [ "$MY_IP" != "$DNS_IP" ]; then
+          # getent hosts 는 환경에 따라 빈 값을 준다. 한 방법에만 기대면 조회가 실패했을 때
+          # 검사가 조용히 통과해 버린다 — 실제로 그렇게 한 번 놓쳤다.
+          DNS_IP=$(getent ahostsv4 "$DOMAIN_FIRST" 2>/dev/null | awk '{print $1}' | head -1)
+          [ -z "$DNS_IP" ] && DNS_IP=$(dig +short A "$DOMAIN_FIRST" 2>/dev/null | grep -E '^[0-9.]+$' | tail -1)
+          [ -z "$DNS_IP" ] && DNS_IP=$(getent hosts "$DOMAIN_FIRST" 2>/dev/null | awk '{print $1}' | head -1)
+
+          # 결과를 항상 남긴다. 통과했을 때도 무엇과 무엇을 비교했는지 보여야
+          # "초록불인데 사이트는 그대로"인 상황에서 로그만으로 판단할 수 있다.
+          echo "  배포 대상 hostname = $(hostname)"
+          echo "  배포 대상 공인 IP  = ${MY_IP}"
+          echo "  ${DOMAIN_FIRST} → ${DNS_IP:-(조회 실패)}"
+
+          if [ -z "$DNS_IP" ]; then
+            echo "${DOMAIN_FIRST} 의 A 레코드를 조회하지 못해 배포 대상을 확인할 수 없습니다." >&2
+            exit 1
+          fi
+          if [ "$MY_IP" != "$DNS_IP" ]; then
             echo "이 서버는 ${DOMAIN_FIRST} 이 가리키는 서버가 아닙니다." >&2
-            echo "  이 서버=${MY_IP}  도메인=${DNS_IP}" >&2
             echo "  LIGHTSAIL_HOST 시크릿 또는 DNS A 레코드를 맞추세요." >&2
             exit 1
           fi
