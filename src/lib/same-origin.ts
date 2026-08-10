@@ -45,21 +45,25 @@ export function denyCrossOrigin(request: NextRequest): NextResponse | null {
 function allowedOrigins(request: NextRequest): Set<string> {
   const origins = new Set<string>([request.nextUrl.origin]);
 
-  // 리버스 프록시가 TLS를 종단하면 앱에 도달하는 요청은 평문 http다.
-  // 그래서 nextUrl.origin은 `http://도메인`이 되는데 브라우저가 보내는 Origin은
-  // `https://도메인`이라 스킴만 달라 어긋난다. AUTH_URL이 덮어 주는 것은
-  // 그 한 도메인뿐이라, apex와 www를 함께 서비스하면 한쪽이 통째로 막힌다.
-  // (실제로 www 없이 접속하면 관리자 쓰기 요청이 전부 403이었다)
+  // 리버스 프록시 뒤에서 요청이 실제로 도달한 출처를 헤더로 다시 세운다.
   //
-  // 호스트는 여전히 Host 헤더에서 온 값(nextUrl.host)을 쓰고 스킴만 바로잡는다.
-  // 교차 사이트 공격에서는 브라우저가 Origin에 공격자 출처를 넣으므로,
-  // 요청이 도달한 출처를 허용해도 CSRF 방어는 그대로다(위 주석 참고).
-  const forwardedProto = request.headers
-    .get("x-forwarded-proto")
-    ?.split(",")[0]
-    ?.trim();
-  if (forwardedProto) {
-    origins.add(`${forwardedProto}://${request.nextUrl.host}`);
+  // nextUrl에 기대지 않는 이유 — 프록시 뒤에서는 이 값이 공개 주소가 아니라
+  // 내부 주소(http://localhost:5001)로 잡힌다. 그래서 허용 목록에 남는 것은
+  // AUTH_URL 하나뿐이고, apex와 www를 함께 서비스하면 AUTH_URL에 적지 않은
+  // 쪽으로 접속한 관리자의 쓰기 요청이 전부 403이 된다.
+  // (실제로 www 없이 들어가면 상품 등록·수정·삭제·베스트 지정이 모두 막혔다)
+  //
+  // Host를 신뢰해도 CSRF 방어는 그대로다 — 교차 사이트 요청에서 브라우저는
+  // Origin에 **공격자 출처**를 넣고 Host에는 우리 도메인을 넣으므로 둘이 어긋난다.
+  // Host를 위조할 수 있는 것은 브라우저가 아닌 클라이언트뿐이고, 그 경우
+  // 쿠키가 실리지 않아 CSRF가 성립하지 않는다(위 주석과 같은 논리).
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || request.headers.get("host")?.trim();
+  if (host) {
+    const proto =
+      request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+      request.nextUrl.protocol.replace(":", "");
+    origins.add(`${proto}://${host}`);
   }
 
   const configured = process.env.AUTH_URL?.trim();
