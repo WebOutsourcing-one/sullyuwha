@@ -65,7 +65,12 @@ services:
       - "443:443"
     environment:
       # 인증서 발급 도메인. DNS의 A 레코드가 이 인스턴스를 가리켜야 한다.
+      # 서비스하는 모든 호스트를 쉼표로 나열한다(리다이렉트만 하는 것도 인증서가 필요하다).
       DOMAIN: "${DOMAIN:?DOMAIN 을 지정하세요. 예 sullyuwha.com}"
+      # 실제로 앱을 서빙할 하나의 호스트. 나머지는 여기로 301 리다이렉트된다.
+      # `:-` 라서 값이 비어 있어도 기본값이 들어간다 — 빈 문자열이 넘어가면
+      # Caddy의 host 매처가 비어 설정 자체가 뜨지 않는다.
+      CANONICAL_HOST: "${CANONICAL_HOST:-sullyuwha.co.kr}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

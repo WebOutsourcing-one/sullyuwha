@@ -2,8 +2,24 @@
 #
 # 인증서는 Let's Encrypt에서 자동 발급·갱신된다. 따로 할 일이 없다.
 # 조건: DNS A 레코드가 이 인스턴스를 가리키고, 80/443이 열려 있어야 한다.
+#
+# {$DOMAIN} 에는 서비스하는 **모든** 호스트를 적는다(각각 인증서가 필요하다).
+# 그중 실제로 앱을 서빙하는 것은 {$CANONICAL_HOST} 하나뿐이고 나머지는 그리로 보낸다.
 {$DOMAIN} {
 	encode zstd gzip
+
+	# 주소를 하나로 모은다.
+	#
+	# 두 주소를 나란히 서비스하면 세션 쿠키가 호스트별로 따로 잡혀,
+	# 한쪽에서 로그인해도 다른 쪽은 로그아웃 상태가 된다. 검색엔진에도
+	# 같은 내용이 두 주소로 잡힌다.
+	#
+	# ⚠️ .env.production 의 AUTH_URL 도 반드시 이 호스트여야 한다.
+	#    어긋나면 로그인 후 Auth.js 가 다른 호스트로 보내고, 그쪽에서 다시 이리로
+	#    되돌아오면서 쿠키를 읽지 못해 로그인 화면을 맴돈다.
+	#    (배포 워크플로가 이 불일치를 먼저 확인해 막는다)
+	@non_canonical not host {$CANONICAL_HOST:sullyuwha.co.kr}
+	redir @non_canonical https://{$CANONICAL_HOST:sullyuwha.co.kr}{uri} permanent
 
 	reverse_proxy app:5001 {
 		# 앱이 요청의 원래 스킴을 알아야 한다.

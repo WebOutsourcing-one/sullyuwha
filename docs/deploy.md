@@ -115,11 +115,16 @@ sudo chown -R $USER:$USER /opt/sullyuwha
 ```bash
 # ── 필수 ──────────────────────────────────────
 POSTGRES_PASSWORD=<강한 비밀번호>
-DOMAIN=sullyuwha.com
+# 서비스하는 모든 호스트. 리다이렉트만 하는 것도 인증서가 필요하므로 함께 적는다.
+DOMAIN=sullyuwha.co.kr, www.sullyuwha.co.kr
+# 실제로 앱을 서빙할 하나의 호스트. 나머지는 여기로 301 리다이렉트된다.
+CANONICAL_HOST=sullyuwha.co.kr
 APP_IMAGE=ghcr.io/<org>/sullyuwha:latest   # 배포 시 Actions가 덮어쓴다
 
 AUTH_SECRET=<openssl rand -base64 32>
-AUTH_URL=https://sullyuwha.com
+# ⚠️ CANONICAL_HOST 와 같은 호스트여야 한다. 어긋나면 로그인이 맴돈다.
+#    (배포가 이 불일치를 확인해 컨테이너를 건드리기 전에 멈춘다)
+AUTH_URL=https://sullyuwha.co.kr
 AUTH_ADMIN_EMAIL=admin@sullyuwha.com
 AUTH_ADMIN_PASSWORD=<평문. 첫 로그인 후 지워도 된다>
 

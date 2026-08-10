@@ -144,6 +144,23 @@ jobs:
             exit 1
           fi
 
+          # ── 표준 호스트와 AUTH_URL 이 같은지 ────────────────────────
+          # Caddy가 다른 호스트를 표준 호스트로 301 보내므로, AUTH_URL 이 다른
+          # 호스트를 가리키면 로그인 후 그쪽으로 갔다가 다시 되돌아오면서
+          # 쿠키를 읽지 못해 로그인 화면을 맴돈다. 컨테이너를 건드리기 전에 막는다.
+          echo "▸ 표준 호스트 확인"
+          CANON=$(grep -E '^CANONICAL_HOST=' .env.production | head -1 | cut -d= -f2- | tr -d ' "')
+          [ -z "$CANON" ] && CANON="$DOMAIN_FIRST"
+          AUTH_HOST=$(grep -E '^AUTH_URL=' .env.production | head -1 | cut -d= -f2- \
+            | tr -d ' "' | sed -E 's#^https?://##; s#/.*$##')
+          echo "  표준 호스트 = ${CANON}"
+          echo "  AUTH_URL    = ${AUTH_HOST:-(없음)}"
+          if [ "$AUTH_HOST" != "$CANON" ]; then
+            echo "AUTH_URL 의 호스트가 표준 호스트와 다릅니다." >&2
+            echo "  .env.production 의 AUTH_URL 을 https://${CANON} 로 맞추세요." >&2
+            exit 1
+          fi
+
           echo "▸ 이미지 받기: $APP_IMAGE"
           echo "${GHCR_TOKEN:-}" | docker login ghcr.io -u "${GHCR_USER:-}" --password-stdin 2>/dev/null || true
           docker pull "$APP_IMAGE"
