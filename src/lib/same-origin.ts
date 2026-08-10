@@ -45,6 +45,23 @@ export function denyCrossOrigin(request: NextRequest): NextResponse | null {
 function allowedOrigins(request: NextRequest): Set<string> {
   const origins = new Set<string>([request.nextUrl.origin]);
 
+  // 리버스 프록시가 TLS를 종단하면 앱에 도달하는 요청은 평문 http다.
+  // 그래서 nextUrl.origin은 `http://도메인`이 되는데 브라우저가 보내는 Origin은
+  // `https://도메인`이라 스킴만 달라 어긋난다. AUTH_URL이 덮어 주는 것은
+  // 그 한 도메인뿐이라, apex와 www를 함께 서비스하면 한쪽이 통째로 막힌다.
+  // (실제로 www 없이 접속하면 관리자 쓰기 요청이 전부 403이었다)
+  //
+  // 호스트는 여전히 Host 헤더에서 온 값(nextUrl.host)을 쓰고 스킴만 바로잡는다.
+  // 교차 사이트 공격에서는 브라우저가 Origin에 공격자 출처를 넣으므로,
+  // 요청이 도달한 출처를 허용해도 CSRF 방어는 그대로다(위 주석 참고).
+  const forwardedProto = request.headers
+    .get("x-forwarded-proto")
+    ?.split(",")[0]
+    ?.trim();
+  if (forwardedProto) {
+    origins.add(`${forwardedProto}://${request.nextUrl.host}`);
+  }
+
   const configured = process.env.AUTH_URL?.trim();
   if (configured) {
     try {
