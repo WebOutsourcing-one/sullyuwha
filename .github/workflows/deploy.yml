@@ -120,7 +120,7 @@ jobs:
           # 앞에 CDN을 두게 되면 도메인은 더 이상 이 서버를 직접 가리키지 않는다.
           # 그때는 이 블록을 지우면 된다.
           echo "▸ 배포 대상 확인"
-          DOMAIN_FIRST=$(grep -E '^DOMAIN=' .env.production | head -1 | cut -d= -f2- | cut -d, -f1 | tr -d ' "')
+          DOMAIN_FIRST=$(grep -E '^DOMAIN=' .env.production | head -1 | cut -d= -f2- | cut -d, -f1 | tr -d ' "' || true)
           MY_IP=$(curl -fsS --max-time 10 https://checkip.amazonaws.com | tr -d '[:space:]')
           # getent hosts 는 환경에 따라 빈 값을 준다. 한 방법에만 기대면 조회가 실패했을 때
           # 검사가 조용히 통과해 버린다 — 실제로 그렇게 한 번 놓쳤다.
@@ -148,11 +148,14 @@ jobs:
           # Caddy가 다른 호스트를 표준 호스트로 301 보내므로, AUTH_URL 이 다른
           # 호스트를 가리키면 로그인 후 그쪽으로 갔다가 다시 되돌아오면서
           # 쿠키를 읽지 못해 로그인 화면을 맴돈다. 컨테이너를 건드리기 전에 막는다.
+          # `|| true` 가 필요하다 — 해당 줄이 없으면 grep 이 1을 내는데,
+          # set -euo pipefail 아래에서는 그 자체로 스크립트가 즉시 끊긴다.
+          # 그러면 아래 진단 메시지가 한 줄도 나오지 않아 왜 멈췄는지 알 수 없다.
           echo "▸ 표준 호스트 확인"
-          CANON=$(grep -E '^CANONICAL_HOST=' .env.production | head -1 | cut -d= -f2- | tr -d ' "')
+          CANON=$(grep -E '^CANONICAL_HOST=' .env.production | head -1 | cut -d= -f2- | tr -d ' "' || true)
           [ -z "$CANON" ] && CANON="$DOMAIN_FIRST"
           AUTH_HOST=$(grep -E '^AUTH_URL=' .env.production | head -1 | cut -d= -f2- \
-            | tr -d ' "' | sed -E 's#^https?://##; s#/.*$##')
+            | tr -d ' "' | sed -E 's#^https?://##; s#/.*$##' || true)
           echo "  표준 호스트 = ${CANON}"
           echo "  AUTH_URL    = ${AUTH_HOST:-(없음)}"
           if [ "$AUTH_HOST" != "$CANON" ]; then
