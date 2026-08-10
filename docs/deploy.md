@@ -212,6 +212,35 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 
 ## 1-7. 백업 크론
 
+### 로그 파일부터 만든다
+
+크론은 `ubuntu` 로 도는데 `/var/log` 는 root 소유다. 이 단계를 빠뜨리면
+리다이렉트가 권한 오류로 막혀 **작업이 시작도 못 하고 매번 조용히 실패한다.**
+로그가 없으니 실패했다는 사실조차 남지 않는다.
+
+```bash
+sudo touch /var/log/sullyuwha-backup.log /var/log/sullyuwha-prune.log
+sudo chown "$USER":"$USER" /var/log/sullyuwha-backup.log /var/log/sullyuwha-prune.log
+```
+
+### 백업 스크립트가 필요로 하는 것
+
+`backup-db.sh` 는 아래가 갖춰지지 않으면 첫 줄에서 멈춘다. 크론만 등록하고
+끝내면 실패한다는 사실조차 모르게 되므로, **손으로 한 번 돌려 확인한 뒤** 등록한다.
+
+| 필요한 것 | 확인 |
+|---|---|
+| 비공개 백업 버킷 | 에셋 버킷과 **반드시 분리**. 그쪽은 공개 읽기라 덤프를 두면 주문자 개인정보가 인터넷에 열린다 |
+| 백업 전용 IAM 키 | 해당 버킷 `PutObject` 만. 에셋 키를 재사용하면 유출 시 피해 범위가 두 배가 된다 |
+| `.env.production` | `S3_BACKUP_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` |
+| `aws` CLI | `command -v aws` |
+
+```bash
+/opt/sullyuwha/scripts/backup-db.sh    # "업로드 완료" 가 나와야 한다
+```
+
+### 등록
+
 ```bash
 crontab -e
 ```
@@ -241,11 +270,12 @@ docker compose -f docker-compose.prod.yml --env-file .env.production \
 > 24시간 유예와 "훑은 것의 절반 넘게 지우려 하면 중단" 두 겹으로 막지만,
 > 애초에 맞는 DB를 보게 하는 것이 먼저다.
 
-한 번 손으로 돌려 확인한다:
+등록한 뒤에는 크론이 실제로 물렸는지, 첫 실행이 남았는지 확인한다:
 
 ```bash
-/opt/sullyuwha/scripts/backup-db.sh
+crontab -l
 aws s3 ls s3://sullyuwha-backups/db-backups/
+tail -n 20 /var/log/sullyuwha-backup.log
 ```
 
 ---
