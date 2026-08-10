@@ -219,7 +219,27 @@ crontab -e
 ```cron
 # 매일 03:20 KST(=18:20 UTC) DB 백업
 20 18 * * * /opt/sullyuwha/scripts/backup-db.sh >> /var/log/sullyuwha-backup.log 2>&1
+
+# 매월 1일·16일 04:40 KST(=19:40 UTC) 쓰이지 않는 상품 이미지 정리
+40 19 1,16 * * cd /opt/sullyuwha && docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --no-deps app bun scripts/prune-assets.ts --apply >> /var/log/sullyuwha-prune.log 2>&1
 ```
+
+이미지 정리가 필요한 이유 — 업로드는 파일을 고른 즉시 S3에 올라간다(미리보기를
+바로 보여주기 위해서다). 저장·삭제 때의 정리는 앱이 하지만, **등록하다 취소하거나
+뒤로 가면 서버는 그 사실을 알 방법이 없다.** 그렇게 남은 것을 걷어낸다.
+
+`--apply` 없이 돌리면 지우지 않고 목록만 보여준다. 처음에는 그렇게 한 번 확인한다:
+
+```bash
+cd /opt/sullyuwha
+docker compose -f docker-compose.prod.yml --env-file .env.production \
+  run --rm --no-deps app bun scripts/prune-assets.ts
+```
+
+> ⚠️ **DATABASE_URL 이 운영 DB를 가리키는지 반드시 확인한다.** 다른 DB를 보면
+> 참조가 잡히지 않아 살아 있는 이미지가 전부 고아로 보인다. 스크립트가
+> 24시간 유예와 "훑은 것의 절반 넘게 지우려 하면 중단" 두 겹으로 막지만,
+> 애초에 맞는 DB를 보게 하는 것이 먼저다.
 
 한 번 손으로 돌려 확인한다:
 

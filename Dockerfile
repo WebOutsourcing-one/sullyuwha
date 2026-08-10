@@ -51,6 +51,11 @@ COPY --from=builder --chown=bun:bun /app/prisma.config.ts ./prisma.config.ts
 # 원본 파일이 필요하다. 없으면 `bun prisma/seed.ts`가 모듈을 못 찾고 죽는다.
 COPY --from=builder --chown=bun:bun /app/src/generated ./src/generated
 
+# 운영 중 손으로(또는 크론으로) 돌리는 스크립트. 시드와 같은 이유로 이미지에 넣는다 —
+# 서버에 소스를 따로 받지 않아도 되고, 배포된 코드와 항상 짝이 맞는다.
+#   docker compose run --rm --no-deps app bun scripts/prune-assets.ts --apply
+COPY --from=builder --chown=bun:bun /app/scripts ./scripts
+
 USER bun
 
 EXPOSE 5001
