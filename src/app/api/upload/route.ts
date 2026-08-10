@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
+import sharp from "sharp";
 import { loadServerEnv } from "@/infrastructure/config/server-env";
 import { S3AssetResolver } from "@/infrastructure/assets/S3AssetResolver";
 import { requireAdmin } from "@/lib/require-admin";
@@ -9,8 +10,89 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** 업로드 허용 최대 크기 (10MB). */
+/**
+ * 업로드 허용 최대 크기 (10MB).
+ *
+ * 올리기 전 파일 크기가 아니라 **디코딩했을 때 메모리에 펼쳐지는 크기**가 상한을 정한다.
+ * 10MB JPEG(약 4000×3000)은 RGBA로 약 48MB가 되고, 관리자 폼은 모델컷을
+ * `Promise.all`로 최대 8장까지 동시에 올린다. 총 914Mi 인스턴스에서 이 상한을
+ * 올리는 것은 곧바로 OOM 위험이다. 더 큰 원본이 필요해지면 상한을 올릴 게 아니라
+ * 스왑을 붙이거나 인스턴스를 키워야 한다.
+ */
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+/**
+ * 저장할 때 줄이는 긴 변의 최대 길이.
+ *
+ * 상세 페이지가 가장 크게 쓰는 폭이 CSS 기준 1200px 안쪽이라, 고해상도 화면의
+ * 2배수까지 덮는다. 이보다 큰 원본은 화면에서 쓰이지 않으면서 디코딩 비용만 낸다.
+ */
+const MAX_DIMENSION = 2400;
+
+/** WebP 인코딩 품질. 사진 기준 82면 육안으로 원본과 구분되지 않는다. */
+const WEBP_QUALITY = 82;
+
+/**
+ * 디코딩을 허용할 최대 픽셀 수 (약 40MP).
+ * sharp 기본값(268MP)은 이 인스턴스에서 감당할 수 없다 — 압축률이 아주 높은
+ * 파일 하나로 메모리를 통째로 가져갈 수 있어 바이트 상한만으로는 부족하다.
+ */
+const MAX_INPUT_PIXELS = 40_000_000;
+
+/**
+ * 변환을 한 번에 하나씩만 돌린다.
+ *
+ * 관리자 폼이 모델컷 8장을 동시에 올리므로, 그대로 두면 8장 분량의 디코딩 버퍼가
+ * 한꺼번에 잡힌다(각 수십 MB). 순서대로 처리하면 최대 메모리가 한 장 분량으로
+ * 묶이고, 8장이 걸려도 총 몇 초 늘어날 뿐이다.
+ */
+let transcodeQueue: Promise<unknown> = Promise.resolve();
+function queueTranscode<T>(task: () => Promise<T>): Promise<T> {
+  // 앞 작업이 실패해도 뒤 작업은 그대로 진행해야 한다(성공·실패 양쪽에 task를 건다).
+  const run = transcodeQueue.then(task, task);
+  transcodeQueue = run.catch(() => undefined);
+  return run;
+}
+
+/**
+ * 저장용으로 이미지를 줄이고 WebP로 다시 인코딩한다.
+ *
+ * 브라우저가 받는 용량은 next/image가 이미 줄여 주지만, **서버는 최적화할 때마다
+ * S3 원본을 통째로 받아 디코딩한다.** 요청되는 너비마다, 캐시가 만료될 때마다 다시.
+ * 원본을 작게 저장해 두면 그 비용이 근본적으로 줄어든다.
+ *
+ * 애니메이션(GIF·움직이는 WebP)은 손대지 않고 원본 그대로 저장한다 —
+ * next/image가 애니메이션을 살려 두려고 최적화를 건너뛰는 경로라, 여기서 프레임을
+ * 다시 엮으면 조용히 첫 프레임만 남는 사고가 나기 쉽다. 대신 그런 파일은 원본
+ * 그대로 브라우저에 나가므로, 큰 GIF는 올리기 전에 줄여야 한다.
+ *
+ * @returns 저장할 바이트와 그때의 포맷
+ */
+async function optimizeForStorage(
+  buffer: Buffer,
+  format: ImageFormat,
+): Promise<{ body: Buffer; format: ImageFormat }> {
+  const metadata = await sharp(buffer, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
+  if ((metadata.pages ?? 1) > 1) {
+    return { body: buffer, format };
+  }
+
+  const body = await sharp(buffer, { limitInputPixels: MAX_INPUT_PIXELS })
+    // 휴대폰 사진은 방향이 EXIF에만 적혀 있다. 다시 인코딩하면서 그 정보가
+    // 사라지므로, 여기서 픽셀을 실제로 돌려 놓지 않으면 사진이 눕는다.
+    .rotate()
+    .resize({
+      width: MAX_DIMENSION,
+      height: MAX_DIMENSION,
+      fit: "inside",
+      // 작은 원본을 굳이 늘리지 않는다. 화질은 그대로면서 용량만 커진다.
+      withoutEnlargement: true,
+    })
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer();
+
+  return { body, format: { mime: "image/webp", ext: "webp" } };
+}
 
 /** 실제 바이트로 판별된 이미지 포맷만 허용한다. */
 type ImageFormat = { mime: string; ext: string };
@@ -134,11 +216,29 @@ export async function POST(request: NextRequest) {
   }
 
   // 확장자와 Content-Type 모두 실제 바이트에서 도출한다 — 클라이언트 입력은 쓰지 않는다.
-  const format = sniffImageFormat(buffer);
-  if (!format) {
+  const sniffed = sniffImageFormat(buffer);
+  if (!sniffed) {
     return NextResponse.json(
       { error: "Unsupported file type (jpeg, png, gif, webp, avif only)" },
       { status: 415 },
+    );
+  }
+
+  // 저장용으로 줄여 둔다. 매직바이트 검증을 **통과한 뒤에** 디코딩한다 —
+  // 순서가 바뀌면 이미지가 아닌 바이트를 sharp에 그대로 먹이게 된다.
+  let body: Buffer;
+  let format: ImageFormat;
+  try {
+    const optimized = await queueTranscode(() => optimizeForStorage(buffer, sniffed));
+    body = optimized.body;
+    format = optimized.format;
+  } catch (error) {
+    // 손상된 파일이나 상한을 넘는 해상도가 여기로 온다. 원본을 그대로 저장해
+    // 넘어가지 않는다 — 그러면 줄이려던 큰 파일이 그대로 들어간다.
+    console.error("[upload] 이미지 변환 실패", error);
+    return NextResponse.json(
+      { error: "이미지를 처리하지 못했습니다. 파일이 손상되었거나 해상도가 너무 큽니다." },
+      { status: 422 },
     );
   }
 
@@ -166,7 +266,7 @@ export async function POST(request: NextRequest) {
   const objectKey = `${key}.${format.ext}`;
 
   try {
-    const result = await resolver.upload(buffer, objectKey, format.mime);
+    const result = await resolver.upload(body, objectKey, format.mime);
     return NextResponse.json({ key, ext: format.ext, url: result.url });
   } catch (error) {
     // 스토리지 오류 상세(버킷명·자격증명 힌트)는 클라이언트로 넘기지 않는다.
