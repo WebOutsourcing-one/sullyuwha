@@ -148,6 +148,8 @@ export async function POST(request: NextRequest) {
     accessKey: env.s3AccessKey,
     secretKey: env.s3SecretKey,
     bucket: env.s3Bucket,
+    // 버킷을 다른 프로젝트와 공유하므로 이 프로젝트 파일은 전부 이 아래로 들어간다.
+    keyPrefix: env.s3KeyPrefix,
     publicUrl: env.s3PublicUrl ?? `https://${env.s3Bucket}.s3.${env.s3Region}.amazonaws.com`,
   });
 

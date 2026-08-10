@@ -61,6 +61,44 @@ sudo chown -R $USER:$USER /opt/sullyuwha
 
 > ⚠️ 덤프를 에셋 버킷에 두면 개인정보가 인터넷에 열린다. 반드시 분리한다.
 
+### 에셋 버킷을 다른 프로젝트와 공유할 때
+
+`S3_KEY_PREFIX` 를 주면 이 프로젝트가 쓰는 파일이 전부 그 경로 아래로만 들어간다.
+접두사를 키 문자열에 직접 박지 않는 이유 — 키는 업로드가 만드는 것(`products/<uuid>`)과
+`prisma/seed.ts` 에 손으로 적은 것(`hero/main` 등 45개) 두 종류다. 키에 박으면 양쪽을
+다 고쳐야 하고, 앞으로 키를 적을 때마다 빠뜨리면 **에러 없이** 버킷 루트로 떨어진다.
+
+```
+<버킷>/
+  sullyuwha/          ← S3_KEY_PREFIX
+    products/<uuid>.png     관리자 업로드
+    hero/main.jpg           콘솔에서 직접 올린 것
+    collection/dangui-subok.jpg
+  다른프로젝트/
+```
+
+콘솔에서 직접 올려도 된다 — 앱은 `{베이스URL}/{키}.{확장자}` 로 조립할 뿐이라
+그 자리에 파일이 있으면 그대로 나온다. 단, **확장자가 DB 값과 맞아야** 한다
+(`image_ext` 가 비어 있으면 `.jpg` 로 조립하므로 `main.png` 는 안 뜬다).
+
+공개 읽기는 버킷 전체가 아니라 이 접두사에만 준다:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "PublicReadSullyuwhaAssets",
+    "Effect": "Allow",
+    "Principal": "*",
+    "Action": "s3:GetObject",
+    "Resource": "arn:aws:s3:::<버킷>/sullyuwha/*"
+  }]
+}
+```
+
+버킷의 **Block public access** 에서 "새 공개 버킷 정책 차단" 항목을 꺼야 이 정책이 먹는다.
+안 열면 업로드는 성공하는데 이미지 요청이 전부 `403 AccessDenied` 로 돌아온다.
+
 백업 버킷에 수명주기 규칙을 건다 (콘솔 → Management → Lifecycle rules):
 - 접두사 `db-backups/`, **90일 후 만료**
 - 스크립트가 삭제하지 않는 이유 — 삭제 로직이 버그를 내면 백업이 사라진다.
@@ -87,11 +125,15 @@ AUTH_ADMIN_PASSWORD=<평문. 첫 로그인 후 지워도 된다>
 
 # ── S3 (에셋) ─────────────────────────────────
 S3_REGION=ap-northeast-2
-S3_BUCKET=sullyuwha-assets
+S3_BUCKET=<에셋 버킷>
 S3_ACCESS_KEY=<IAM 액세스 키>
 S3_SECRET_KEY=<IAM 시크릿 키>
-S3_PUBLIC_URL=https://assets.sullyuwha.com
-NEXT_PUBLIC_ASSET_BASE_URL=https://assets.sullyuwha.com
+# 버킷을 다른 프로젝트와 공유할 때만. 단독 버킷이면 비운다.
+S3_KEY_PREFIX=sullyuwha
+# ⚠️ 아래 두 값은 끝이 S3_KEY_PREFIX 와 같아야 한다 (1-3 참고).
+S3_PUBLIC_URL=https://<버킷>.s3.ap-northeast-2.amazonaws.com/sullyuwha
+# ⚠️ 이 값은 빌드 타임에 굳는다. 여기 적어도 빌드에는 반영되지 않는다 — 1-5 참고.
+NEXT_PUBLIC_ASSET_BASE_URL=https://<버킷>.s3.ap-northeast-2.amazonaws.com/sullyuwha
 
 # ── 백업 ──────────────────────────────────────
 S3_BACKUP_BUCKET=sullyuwha-backups
@@ -131,8 +173,22 @@ Settings → Secrets and variables → Actions
 
 | 이름 | 값 |
 |---|---|
-| `NEXT_PUBLIC_ASSET_BASE_URL` | `https://assets.sullyuwha.com` |
+| `NEXT_PUBLIC_ASSET_BASE_URL` | `https://<버킷>.s3.ap-northeast-2.amazonaws.com/sullyuwha` |
 | `NEXT_PUBLIC_TOSS_CLIENT_KEY` | 결제를 열 때 채운다 |
+
+> ⚠️ **`NEXT_PUBLIC_*` 의 진짜 출처는 서버의 `.env.production` 이 아니라 이 표다.**
+> 빌드 타임에 번들로 굳기 때문에 런타임에 주입해도 이미 늦다. CSP의 `img-src` 와
+> `next.config.ts` 의 `remotePatterns` 도 같은 값에서 나오므로, 여기가 틀리면
+> 이미지 URL이 틀리는 동시에 브라우저가 그 호스트를 차단한다.
+>
+> 값을 바꾼 뒤에는 **반드시 재배포**해야 반영된다. 커밋 없이 반영하려면
+> Actions → Deploy → `Run workflow`.
+>
+> 확인하는 법 — 배포된 사이트의 응답 헤더에 실제로 박힌 값이 보인다:
+> ```bash
+> curl -sI https://<도메인>/ | grep -i content-security-policy
+> ```
+> `img-src` 에 버킷 호스트가 없으면 이 변수가 틀린 것이다.
 
 ## 1-6. 첫 기동
 

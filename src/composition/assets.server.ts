@@ -24,6 +24,7 @@ export function getAssetResolver(): AssetResolver {
     accessKey: env.s3AccessKey,
     secretKey: env.s3SecretKey,
     bucket: env.s3Bucket,
+    keyPrefix: env.s3KeyPrefix,
     publicUrl: env.s3PublicUrl ?? `https://${env.s3Bucket}.s3.${env.s3Region}.amazonaws.com`,
   });
   return _s3Resolver;
