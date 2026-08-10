@@ -90,7 +90,7 @@ export function ContactSection({ contact }: ContactSectionProps) {
               <div className="relative aspect-[3/7] w-full max-w-[18rem] overflow-hidden rounded-sm bg-ivory ring-1 ring-black/5 shadow-[0_40px_90px_-50px_rgba(61,53,43,0.6)]">
                 {/* 명함 배경 */}
                 <Image
-                  src="/name-card.png"
+                  src="/name-card.webp"
                   alt="설유화 명함"
                   fill
                   sizes="320px"

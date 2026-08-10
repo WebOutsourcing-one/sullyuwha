@@ -22,7 +22,7 @@ export function HeroSection({ hero }: HeroSectionProps) {
       <div className="absolute inset-0 z-0 flex items-center justify-center lg:hidden">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-ivory/30 to-ivory/80" />
         <Image
-          src="/main_branch.png"
+          src="/main_branch.webp"
           alt=""
           width={600}
           height={400}
@@ -65,7 +65,7 @@ export function HeroSection({ hero }: HeroSectionProps) {
         {/* main_branch 이미지 — 데스크탑 전용 */}
         <div className="hidden flex-1 items-center justify-center py-12 lg:flex lg:py-0">
           <Image
-            src="/main_branch.png"
+            src="/main_branch.webp"
             alt=""
             width={600}
             height={400}
