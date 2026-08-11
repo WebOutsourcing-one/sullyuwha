@@ -11,6 +11,7 @@ import { CollectionSection } from "@/presentation/components/sections/Collection
 import { BespokeSection } from "@/presentation/components/sections/BespokeSection";
 import { ProcessSection } from "@/presentation/components/sections/ProcessSection";
 import { ContactSection } from "@/presentation/components/sections/ContactSection";
+import { IntroSplash } from "@/presentation/components/ui/IntroSplash";
 
 /**
  * 정적 생성된 페이지를 주기적으로 다시 만든다(ISR).
@@ -25,6 +26,11 @@ export const revalidate = 60;
 /**
  * 홈 페이지 — 한복 예복 브랜드 설유화.
  * Hero → 브랜드 특징 → About → 컬렉션 → 맞춤(Bespoke) → 제작 과정 → 문의.
+ *
+ * 로딩 화면이 필요해 보여도 `app/loading.tsx`는 두지 말 것.
+ * 그러면 **모든 하위 세그먼트**가 Suspense로 감싸여 렌더가 스트리밍으로 시작되고
+ * HTTP 200이 먼저 나가버린다. 그 뒤 `notFound()`를 불러도 상태코드를 바꿀 수 없어
+ * 없는 상품·주문 URL이 200으로 응답하는 소프트 404가 된다(검색엔진이 빈 페이지를 색인한다).
  */
 export default async function HomePage() {
   const [hero, features, story, products, contact] = await Promise.all([
@@ -37,6 +43,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <IntroSplash />
       <HeroSection hero={hero} features={features} />
       <FeaturesSection features={features} />
       <StorySection story={story} />
