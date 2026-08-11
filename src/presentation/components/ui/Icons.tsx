@@ -30,72 +30,6 @@ export function Emblem({ ...props }: IconProps) {
   );
 }
 
-/** 사엽화 (중심 조밀) — 전통 */
-export function IconTradition(props: IconProps) {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <circle cx="32" cy="21" r="9.6"/>
-      <circle cx="43" cy="32" r="9.6"/>
-      <circle cx="32" cy="43" r="9.6"/>
-      <circle cx="21" cy="32" r="9.6"/>
-      <g strokeWidth={1.1}>
-        <circle cx="32" cy="32" r="3.1"/>
-        <circle cx="32" cy="28.6" r="3.1"/>
-        <circle cx="34.9" cy="30.3" r="3.1"/>
-        <circle cx="34.9" cy="33.7" r="3.1"/>
-        <circle cx="32" cy="35.4" r="3.1"/>
-        <circle cx="29.1" cy="33.7" r="3.1"/>
-        <circle cx="29.1" cy="30.3" r="3.1"/>
-      </g>
-    </svg>
-  );
-}
-
-/** 매듭 — 장인정신 */
-export function IconCraft(props: IconProps) {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <g transform="translate(32 32) rotate(45)">
-        <rect x="-13.5" y="-13.5" width="4.5" height="27" rx="2.25"/>
-        <rect x="-6" y="-13.5" width="4.5" height="27" rx="2.25"/>
-        <rect x="1.5" y="-13.5" width="4.5" height="27" rx="2.25"/>
-        <rect x="9" y="-13.5" width="4.5" height="27" rx="2.25"/>
-      </g>
-      <g transform="translate(32 32) rotate(135)">
-        <rect x="-13.5" y="-13.5" width="4.5" height="27" rx="2.25"/>
-        <rect x="-6" y="-13.5" width="4.5" height="27" rx="2.25"/>
-        <rect x="1.5" y="-13.5" width="4.5" height="27" rx="2.25"/>
-        <rect x="9" y="-13.5" width="4.5" height="27" rx="2.25"/>
-      </g>
-    </svg>
-  );
-}
-
-/** 맞춤 — 원 안의 다이아몬드 */
-export function IconBespoke(props: IconProps) {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <circle cx="32" cy="32" r="28"/>
-      <path d="M32 11v42M11 32h42"/>
-      <circle cx="32" cy="32" r="3" fill="currentColor" stroke="none"/>
-    </svg>
-  );
-}
-
-/** 사엽화 (중심 점) — 계승 */
-export function IconHeritage(props: IconProps) {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <circle cx="32" cy="20.5" r="9.2"/>
-      <circle cx="43.5" cy="32" r="9.2"/>
-      <circle cx="32" cy="43.5" r="9.2"/>
-      <circle cx="20.5" cy="32" r="9.2"/>
-      <circle cx="32" cy="32" r="3.4"/>
-      <circle cx="32" cy="32" r="1.1" fill="currentColor" stroke="none"/>
-    </svg>
-  );
-}
-
 /** 상담 및 기획 · 저고리 */
 export function IconConsult(props: IconProps) {
   return (
@@ -178,12 +112,12 @@ export function IconArrow(props: IconProps) {
   );
 }
 
-/** 데이터 키로 아이콘을 고르기 위한 매핑 */
-export const featureIcons = {
-  tradition: IconTradition,
-  craft: IconCraft,
-  bespoke: IconBespoke,
-  heritage: IconHeritage,
+/** 설유화의 가치 — 라인 SVG 대신 쓰는 커스텀 아이콘 이미지(전통 문양을 그대로 딴 래스터). */
+export const featureIconImages = {
+  tradition: "/icons/value-tradition.webp",
+  craft: "/icons/value-craft.webp",
+  bespoke: "/icons/value-bespoke.webp",
+  heritage: "/icons/value-heritage.webp",
 } as const;
 
 export const processIcons = {
@@ -194,5 +128,5 @@ export const processIcons = {
   fitting: IconFitting,
 } as const;
 
-export type FeatureIconKey = keyof typeof featureIcons;
+export type FeatureIconKey = keyof typeof featureIconImages;
 export type ProcessIconKey = keyof typeof processIcons;

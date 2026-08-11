@@ -3,7 +3,7 @@ import type { HeroContent } from "@/domain/entities/HeroContent";
 import type { SilkFeature } from "@/domain/entities/SilkFeature";
 import { Container } from "../ui/Container";
 import { Reveal } from "../ui/Reveal";
-import { IconArrow, featureIcons, type FeatureIconKey } from "../ui/Icons";
+import { IconArrow, featureIconImages, type FeatureIconKey } from "../ui/Icons";
 
 interface HeroSectionProps {
   hero: HeroContent;
@@ -51,7 +51,7 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
               width={600}
               height={400}
               sizes="80vw"
-              className="h-auto max-h-full w-full max-w-[clamp(14rem,80vw,28rem)] object-contain object-right-bottom opacity-70"
+              className="h-full max-h-full w-full max-w-full object-contain object-right-bottom opacity-70"
             />
           </div>
 
@@ -62,9 +62,9 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
               데스크탑은 이미지와 나란히 놓이므로 lg에서 가운데 정렬로 되돌린다. */}
           <div className="relative z-10 flex w-full flex-1 items-start pt-[125px] pb-12 lg:items-center lg:py-0">
             <Reveal>
-              <div className="max-w-xl">
+              <div className="max-w-xl translate-y-[40px]">
                 {/* 하한만 30px로 낮춘다. 6vw가 이기는 500px 이상(=데스크탑 포함)은 그대로다. */}
-                <h1 className="whitespace-pre font-serif text-[clamp(1.875rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
+                <h1 className="whitespace-pre font-serif text-[clamp(calc(1.875rem-5px),calc(6vw-5px),calc(4.7rem-5px))] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
                   {hero.slogan}
                 </h1>
 
@@ -96,7 +96,7 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
               width={600}
               height={400}
               sizes="(max-width:1024px) 60vw, 30vw"
-              className="h-auto w-full max-w-[clamp(14rem,40vw,28rem)] object-contain"
+              className="h-auto w-full object-contain"
             />
           </div>
         </div>
@@ -111,14 +111,22 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
             aria-label="설유화의 가치"
           >
             {features.map((f) => {
-              const Icon =
-                featureIcons[f.id as FeatureIconKey] ?? featureIcons.tradition;
+              const iconSrc =
+                featureIconImages[f.id as FeatureIconKey] ??
+                featureIconImages.tradition;
               return (
                 <li
                   key={f.id}
                   className="flex flex-col items-center gap-2.5 text-center"
                 >
-                  <Icon className="h-7 w-7 text-gold" aria-hidden />
+                  <Image
+                    src={iconSrc}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-7 w-7"
+                    aria-hidden
+                  />
                   {/* 가장 긴 CRAFTSMANSHIP(13자)이 칸 안에 한 줄로 들어가는 상한.
                       단어 중간에서 끊기는 걸 막으려고 크기·자간을 여기까지 줄였다. */}
                   <span className="text-[0.5rem] uppercase leading-[1.5] tracking-[0.06em] text-charcoal">

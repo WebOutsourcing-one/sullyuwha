@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Container } from "../ui/Container";
-import { Emblem } from "../ui/Icons";
 import { SHOW_PAYMENT_UI } from "@/lib/features";
 
 const NAV_LINKS = [
@@ -68,12 +67,11 @@ export function SiteHeader() {
             className="flex items-center gap-2.5"
             aria-label="설유화 홈"
           >
-            <Emblem className="h-6 w-6 text-gold" aria-hidden />
             <span className="flex flex-col leading-none">
               <span className="font-serif text-xl font-light tracking-tight text-charcoal">
                 설유화
               </span>
-              <span className="mt-1 text-[0.55rem] uppercase tracking-[0.32em] text-taupe">
+              <span className="mt-1 text-[0.55rem] uppercase tracking-[0.25em] text-taupe">
                 Sullyuwha
               </span>
             </span>
@@ -165,17 +163,17 @@ export function SiteHeader() {
           >
             <span className="relative block h-4 w-6">
               <span
-                className={`absolute left-0 block h-px w-6 bg-charcoal transition-all duration-300 ${
+                className={`absolute left-0 block h-[1.5px] w-6 bg-charcoal transition-all duration-300 ${
                   open ? "top-1.5 rotate-45" : "top-0"
                 }`}
               />
               <span
-                className={`absolute left-0 top-1.5 block h-px w-6 bg-charcoal transition-opacity duration-300 ${
+                className={`absolute left-0 top-1.5 block h-[1.5px] w-6 bg-charcoal transition-opacity duration-300 ${
                   open ? "opacity-0" : "opacity-100"
                 }`}
               />
               <span
-                className={`absolute left-0 block h-px w-6 bg-charcoal transition-all duration-300 ${
+                className={`absolute left-0 block h-[1.5px] w-6 bg-charcoal transition-all duration-300 ${
                   open ? "top-1.5 -rotate-45" : "top-3"
                 }`}
               />
@@ -204,7 +202,7 @@ export function SiteHeader() {
                 Noto Serif KR로 대체되며 같은 크기에서도 훨씬 크고 무겁게 보인다. */}
             {status === "authenticated" ? (
               <div className="mt-8">
-                <p className="text-[0.6rem] uppercase tracking-[0.28em] text-gold">
+                <p className="text-[0.6rem] uppercase tracking-[0.25em] text-gold">
                   Account
                 </p>
                 <p className="mt-2 text-sm text-taupe">{session.user?.name}</p>
@@ -238,7 +236,7 @@ export function SiteHeader() {
               </div>
             ) : (
               <div className="mt-8">
-                <p className="text-[0.6rem] uppercase tracking-[0.28em] text-gold">
+                <p className="text-[0.6rem] uppercase tracking-[0.25em] text-gold">
                   Login
                 </p>
                 <div className="mt-3 flex gap-2">

@@ -34,7 +34,7 @@ export const storyData: BrandStory = {
   image: image("about/portrait", "설유화 예복을 입은 모습", 4 / 5),
 };
 
-/** 브랜드 특징(4 아이콘). id는 Icons.featureIcons 키와 일치. */
+/** 브랜드 특징(4 아이콘). id는 Icons.featureIconImages 키와 일치. */
 export const silkFeaturesData: readonly SilkFeature[] = [
   {
     id: "tradition",

@@ -21,7 +21,7 @@ export function SiteFooter() {
                 <span className="font-serif text-xl font-light text-charcoal">
                   설유화
                 </span>
-                <span className="mt-1 text-[0.55rem] uppercase tracking-[0.32em] text-taupe">
+                <span className="mt-1 text-[0.55rem] uppercase tracking-[0.25em] text-taupe">
                   Sullyuwha
                 </span>
               </span>

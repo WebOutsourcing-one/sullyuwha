@@ -1,7 +1,8 @@
+import Image from "next/image";
 import type { SilkFeature } from "@/domain/entities/SilkFeature";
 import { Container } from "../ui/Container";
 import { Reveal } from "../ui/Reveal";
-import { featureIcons, type FeatureIconKey } from "../ui/Icons";
+import { featureIconImages, type FeatureIconKey } from "../ui/Icons";
 
 interface FeaturesSectionProps {
   features: readonly SilkFeature[];
@@ -22,11 +23,20 @@ export function FeaturesSection({ features }: FeaturesSectionProps) {
       <Container>
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 py-16 md:grid-cols-4 md:py-20">
           {features.map((f, i) => {
-            const Icon = featureIcons[f.id as FeatureIconKey] ?? featureIcons.tradition;
+            const iconSrc =
+              featureIconImages[f.id as FeatureIconKey] ??
+              featureIconImages.tradition;
             return (
               <Reveal key={f.id} delay={(i % 4) * 80}>
                 <div className="flex flex-col items-center gap-4 text-center">
-                  <Icon className="h-9 w-9 text-gold" aria-hidden />
+                  <Image
+                    src={iconSrc}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-9 w-9"
+                    aria-hidden
+                  />
                   <span className="text-[0.7rem] uppercase tracking-[0.22em] text-charcoal">
                     {f.label}
                   </span>

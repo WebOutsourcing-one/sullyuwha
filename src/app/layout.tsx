@@ -1,32 +1,25 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Cormorant_Garamond, Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
+import { Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { SiteHeader } from "@/presentation/components/layout/SiteHeader";
 import { SiteFooter } from "@/presentation/components/layout/SiteFooter";
 import { SessionProvider } from "@/presentation/components/ui/SessionProvider";
 
-const notoSans = Noto_Sans_KR({
-  variable: "--font-noto-sans",
-  weight: ["300", "400", "500"],
+// 영문 — Montserrat Regular
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  weight: ["400"],
   subsets: ["latin"],
   display: "swap",
-  preload: false,
 });
 
-const notoSerif = Noto_Serif_KR({
-  variable: "--font-noto-serif",
-  weight: ["300", "400"],
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-});
-
-// 라틴 세리프 — 워드마크/제목의 라틴 글자에 사용 (한글은 Noto Serif KR로 폴백)
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  weight: ["300", "400", "500"],
-  subsets: ["latin"],
+// 한글 — KoPub Batang Light (kopus.org 배포, public/fonts에 로컬 보관)
+const kopubBatang = localFont({
+  src: "../../public/fonts/KoPub Batang Light.ttf",
+  variable: "--font-kopub-batang",
+  weight: "300",
   display: "swap",
 });
 
@@ -51,7 +44,7 @@ export default function RootLayout({
   return (
       <html
         lang="ko"
-        className={`${notoSans.variable} ${notoSerif.variable} ${cormorant.variable} h-full antialiased`}
+        className={`${montserrat.variable} ${kopubBatang.variable} h-full antialiased`}
       >
         {process.env.NODE_ENV === "development" && (
           <head>
@@ -60,7 +53,7 @@ export default function RootLayout({
             <Script
               src="https://unpkg.com/react-grab/dist/index.global.js"
               crossOrigin="anonymous"
-              strategy="beforeInteractive"
+              strategy="afterInteractive"
             />
           </head>
         )}

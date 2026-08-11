@@ -12,7 +12,7 @@
   --color-champagne: #e0dbd0; /* 카드/교차 섹션(깊은 크림) */
   --color-mist: #e9e5de; /* 아주 옅은 톤 구분 */
   --color-sand: #d6cec2; /* 카테고리 카드/살짝 진한 베이지 */
-  --color-charcoal: #39352f; /* 기본 텍스트(차분한 에스프레소) */
+  --color-charcoal: #685548; /* 기본 텍스트 */
   --color-taupe: #837b71; /* 보조 텍스트 */
   --color-line: #dbd5cb; /* 헤어라인 */
 
@@ -20,9 +20,12 @@
      브랜드 강조색이라 중화 대상에서 뺀다. 중화하면 금빛이 사라진다. */
   --color-gold: #ab8f67;
 
-  /* 서체 (layout.tsx의 next/font 변수와 연결) */
-  --font-sans: var(--font-noto-sans), "Apple SD Gothic Neo", sans-serif;
-  --font-serif: var(--font-cormorant), var(--font-noto-serif),
+  /* 서체 (layout.tsx의 next/font 변수와 연결)
+     영문은 Montserrat, 한글은 KoPub Batang Light — 글자별로 라틴 글리프가 없는
+     한글은 자동으로 다음 폰트로 폴백되므로 텍스트를 나눠 감쌀 필요가 없다. */
+  --font-sans: var(--font-montserrat), var(--font-kopub-batang),
+    "Apple SD Gothic Neo", sans-serif;
+  --font-serif: var(--font-montserrat), var(--font-kopub-batang),
     "Nanum Myeongjo", serif;
 
   /* 레이아웃 */
