@@ -34,28 +34,30 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
       className={`relative overflow-hidden ${FIRST_SCREEN}`}
       aria-label="설유화 소개"
     >
-      {/* main_branch 배경 — 모바일 전용 (텍스트 아래 깔림) */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center lg:hidden">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-ivory/30 to-ivory/80" />
-        <Image
-          src="/main_branch.webp"
-          alt=""
-          width={600}
-          height={400}
-          sizes="80vw"
-          className="h-auto w-full max-w-[clamp(14rem,80vw,28rem)] object-contain opacity-70"
-        />
-      </div>
-
       <Container className={`relative z-10 flex flex-col ${FIRST_SCREEN}`}>
-        {/* 위쪽 — 슬로건 + (데스크탑) 브랜치 이미지. 기존 레이아웃 그대로. */}
-        <div className="flex flex-1 flex-col items-center lg:flex-row">
-          {/* 텍스트 */}
-          <div className="flex w-full flex-1 items-center py-12 lg:py-0">
+        {/* 위쪽 — 슬로건 + (데스크탑) 브랜치 이미지. */}
+        <div className="relative flex flex-1 flex-col items-center lg:flex-row">
+          {/* main_branch 배경 — 모바일 전용.
+              섹션 전체가 아니라 이 위쪽 영역에만 깔아, 하단 가치 스트립과 겹치지 않게 한다.
+              원본이 세로로 긴 이미지라 max-h-full로 영역 높이에 맞춰 줄인다(비율은 object-contain이 지킨다). */}
+          <div className="absolute inset-0 z-0 flex items-center justify-center lg:hidden">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-ivory/30 to-ivory/80" />
+            <Image
+              src="/main_branch.webp"
+              alt=""
+              width={600}
+              height={400}
+              sizes="80vw"
+              className="h-auto max-h-full w-full max-w-[clamp(14rem,80vw,28rem)] object-contain opacity-70"
+            />
+          </div>
+
+          {/* 텍스트 — 배경이 absolute z-0이므로 명시적으로 위로 올린다. */}
+          <div className="relative z-10 flex w-full flex-1 items-center py-12 lg:py-0">
             <Reveal>
               <div className="max-w-xl">
-                {/* 하한만 30px로 낮춘다. 6vw가 이기는 500px 이상(=데스크탑 포함)은 그대로다. */}
-                <h1 className="whitespace-pre font-serif text-[clamp(1.875rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
+                {/* 하한만 25px로 낮춘다. 6vw가 이기는 417px 이상(=데스크탑 포함)은 그대로다. */}
+                <h1 className="whitespace-pre font-serif text-[clamp(1.5625rem,6vw,4.7rem)] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
                   {hero.slogan}
                 </h1>
 

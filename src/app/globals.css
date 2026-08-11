@@ -162,6 +162,42 @@ p {
   transform: none;
 }
 
+/* ============================================================
+   홈 인트로 스플래시 (IntroSplash)
+   ============================================================ */
+
+/* 2초 머문 뒤 0.7초에 걸쳐 걷힌다.
+   JS 타이머가 아니라 CSS로 도는 덕에 하이드레이션이 늦어도 길이가 일정하다. */
+.intro-splash {
+  animation: intro-out 0.7s var(--ease-silk) 2s forwards;
+}
+
+/* 이번 세션에 이미 봤다면 아예 그리지 않는다.
+   IntroSplash의 게이트 스크립트가 첫 페인트 전에 이 표시를 남긴다. */
+[data-intro-seen] .intro-splash {
+  display: none;
+}
+
+/*
+ * visibility는 보간되지 않는 속성이라 두 키프레임 사이의 중간(50%) 지점에서 값이
+ * 튄다. opacity와 같은 구간에 두면 아직 반쯤 보이는 상태에서 사라져 뚝 끊긴다.
+ * 그래서 99% 이후로 몰아 opacity가 이미 0이 된 뒤에 넘어가게 한다.
+ */
+@keyframes intro-out {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  99% {
+    opacity: 0;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
