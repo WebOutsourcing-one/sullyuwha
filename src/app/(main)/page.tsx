@@ -37,7 +37,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroSection hero={hero} />
+      <HeroSection hero={hero} features={features} />
       <FeaturesSection features={features} />
       <StorySection story={story} />
       <CollectionSection products={products} categories={categoriesData} />

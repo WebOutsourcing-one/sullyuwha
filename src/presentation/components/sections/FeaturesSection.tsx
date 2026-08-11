@@ -7,11 +7,16 @@ interface FeaturesSectionProps {
   features: readonly SilkFeature[];
 }
 
-/** 브랜드 4대 가치 — 라인 엠블럼 아이콘 + 라틴 라벨 + 짧은 설명. */
+/**
+ * 브랜드 4대 가치 — 라인 엠블럼 아이콘 + 라틴 라벨 + 짧은 설명.
+ *
+ * lg 미만에서는 숨긴다. 모바일은 HeroSection 하단이 같은 4개 항목을
+ * 아이콘+라벨로 이미 보여주므로, 그대로 두면 스크롤 직후 중복으로 반복된다.
+ */
 export function FeaturesSection({ features }: FeaturesSectionProps) {
   return (
     <section
-      className="border-y border-line/60 bg-mist"
+      className="hidden border-y border-line/60 bg-mist lg:block"
       aria-label="설유화의 가치"
     >
       <Container>
