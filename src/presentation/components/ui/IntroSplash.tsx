@@ -29,8 +29,8 @@ const GATE_SCRIPT = `try{if(sessionStorage.getItem(${JSON.stringify(SEEN_KEY)}))
  * 늦어져도 인트로 길이가 늘어나지 않게 하기 위해서다. JS는 "이번 세션에 봤다"는
  * 기록만 담당한다.
  *
- * 화면을 꽉 채워야 해서 object-cover를 쓴다. `first_income.webp`는 860×1829로
- * 폰 비율(390:844)에 맞춰 뽑은 원본이라 잘림이 가로 2% 남짓이다.
+ * 화면을 꽉 채워야 해서 object-cover를 쓴다. `first_income.webp`는 883×1780으로
+ * 폰 비율(390:844)에 맞춰 뽑은 원본이라 잘림이 가로 7% 남짓이다.
  * 다른 곳에서 쓰는 `placeholder.webp`(정사각)를 여기에 되돌리면 좌우가 절반 넘게 잘린다.
  */
 export function IntroSplash() {
@@ -65,7 +65,7 @@ export function IntroSplash() {
         // 배경색은 이미지가 뜨기 전 흰 판이 번쩍이지 않게 깔아두는 종이색으로,
         // 이미지 상단 평균색과 맞춰 두 화면이 이어지게 한다.
         className="intro-splash fixed inset-0 z-60 overflow-hidden touch-pinch-zoom lg:hidden"
-        style={{ backgroundColor: "#d7d1cc" }}
+        style={{ backgroundColor: "#f2eee7" }}
       >
         <Image
           src="/first_income.webp"
