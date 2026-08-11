@@ -29,9 +29,9 @@ const GATE_SCRIPT = `try{if(sessionStorage.getItem(${JSON.stringify(SEEN_KEY)}))
  * 늦어져도 인트로 길이가 늘어나지 않게 하기 위해서다. JS는 "이번 세션에 봤다"는
  * 기록만 담당한다.
  *
- * `placeholder.webp`는 크림 종이 질감이 통째로 구워진 정사각 이미지라, 배경을 그
- * 종이색(#e5e2de, 우하단 비네팅 #dbd8d3)과 잇는 방사형 그라디언트로 깔아 이미지
- * 경계가 드러나지 않게 한다. (사이트 기본 --color-ivory #f3ece0 는 더 따뜻해서 이음새가 보인다)
+ * 화면을 꽉 채워야 해서 object-cover를 쓴다. 다만 `placeholder.webp`가 800×800
+ * 정사각이라 세로로 긴 폰에서는 좌우가 잘린다(390×844 기준 가로 46%만 남아 액자
+ * 테두리 양 끝이 잘린다). 테두리까지 살리려면 세로로 긴 원본으로 교체해야 한다.
  */
 export function IntroSplash() {
   useEffect(() => {
@@ -62,22 +62,18 @@ export function IntroSplash() {
         aria-hidden
         // SiteHeader가 sticky z-50, 모바일 메뉴가 z-40 이므로 그 위를 확실히 덮는다.
         // touch-pinch-zoom: 덮여 있는 동안 뒤 페이지가 스크롤되는 것만 막고 확대는 남긴다.
-        className="intro-splash fixed inset-0 z-60 grid touch-pinch-zoom place-items-center lg:hidden"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 45%, #e8e5e1 0%, #e5e2de 45%, #dbd8d3 100%)",
-        }}
+        // 배경색은 이미지가 뜨기 전 흰 판이 번쩍이지 않게 깔아두는 종이색이다.
+        className="intro-splash fixed inset-0 z-60 overflow-hidden touch-pinch-zoom lg:hidden"
+        style={{ backgroundColor: "#e5e2de" }}
       >
-        <div className="animate-silk-breath relative aspect-square w-[min(78vw,78vh,560px)]">
-          <Image
-            src="/placeholder.webp"
-            alt=""
-            fill
-            priority
-            sizes="78vw"
-            className="object-contain"
-          />
-        </div>
+        <Image
+          src="/placeholder.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="animate-silk-breath object-cover"
+        />
       </div>
     </>
   );
