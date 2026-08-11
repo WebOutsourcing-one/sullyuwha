@@ -1,5 +1,9 @@
 import { Prisma } from "@/generated/prisma/client";
+import { PRODUCT_CATEGORIES } from "@/domain/entities/Category";
 import { toPrice } from "./price";
+
+/** `includes`로 임의 문자열과 견주기 위해 넓힌 형태. 값은 그대로다. */
+const ALLOWED_CATEGORIES: readonly string[] = PRODUCT_CATEGORIES;
 
 /**
  * 관리자 폼이 보낸 상품 본문을 Prisma에 넣을 수 있는 형태로 좁힌다.
@@ -44,7 +48,18 @@ export function toProductData(body: Record<string, unknown>) {
  */
 export function validateProductInput(body: Record<string, unknown>): string | null {
   if (!str(body.name).trim()) return "상품명을 입력해 주세요.";
-  if (!str(body.category).trim()) return "카테고리를 선택해 주세요.";
+
+  const category = str(body.category).trim();
+  if (!category) return "카테고리를 선택해 주세요.";
+  // 비었는지만 보던 자리다. 목록에 없는 분류로 저장된 상품은 **어디에도 걸리지
+  // 않는다** — 랜딩의 컬렉션 카드도 베스트도 이 이름들과 문자열로 대조하므로,
+  // 오타 하나면 등록은 성공했는데 사이트에는 나오지 않는 상품이 생긴다.
+  // 관리자 폼은 select라 막히지만 API는 폼을 거치지 않고도 호출된다.
+  // (예전에 폼이 "소품", 카드가 "장신구"였을 때 정확히 이 일이 났고
+  //  마이그레이션으로 기존 행을 되살려야 했다 — Category.ts 주석 참고)
+  if (!ALLOWED_CATEGORIES.includes(category)) {
+    return `카테고리는 ${ALLOWED_CATEGORIES.join(" · ")} 중 하나여야 합니다.`;
+  }
   return null;
 }
 
