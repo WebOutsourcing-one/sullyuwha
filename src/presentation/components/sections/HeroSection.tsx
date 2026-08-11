@@ -37,10 +37,13 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
       <Container className={`relative z-10 flex flex-col ${FIRST_SCREEN}`}>
         {/* 위쪽 — 슬로건 + (데스크탑) 브랜치 이미지. */}
         <div className="relative flex flex-1 flex-col items-center lg:flex-row">
-          {/* main_branch 배경 — 모바일 전용.
-              섹션 전체가 아니라 이 위쪽 영역에만 깔아, 하단 가치 스트립과 겹치지 않게 한다.
-              원본이 세로로 긴 이미지라 max-h-full로 영역 높이에 맞춰 줄인다(비율은 object-contain이 지킨다). */}
-          <div className="absolute inset-0 z-0 flex items-center justify-center lg:hidden">
+          {/* main_branch 배경 — 모바일 전용. 우측 아래 모서리에 딱 붙인다.
+              - 위쪽 영역 안에만 깔아 두므로 아래 경계가 곧 가치 스트립의 윗선이다.
+                items-end면 그 선에 정확히 맞고 별도 여백 계산이 필요 없다.
+              - 우측은 Container의 거터(--gutter)만큼 밖으로 빼 화면 끝까지 닿게 한다.
+              - max-h-full로 높이가 잘리면 object-contain이 상자 안에서 이미지를 가운데로
+                모아 우측·하단에 빈틈이 생긴다. object-right-bottom으로 모서리에 붙인다. */}
+          <div className="absolute inset-y-0 left-0 right-[calc(var(--gutter)*-1)] z-0 flex items-end justify-end lg:hidden">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-ivory/30 to-ivory/80" />
             <Image
               src="/main_branch.webp"
@@ -48,7 +51,7 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
               width={600}
               height={400}
               sizes="80vw"
-              className="h-auto max-h-full w-full max-w-[clamp(14rem,80vw,28rem)] object-contain opacity-70"
+              className="h-auto max-h-full w-full max-w-[clamp(14rem,80vw,28rem)] object-contain object-right-bottom opacity-70"
             />
           </div>
 
