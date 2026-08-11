@@ -99,8 +99,11 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
 
         {/* 아래쪽 — 브랜드 4대 가치 요약(아이콘 + 라벨). 모바일 전용. */}
         <Reveal className="pb-8 lg:hidden" delay={160}>
+          {/* 윗줄 대신 항목 사이를 세로선으로 나눈다.
+              divide-x는 바깥 양끝을 뺀 사이에만 선을 넣고, 그리드 항목은 기본으로
+              행 높이만큼 늘어나므로 라벨이 두 줄로 접히는 칸이 있어도 선 높이가 고르다. */}
           <ul
-            className="grid grid-cols-4 gap-x-1.5 border-t border-line/60 pt-6"
+            className="grid grid-cols-4 gap-x-1.5 divide-x divide-line/60 pt-6"
             aria-label="설유화의 가치"
           >
             {features.map((f) => {
