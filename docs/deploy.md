@@ -311,6 +311,28 @@ $C logs -f app
 $C logs --tail=50 caddy      # 인증서 발급이 안 될 때
 ```
 
+### 로그는 얼마나 쌓이나
+
+세 컨테이너 모두 **10MB × 3개 = 30MB**에서 회전한다(`docker-compose.prod.yml`의
+`x-logging`). 도커 기본값에는 크기 제한이 없어서 그대로 두면 디스크가 찰 때까지
+한 파일로 자란다. 상한을 넘으면 오래된 것부터 버려지므로 따로 지울 일은 없다.
+
+실제 크기를 보려면:
+
+```bash
+sudo du -sh $(docker inspect --format='{{.LogPath}}' sullyuwha-app sullyuwha-db sullyuwha-proxy)
+```
+
+> 이 상한을 처음 반영하는 배포에서는 **postgres·caddy도 한 번 재시작된다.**
+> 평소 배포는 이미지가 바뀐 app만 갈아치우는데, 이번에는 세 서비스의 설정이
+> 모두 바뀌어 compose가 전부 재생성한다(몇 초 끊긴다). 데이터는 명명된 볼륨
+> (`pgdata`·`caddy_data`)에 있어 그대로다 — DB도 인증서도 잃지 않는다.
+> 다음 배포부터는 다시 app만 재생성된다.
+
+크론 로그(`/var/log/sullyuwha-backup.log`·`sullyuwha-prune.log`)는 여기 해당하지
+않는다. 도커 밖의 파일이라 logrotate를 걸지 않는 한 계속 자란다 — 다만 하루 한 번,
+월 두 번 몇 줄씩이라 증가는 느리다.
+
 ## 관리자 비밀번호 변경
 
 `.env.production`의 `AUTH_ADMIN_PASSWORD`를 새 평문으로 바꾸고 앱만 재시작한다.
