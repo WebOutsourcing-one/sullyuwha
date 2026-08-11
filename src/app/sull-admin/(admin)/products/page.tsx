@@ -128,128 +128,216 @@ export default function AdminProductsPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-serif text-2xl font-light">상품 관리</h1>
           <p className="mt-1 text-sm text-neutral-400">총 {products.length}개 상품</p>
         </div>
         <Link
           href="/sull-admin/products/new"
-          className="rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+          className="rounded-lg bg-neutral-900 px-5 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-neutral-700"
         >
           + 새 상품 등록
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-neutral-100 bg-neutral-50">
-              <th className="w-16 px-4 py-3 font-medium text-neutral-500"></th>
-              <th className="px-4 py-3 font-medium text-neutral-500">상품명</th>
-              <th className="px-4 py-3 font-medium text-neutral-500">카테고리</th>
-              <th className="px-4 py-3 font-medium text-neutral-500">소재</th>
-              <th className="px-4 py-3 font-medium text-neutral-500">판매가</th>
-              <th className="px-4 py-3 font-medium text-neutral-500">베스트</th>
-              <th className="w-40 px-4 py-3 font-medium text-neutral-500">관리</th>
-            </tr>
-          </thead>
-          <tbody>
+      {products.length === 0 ? (
+        <div className="rounded-xl border border-neutral-200 bg-white px-4 py-12 text-center text-neutral-400">
+          등록된 상품이 없습니다.
+          <br />
+          <Link href="/sull-admin/products/new" className="mt-2 inline-block text-sm text-neutral-600 underline">
+            첫 상품을 등록해보세요
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/*
+            좁은 화면 — 표 대신 카드.
+            7열을 그대로 두면 가로로 넘치는데 바깥 상자가 overflow-hidden 이라
+            넘친 부분이 스크롤되지도 않고 잘렸다. 맨 오른쪽 "관리"가 잘려 나가
+            폰에서는 수정·삭제 버튼에 손이 닿지 않았다.
+          */}
+          <ul className="space-y-3 md:hidden">
             {products.map((p) => (
-              <tr key={p.id} className="border-b border-neutral-100 transition-colors hover:bg-neutral-50">
-                <td className="px-4 py-3">
-                  {thumbnailUrl(p) ? (
-                    // thumbnailUrl은 NEXT_PUBLIC_ASSET_BASE_URL이 있을 때만 값을 주고,
-                    // next.config.ts의 remotePatterns도 같은 값에서 생성되므로 항상 허용된 호스트다.
-                    <Image
-                      src={thumbnailUrl(p)!}
-                      alt={p.imageAlt || p.name}
-                      width={48}
-                      height={48}
-                      className="h-12 w-12 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100 text-xs text-neutral-400">
-                      No
+              <li key={p.id} className="rounded-xl border border-neutral-200 bg-white p-4">
+                <div className="flex gap-3">
+                  <Thumbnail product={p} />
+                  {/* min-w-0 이 없으면 긴 상품명이 truncate 되지 않고 카드를 밀어낸다. */}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium text-neutral-900">{p.name}</div>
+                    <div className="mt-0.5 truncate font-mono text-xs text-neutral-400">{p.id}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <CategoryBadge category={p.category} />
+                      <PriceTag price={p.price} />
                     </div>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="font-medium text-neutral-900">{p.name}</div>
-                  <div className="mt-0.5 font-mono text-xs text-neutral-400">{p.id}</div>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
-                    {p.category}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-neutral-600">{p.material}</td>
-                <td className="px-4 py-3">
-                  {p.price > 0 ? (
-                    <span className="text-neutral-900">
-                      {p.price.toLocaleString("ko-KR")}원
-                    </span>
-                  ) : (
-                    <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
-                      가격 미정
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleBest(p.id)}
-                    disabled={toggling !== null}
-                    aria-pressed={p.isBest}
-                    title={
-                      p.isBest
-                        ? `${p.category} 베스트 — 눌러서 해제`
-                        : `${p.category} 베스트로 지정 (기존 베스트는 해제됩니다)`
-                    }
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors disabled:opacity-50 ${
-                      p.isBest
-                        ? "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                        : "border-neutral-200 text-neutral-400 hover:bg-neutral-100"
-                    }`}
-                  >
-                    <span aria-hidden>{p.isBest ? "★" : "☆"}</span>
-                    {p.isBest ? "베스트" : "지정"}
-                  </button>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/sull-admin/products/${p.id}/edit`)}
-                      className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100"
-                    >
-                      수정
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(p.id)}
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-50"
-                    >
-                      삭제
-                    </button>
+                    {p.material && (
+                      <p className="mt-1.5 truncate text-xs text-neutral-500">{p.material}</p>
+                    )}
                   </div>
-                </td>
-              </tr>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-neutral-100 pt-3">
+                  <BestToggle
+                    product={p}
+                    disabled={toggling !== null}
+                    onToggle={() => handleToggleBest(p.id)}
+                  />
+                  <RowActions
+                    onEdit={() => router.push(`/sull-admin/products/${p.id}/edit`)}
+                    onDelete={() => handleDelete(p.id)}
+                  />
+                </div>
+              </li>
             ))}
-            {products.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-neutral-400">
-                  등록된 상품이 없습니다.
-                  <br />
-                  <Link href="/sull-admin/products/new" className="mt-2 inline-block text-sm text-neutral-600 underline">
-                    첫 상품을 등록해보세요
-                  </Link>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          </ul>
+
+          {/* 넓은 화면 — 여러 상품을 견주기에는 표가 낫다.
+              min-w 로 열이 뭉개지기 전에 가로 스크롤로 넘긴다(이번엔 잘리지 않는다). */}
+          <div className="hidden overflow-hidden rounded-xl border border-neutral-200 bg-white md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[44rem] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-neutral-100 bg-neutral-50">
+                    <th className="w-16 px-4 py-3 font-medium text-neutral-500"></th>
+                    <th className="px-4 py-3 font-medium text-neutral-500">상품명</th>
+                    <th className="px-4 py-3 font-medium text-neutral-500">카테고리</th>
+                    <th className="px-4 py-3 font-medium text-neutral-500">소재</th>
+                    <th className="px-4 py-3 font-medium text-neutral-500">판매가</th>
+                    <th className="px-4 py-3 font-medium text-neutral-500">베스트</th>
+                    <th className="w-40 px-4 py-3 font-medium text-neutral-500">관리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id} className="border-b border-neutral-100 transition-colors hover:bg-neutral-50">
+                      <td className="px-4 py-3">
+                        <Thumbnail product={p} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-neutral-900">{p.name}</div>
+                        <div className="mt-0.5 font-mono text-xs text-neutral-400">{p.id}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <CategoryBadge category={p.category} />
+                      </td>
+                      <td className="px-4 py-3 text-neutral-600">{p.material}</td>
+                      <td className="px-4 py-3">
+                        <PriceTag price={p.price} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <BestToggle
+                          product={p}
+                          disabled={toggling !== null}
+                          onToggle={() => handleToggleBest(p.id)}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <RowActions
+                          onEdit={() => router.push(`/sull-admin/products/${p.id}/edit`)}
+                          onDelete={() => handleDelete(p.id)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── 카드와 표가 함께 쓰는 조각들 ──────────────────────────────
+   같은 값을 두 배치로 그리므로, 표시 규칙은 한 곳에만 둔다.
+   양쪽에 따로 적으면 한쪽만 고쳐져 화면 폭에 따라 다르게 보이게 된다. */
+
+function Thumbnail({ product }: { product: ProductRow }) {
+  const url = thumbnailUrl(product);
+  // thumbnailUrl은 NEXT_PUBLIC_ASSET_BASE_URL이 있을 때만 값을 주고,
+  // next.config.ts의 remotePatterns도 같은 값에서 생성되므로 항상 허용된 호스트다.
+  return url ? (
+    <Image
+      src={url}
+      alt={product.imageAlt || product.name}
+      width={48}
+      height={48}
+      className="h-12 w-12 shrink-0 rounded-lg object-cover"
+    />
+  ) : (
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-xs text-neutral-400">
+      No
+    </div>
+  );
+}
+
+function CategoryBadge({ category }: { category: string }) {
+  return (
+    <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+      {category}
+    </span>
+  );
+}
+
+function PriceTag({ price }: { price: number }) {
+  return price > 0 ? (
+    <span className="text-neutral-900">{price.toLocaleString("ko-KR")}원</span>
+  ) : (
+    <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
+      가격 미정
+    </span>
+  );
+}
+
+function BestToggle({
+  product,
+  disabled,
+  onToggle,
+}: {
+  product: ProductRow;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={disabled}
+      aria-pressed={product.isBest}
+      title={
+        product.isBest
+          ? `${product.category} 베스트 — 눌러서 해제`
+          : `${product.category} 베스트로 지정 (기존 베스트는 해제됩니다)`
+      }
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors disabled:opacity-50 ${
+        product.isBest
+          ? "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+          : "border-neutral-200 text-neutral-400 hover:bg-neutral-100"
+      }`}
+    >
+      <span aria-hidden>{product.isBest ? "★" : "☆"}</span>
+      {product.isBest ? "베스트" : "지정"}
+    </button>
+  );
+}
+
+function RowActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div className="flex shrink-0 gap-1.5">
+      <button
+        type="button"
+        onClick={onEdit}
+        className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100"
+      >
+        수정
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
+        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-50"
+      >
+        삭제
+      </button>
     </div>
   );
 }

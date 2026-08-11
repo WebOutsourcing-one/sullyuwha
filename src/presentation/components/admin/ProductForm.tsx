@@ -276,7 +276,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-6xl">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-serif text-2xl font-light">
             {isEdit ? "상품 수정" : "새 상품 등록"}
@@ -285,7 +285,8 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
             {isEdit ? "상품 정보를 수정합니다" : "새로운 상품을 등록합니다"}
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* 좁은 화면에서는 두 버튼이 한 줄을 나눠 갖는다(제목 옆에 끼우면 눌리기에 좁다). */}
+        <div className="flex shrink-0 gap-2 [&>button]:flex-1 sm:[&>button]:flex-none">
           <button
             type="button"
             onClick={() => router.push("/sull-admin/products")}
@@ -319,7 +320,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       </div>
 
       {/* ── 상단 2단 — 대표 컷(갤러리) + 상품 정보 (상세 페이지 상단과 같은 배치) ── */}
-      <div className="mt-10 grid gap-10 border-t border-neutral-200 pb-16 pt-10 lg:grid-cols-2 lg:gap-16">
+      <div className="mt-10 grid gap-10 border-t border-neutral-200 pb-10 pt-10 sm:pb-16 lg:grid-cols-2 lg:gap-16">
         <div>
           <ImageField
             label="대표 컷 — 상세 갤러리 첫 컷"
@@ -348,7 +349,9 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
               placeholder="상품명을 입력하세요"
             />
           </Field>
-          <div className="grid grid-cols-2 gap-4">
+          {/* 브레이크포인트 없이 2열이면 폰에서도 두 칸으로 쪼개져
+              한자 부제·태그라인이 각각 150px 남짓한 입력칸이 됐다. */}
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="한자 부제">
               <input
                 value={detail.subtitle ?? ""}
@@ -406,7 +409,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       </div>
 
       {/* ── 디테일 3단 — 자수·소재·안감 (상세 페이지 디테일 섹션과 같은 배치) ── */}
-      <section className="border-t border-line py-16">
+      <section className="border-t border-line py-10 sm:py-16">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-8 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             디테일 — 자수·소재·안감
@@ -420,8 +423,8 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       </section>
 
       {/* ── 제품 정보 + 모델 컷 (상세 페이지 하단과 같은 배치) ── */}
-      <div className="grid gap-10 border-t border-line py-16 lg:grid-cols-2 lg:gap-14">
-        <div className="flex flex-col gap-8 rounded-xl bg-neutral-50 px-7 py-8">
+      <div className="grid gap-10 border-t border-line py-10 sm:py-16 lg:grid-cols-2 lg:gap-14">
+        <div className="flex flex-col gap-8 rounded-xl bg-neutral-50 px-4 py-6 sm:px-7 sm:py-8">
           <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             제품 정보
           </h2>
@@ -1003,7 +1006,10 @@ function ShotThumb({
           e.stopPropagation();
           onChange(null);
         }}
-        className="absolute right-1 top-1 z-30 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900/60 text-xs leading-none text-white opacity-0 transition-opacity group-hover:opacity-100"
+        // 터치 기기에는 hover가 없다. 예전에는 opacity-0 + group-hover 로만 띄워서
+        // 폰·태블릿에서는 이 버튼이 영영 나타나지 않아 모델 컷을 지울 수 없었다.
+        // 좁은 화면에서는 늘 보이게 두고, 마우스가 있는 넓은 화면에서만 숨긴다.
+        className="absolute right-1 top-1 z-30 flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900/60 text-xs leading-none text-white transition-opacity sm:h-5 sm:w-5 sm:opacity-0 sm:group-hover:opacity-100"
         aria-label={`모델 컷 ${index + 1} 삭제`}
       >
         &times;
@@ -1201,21 +1207,26 @@ function SpecsInput({
     <div>
       <label className="mb-1 block text-xs font-medium text-neutral-500">상품 스펙</label>
       <div className="space-y-2">
+        {/* 좁은 화면에서는 항목명·값·삭제가 한 줄에 들어가지 않아 세로로 쌓는다.
+            쌓으면 어느 둘이 한 쌍인지 흐려지므로 그때만 테두리로 묶는다. */}
         {values.map((item, i) => (
-          <div key={i} className="flex items-center gap-2">
+          <div
+            key={i}
+            className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-2 sm:flex-row sm:items-center sm:border-0 sm:p-0"
+          >
             <input
               value={item.label}
               onChange={(e) => setItem(i, "label", e.target.value)}
               placeholder="항목명 (예: 소재, 색상, 구성)"
-              className={`${inputCls} flex-1`}
+              className={`${inputCls} min-w-0 sm:flex-1`}
             />
             <input
               value={item.value}
               onChange={(e) => setItem(i, "value", e.target.value)}
               placeholder="값 (예: 명주 100%, 진홍, 당의·스란치마)"
-              className={`${inputCls} flex-1`}
+              className={`${inputCls} min-w-0 sm:flex-1`}
             />
-            <button type="button" onClick={() => remove(i)} className="shrink-0 rounded-lg border border-red-200 px-3 py-2 text-xs text-red-400 hover:bg-red-50">
+            <button type="button" onClick={() => remove(i)} className="self-end rounded-lg border border-red-200 px-3 py-2 text-xs text-red-400 hover:bg-red-50 sm:shrink-0 sm:self-auto">
               삭제
             </button>
           </div>
