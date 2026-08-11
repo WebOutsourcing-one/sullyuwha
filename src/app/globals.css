@@ -75,61 +75,68 @@
   }
 }
 
-*,
-*::before,
-*::after {
-  /* 한글 어절(공백) 단위 줄바꿈 */
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-html {
-  scroll-behavior: smooth;
-  /* sticky 헤더 높이(모바일 64px)만큼 앵커 이동 시 여백 확보 */
-  scroll-padding-top: 4rem;
-}
-@media (min-width: 768px) {
-  html {
-    /* md 이상 헤더 높이 80px */
-    scroll-padding-top: 5rem;
+/* Tailwind 유틸리티(leading-*, tracking-* 등)는 @layer utilities에 있어서
+   레이어 순서상 항상 이긴다. 이 기본값들도 @layer base에 넣어야 컴포넌트에서
+   leading-[2] 같은 유틸리티 클래스로 덮어쓸 수 있다 — 레이어 밖(unlayered)
+   CSS는 명시도와 무관하게 어떤 레이어보다도 우선하므로, 여기 두면 아무리
+   유틸리티 값을 바꿔도 적용되지 않는다. */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    /* 한글 어절(공백) 단위 줄바꿈 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
-}
 
-body {
-  background-color: var(--color-ivory);
-  background-image: var(--paper-texture);
-  background-size: var(--paper-texture-size);
-  color: var(--color-charcoal);
-  font-family: var(--font-sans);
-  font-weight: 400;
-  line-height: 1.8;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+  html {
+    scroll-behavior: smooth;
+    /* sticky 헤더 높이(모바일 96px)만큼 앵커 이동 시 여백 확보 */
+    scroll-padding-top: 6rem;
+  }
+  @media (min-width: 768px) {
+    html {
+      /* md 이상 헤더 높이 120px */
+      scroll-padding-top: 7.5rem;
+    }
+  }
 
-h1,
-h2,
-h3,
-h4 {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: var(--color-charcoal);
-}
+  body {
+    background-color: var(--color-ivory);
+    background-image: var(--paper-texture);
+    background-size: var(--paper-texture-size);
+    color: var(--color-charcoal);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-p {
-  max-width: 60ch;
-}
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-charcoal);
+  }
 
-::selection {
-  background-color: var(--color-gold);
-  color: var(--color-ivory);
-}
+  p {
+    max-width: 60ch;
+  }
 
-:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 3px;
+  ::selection {
+    background-color: var(--color-gold);
+    color: var(--color-ivory);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
 }
 
 /* ============================================================

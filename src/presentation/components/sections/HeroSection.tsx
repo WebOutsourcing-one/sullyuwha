@@ -11,14 +11,14 @@ interface HeroSectionProps {
 }
 
 /**
- * 첫 화면 높이 — sticky 헤더(모바일 64px / md 80px)를 뺀 값.
+ * 첫 화면 높이 — sticky 헤더(모바일 96px / md 120px)를 뺀 값.
  *
  * 모바일에서 히어로가 하단 가치 스트립까지 스크롤 없이 한 화면에 들어와야 하므로
  * 헤더 높이를 빼둔다. 주소창이 접히고 펴질 때 높이가 출렁이지 않도록 vh가 아닌 svh를 쓴다.
  * lg 이상은 데스크탑 기존 레이아웃 그대로 전체 높이를 쓴다.
  */
 const FIRST_SCREEN =
-  "min-h-[calc(100svh-4rem)] md:min-h-[calc(100svh-5rem)] lg:min-h-screen";
+  "min-h-[calc(100svh-6rem)] md:min-h-[calc(100svh-7.5rem)] lg:min-h-screen";
 
 /**
  * 히어로 — 좌측 브랜드 슬로건, 설유화 브랜치 라인 아트가 배경에 흐른다.
@@ -37,21 +37,19 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
       <Container className={`relative z-10 flex flex-col ${FIRST_SCREEN}`}>
         {/* 위쪽 — 슬로건 + (데스크탑) 브랜치 이미지. */}
         <div className="relative flex flex-1 flex-col items-center lg:flex-row">
-          {/* main_branch 배경 — 모바일 전용. 우측 아래 모서리에 딱 붙인다.
+          {/* main_branch 배경 — 모바일 전용. 폭 기준으로 꽉 채운다.
               - 위쪽 영역 안에만 깔아 두므로 아래 경계가 곧 가치 스트립의 윗선이다.
-                items-end면 그 선에 정확히 맞고 별도 여백 계산이 필요 없다.
               - 우측은 Container의 거터(--gutter)만큼 밖으로 빼 화면 끝까지 닿게 한다.
-              - max-h-full로 높이가 잘리면 object-contain이 상자 안에서 이미지를 가운데로
-                모아 우측·하단에 빈틈이 생긴다. object-right-bottom으로 모서리에 붙인다. */}
-          <div className="absolute inset-y-0 left-0 right-[calc(var(--gutter)*-1)] z-0 flex items-end justify-end lg:hidden">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-ivory/30 to-ivory/80" />
+              - 폭을 100%로 고정하고 높이는 원본 비율대로 자연스럽게 늘어나게 둔다.
+                박스보다 길어지면 하단에 붙인 채 overflow-hidden으로 위쪽만 잘린다. */}
+          <div className="absolute inset-y-0 left-0 right-[calc(var(--gutter)*-1)] z-0 overflow-hidden lg:hidden">
             <Image
               src="/main_branch.webp"
               alt=""
-              width={600}
-              height={400}
+              width={349}
+              height={525}
               sizes="80vw"
-              className="h-full max-h-full w-full max-w-full object-contain object-right-bottom opacity-70"
+              className="absolute bottom-0 left-0 h-auto w-full"
             />
           </div>
 
@@ -62,22 +60,22 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
               데스크탑은 이미지와 나란히 놓이므로 lg에서 가운데 정렬로 되돌린다. */}
           <div className="relative z-10 flex w-full flex-1 items-start pt-[125px] pb-12 lg:items-center lg:py-0">
             <Reveal>
-              <div className="max-w-xl translate-y-[40px]">
+              <div className="max-w-xl translate-x-[10px] translate-y-[5px]">
                 {/* 하한만 30px로 낮춘다. 6vw가 이기는 500px 이상(=데스크탑 포함)은 그대로다. */}
-                <h1 className="whitespace-pre font-serif text-[clamp(calc(1.875rem-5px),calc(6vw-5px),calc(4.7rem-5px))] font-light leading-[1.22] tracking-[-0.01em] text-charcoal">
+                <h1 className="whitespace-pre font-serif text-[clamp(1.875rem,6vw,4.7rem)] font-light leading-[1.5] tracking-[-0.01em] text-charcoal">
                   {hero.slogan}
                 </h1>
 
-                <div aria-hidden className="my-6 h-px w-12 bg-charcoal/20" />
+                <div aria-hidden className="mt-6 mb-[18px] h-px w-8 bg-charcoal/20" />
 
                 {/* lg 미만에서는 clamp가 늘 하한(16px)에 걸리므로, 2px 줄인 값을 그대로 못박는다. */}
-                <p className="max-w-md whitespace-pre-line text-[0.875rem] leading-[2] text-taupe lg:text-[clamp(1rem,1.2vw,1.2rem)]">
+                <p className="max-w-md whitespace-pre-line text-[calc(0.875rem+1px)] leading-[2] text-taupe lg:text-[clamp(calc(1rem+1px),calc(1.2vw+1px),calc(1.2rem+1px))]">
                   {hero.subcopy}
                 </p>
 
                 <a
                   href={hero.primaryCta.href}
-                  className="group mt-10 inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-charcoal"
+                  className="group mt-12 inline-flex items-center gap-3 text-xs uppercase tracking-[0.12em] text-charcoal"
                 >
                   <span className="border-b border-charcoal/40 pb-1 transition-colors duration-300 group-hover:border-charcoal">
                     {hero.primaryCta.label}
@@ -93,8 +91,8 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
             <Image
               src="/main_branch.webp"
               alt=""
-              width={600}
-              height={400}
+              width={349}
+              height={525}
               sizes="(max-width:1024px) 60vw, 30vw"
               className="h-auto w-full object-contain"
             />

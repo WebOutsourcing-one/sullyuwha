@@ -58,9 +58,9 @@ export function SiteHeader() {
   }, [dropdownOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line/60 bg-ivory">
+    <header className="sticky top-0 z-50 bg-ivory">
       <Container>
-        <div className="flex h-16 items-center justify-between md:h-20">
+        <div className="flex h-24 items-center justify-between md:h-[120px]">
           {/* 워드마크 + 엠블럼 */}
           <Link
             href="/#top"
@@ -68,10 +68,10 @@ export function SiteHeader() {
             aria-label="설유화 홈"
           >
             <span className="flex flex-col leading-none">
-              <span className="font-serif text-xl font-light tracking-tight text-charcoal">
+              <span className="font-serif text-3xl font-light tracking-[0.15em] text-charcoal">
                 설유화
               </span>
-              <span className="mt-1 text-[0.55rem] uppercase tracking-[0.25em] text-taupe">
+              <span className="mt-1 text-[0.7rem] uppercase tracking-[0.25em] text-taupe">
                 Sullyuwha
               </span>
             </span>
