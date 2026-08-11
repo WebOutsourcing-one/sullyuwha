@@ -58,7 +58,7 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
           {/* 텍스트 — 배경이 absolute z-0이므로 명시적으로 위로 올린다.
               모바일은 위쪽 여백만 깎아 블록을 끌어올린다(아래는 그대로 두어 가치 스트립과 간격 유지).
               items-center로 가운데 정렬이라 위 여백을 깎은 만큼의 절반만 실제로 올라간다. */}
-          <div className="relative z-10 flex w-full flex-1 items-center pt-8 pb-12 lg:py-0">
+          <div className="relative z-10 flex w-full flex-1 items-center pt-4 pb-12 lg:py-0">
             <Reveal>
               <div className="max-w-xl">
                 {/* 하한만 30px로 낮춘다. 6vw가 이기는 500px 이상(=데스크탑 포함)은 그대로다. */}
