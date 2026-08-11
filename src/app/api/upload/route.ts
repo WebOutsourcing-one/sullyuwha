@@ -152,17 +152,45 @@ function sniffImageFormat(buf: Buffer): ImageFormat | null {
 }
 
 /**
+ * 한 마디(`/`로 나눈 조각)의 형태 — 소문자·숫자로 시작하고 끝나며, 사이에 `-`·`_`.
+ *
+ * 전체 경로를 정규식 하나로 훑지 않는 이유는 sanitizePrefix 주석 참고.
+ * 여기서는 `*` 뒤에 반드시 한 글자가 오므로 실패해도 되짚기가 길이에 비례한다.
+ */
+const PREFIX_SEGMENT = /^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/;
+
+/**
  * 버킷 키 접두사를 정규화한다.
  * 소문자/숫자/`-`/`_`/`/`만 허용해 경로 탈출(`../`)과 키 인젝션을 차단한다.
+ *
+ * 마디를 하나씩 본다. 예전에는 전체를 `^[a-z0-9](?:[a-z0-9_-]*\/?)*[a-z0-9]$`
+ * 하나로 검사했는데, `(...*...)*` 꼴이라 **매칭에 실패할 때 되짚기가 폭발했다**
+ * (ReDoS). 실측으로 30자에 4.3초였고 두 글자마다 4배씩 늘어, 상한인 64자를
+ * 보내면 사실상 돌아오지 않는다. Node는 단일 스레드라 그 요청 하나가 이벤트
+ * 루프를 붙잡고 **서버 전체**를 멈춘다 — 상품 페이지도 결제도 같이 선다.
+ *
+ * 관리자 인증 뒤에 있어 아무나 부를 수는 없지만, 세션 하나로 호스트를 통째로
+ * 재울 수 있는 것과 못 하는 것의 차이가 크다.
+ *
+ * 통과 범위가 한 군데 달라졌다 — 한 글자짜리 마디(`a`, `a/b`)가 이제 통과한다.
+ * 예전 정규식은 시작 글자와 끝 글자를 따로 요구해 두 글자 미만을 거부했는데,
+ * 규칙으로 정한 것이 아니라 그렇게 쓴 결과였다. 한 글자 마디는 비어 있지도
+ * `..`도 아니고 `/`를 품을 수도 없어, 막아서 얻는 것이 없다.
+ *
  * @returns 유효한 접두사, 형식이 어긋나면 null
  */
 function sanitizePrefix(raw: string): string | null {
   const trimmed = raw.trim().replace(/^\/+|\/+$/g, "");
   if (!trimmed) return null;
   if (trimmed.length > 64) return null;
-  if (!/^[a-z0-9](?:[a-z0-9_-]*\/?)*[a-z0-9]$/.test(trimmed)) return null;
-  if (trimmed.includes("//") || trimmed.includes("..")) return null;
-  if (trimmed.split("/").length > 3) return null;
+
+  const segments = trimmed.split("/");
+  if (segments.length > 3) return null;
+  // 빈 마디가 걸러지므로 `//`는 여기서 막힌다. `.`은 어느 마디에서도 허용되지
+  // 않으므로 `..`도 마찬가지다 — 예전의 두 줄짜리 확인이 이 규칙에 흡수됐다.
+  for (const segment of segments) {
+    if (!PREFIX_SEGMENT.test(segment)) return null;
+  }
   return trimmed;
 }
 
