@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/require-admin";
 import { toProductData, validateProductInput } from "@/lib/product-input";
 import { denyCrossOrigin } from "@/lib/same-origin";
 import { PRODUCT_WRITE_LIMIT, enforceRateLimit } from "@/lib/rate-limit";
+import { revalidateProductPages } from "@/lib/revalidate-public";
 
 /**
  * 관리자 상품 목록.
@@ -110,6 +111,9 @@ export async function POST(request: NextRequest) {
     data: { id, ...toProductData(body) },
     include: { images: { orderBy: { sortOrder: "asc" } } },
   });
+
+  // 새 상품은 그 분류의 최신이므로 홈 카드가 곧바로 이 컷으로 바뀌어야 한다.
+  revalidateProductPages();
 
   return NextResponse.json(product, { status: 201 });
 }

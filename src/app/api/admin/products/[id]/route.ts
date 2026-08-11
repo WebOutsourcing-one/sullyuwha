@@ -5,6 +5,7 @@ import { toProductData, validateProductInput } from "@/lib/product-input";
 import { denyCrossOrigin } from "@/lib/same-origin";
 import { PRODUCT_WRITE_LIMIT, enforceRateLimit } from "@/lib/rate-limit";
 import { collectProductAssets, deleteUnreferencedAssets } from "@/lib/product-assets";
+import { revalidateProductPages } from "@/lib/revalidate-public";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -88,6 +89,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    revalidateProductPages();
+
     return NextResponse.json(product);
   } catch (error) {
     // Prisma 오류 원문에는 스키마 정보가 섞여 있어 그대로 내보내지 않는다.
@@ -125,6 +128,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // 상품이 실제로 지워진 뒤에 정리한다. 순서를 바꾸면 삭제가 실패했을 때
     // 살아 있는 상품의 이미지를 지운 상태가 된다.
     if (removed) await deleteUnreferencedAssets(collectProductAssets(removed));
+
+    // 지운 상품이 다른 상세의 연관 목록·이전/다음에 남으면 클릭이 404로 떨어진다.
+    revalidateProductPages();
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -3,6 +3,7 @@ import { getPrisma } from "@/infrastructure/db/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { denyCrossOrigin } from "@/lib/same-origin";
 import { PRODUCT_WRITE_LIMIT, enforceRateLimit } from "@/lib/rate-limit";
+import { revalidateBestCollection } from "@/lib/revalidate-public";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -94,6 +95,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     console.error("[admin/products] best toggle failed", error);
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
+
+  // 해제도 무효화해야 한다 — 내린 상품이 홈에 그대로 남으면 관리자 목록과 어긋난다.
+  revalidateBestCollection();
 
   return NextResponse.json({ id, category: target.category, isBest });
 }
