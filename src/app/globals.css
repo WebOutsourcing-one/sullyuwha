@@ -5,16 +5,19 @@
    모던 럭셔리 미니멀
    ============================================================ */
 @theme {
-  /* 색상 — 기본(Neutral) · 시안 크림/오트밀 톤 */
-  --color-ivory: #f3ece0; /* 기본 배경(따뜻한 크림) */
-  --color-champagne: #e7dcc8; /* 카드/교차 섹션(깊은 크림) */
-  --color-mist: #eee6d8; /* 아주 옅은 톤 구분 */
-  --color-sand: #ded0b8; /* 카테고리 카드/살짝 진한 베이지 */
-  --color-charcoal: #3d352b; /* 기본 텍스트(따뜻한 에스프레소) */
-  --color-taupe: #8a7c69; /* 보조 텍스트 */
-  --color-line: #e1d7c3; /* 헤어라인 */
+  /* 색상 — 기본(Neutral) · 시안 크림/오트밀 톤
+     노란기(R−B)를 회색 쪽으로 47% 중화한 값들이다. 배경만 중화하면 헤어라인·카드가
+     상대적으로 누렇게 도드라져서, gold를 뺀 중성색 전체에 같은 비율을 적용했다. */
+  --color-ivory: #f0ebe6; /* 기본 배경(차분한 크림) */
+  --color-champagne: #e0dbd0; /* 카드/교차 섹션(깊은 크림) */
+  --color-mist: #e9e5de; /* 아주 옅은 톤 구분 */
+  --color-sand: #d6cec2; /* 카테고리 카드/살짝 진한 베이지 */
+  --color-charcoal: #39352f; /* 기본 텍스트(차분한 에스프레소) */
+  --color-taupe: #837b71; /* 보조 텍스트 */
+  --color-line: #dbd5cb; /* 헤어라인 */
 
-  /* 색상 — 강조(뮤트 브론즈, 아주 소량) */
+  /* 색상 — 강조(뮤트 브론즈, 아주 소량)
+     브랜드 강조색이라 중화 대상에서 뺀다. 중화하면 금빛이 사라진다. */
   --color-gold: #ab8f67;
 
   /* 서체 (layout.tsx의 next/font 변수와 연결) */
@@ -55,6 +58,13 @@
    ============================================================ */
 :root {
   --gutter: 20px;
+
+  /* 종이 결 — first_income 원본의 빈 종이 영역에서 고주파(질감)만 뽑고,
+     거울 대칭 4장으로 이어 이음선을 없앤 타일이다. 명암 그라디언트는 제거해서
+     어떤 배경색 위에 얹어도 색이 틀어지지 않는다.
+     최대 알파 9%·평균 1.3%로, 인트로 화면의 질감과 이어질 정도만 얹는다. */
+  --paper-texture: url("/paper-texture.png");
+  --paper-texture-size: 128px;
 }
 @media (min-width: 1024px) {
   :root {
@@ -84,6 +94,8 @@ html {
 
 body {
   background-color: var(--color-ivory);
+  background-image: var(--paper-texture);
+  background-size: var(--paper-texture-size);
   color: var(--color-charcoal);
   font-family: var(--font-sans);
   font-weight: 400;
@@ -120,6 +132,16 @@ p {
 /* ============================================================
    유틸리티
    ============================================================ */
+
+/*
+ * bg-ivory로 배경을 다시 칠하는 요소(섹션·헤더·모바일 메뉴 등)에도 같은 결을 잇는다.
+ * body에만 두면 그 요소들이 body를 덮어버려 거기서만 질감이 끊겨 매끈해 보인다.
+ * 투명도가 섞인 bg-ivory/80 같은 변형은 별도 클래스라 여기 걸리지 않는다(의도한 대로다).
+ */
+.bg-ivory {
+  background-image: var(--paper-texture);
+  background-size: var(--paper-texture-size);
+}
 
 /* 콘텐츠 컨테이너 */
 .u-container {
