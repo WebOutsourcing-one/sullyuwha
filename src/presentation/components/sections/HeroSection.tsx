@@ -60,7 +60,7 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
               영역(약 674px) 한가운데 떠서 헤더와 200px 넘게 벌어지고, pt를 깎아도
               그 절반만 움직여 간격을 조절할 수가 없다. 위에 붙여야 pt가 곧 간격이 된다.
               데스크탑은 이미지와 나란히 놓이므로 lg에서 가운데 정렬로 되돌린다. */}
-          <div className="relative z-10 flex w-full flex-1 items-start pt-[150px] pb-12 lg:items-center lg:py-0">
+          <div className="relative z-10 flex w-full flex-1 items-start pt-[125px] pb-12 lg:items-center lg:py-0">
             <Reveal>
               <div className="max-w-xl">
                 {/* 하한만 30px로 낮춘다. 6vw가 이기는 500px 이상(=데스크탑 포함)은 그대로다. */}
