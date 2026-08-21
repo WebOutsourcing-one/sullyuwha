@@ -45,6 +45,7 @@ export default function RootLayout({
       <html
         lang="ko"
         className={`${montserrat.variable} ${kopubBatang.variable} h-full antialiased`}
+        suppressHydrationWarning
       >
         {process.env.NODE_ENV === "development" && (
           <head>

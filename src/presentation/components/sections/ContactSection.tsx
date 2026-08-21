@@ -34,7 +34,7 @@ export function ContactSection({ contact }: ContactSectionProps) {
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
           {/* 정보 */}
           <Reveal className="order-2 lg:order-1">
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-5 lg:gap-8">
               <SectionHeading
                 eyebrow="VISIT & CONTACT"
                 title="문의 · 아틀리에"
@@ -147,7 +147,7 @@ function ContactRow({
   href?: string;
 }) {
   return (
-    <div className="flex items-baseline gap-4 py-3.5">
+    <div className="flex items-baseline gap-4 py-2.5 lg:py-3.5">
       <dt className="w-24 shrink-0 text-xs uppercase tracking-[0.1em] text-gold">
         {label}
       </dt>

@@ -37,19 +37,18 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
       <Container className={`relative z-10 flex flex-col ${FIRST_SCREEN}`}>
         {/* 위쪽 — 슬로건 + (데스크탑) 브랜치 이미지. */}
         <div className="relative flex flex-1 flex-col items-center lg:flex-row">
-          {/* main_branch 배경 — 모바일 전용. 폭 기준으로 꽉 채운다.
+          {/* main_branch 배경 — 모바일 전용.
               - 위쪽 영역 안에만 깔아 두므로 아래 경계가 곧 가치 스트립의 윗선이다.
               - 우측은 Container의 거터(--gutter)만큼 밖으로 빼 화면 끝까지 닿게 한다.
-              - 폭을 100%로 고정하고 높이는 원본 비율대로 자연스럽게 늘어나게 둔다.
-                박스보다 길어지면 하단에 붙인 채 overflow-hidden으로 위쪽만 잘린다. */}
-          <div className="absolute inset-y-0 left-0 right-[calc(var(--gutter)*-1)] z-0 overflow-hidden lg:hidden">
+              - fill + object-contain으로 비율을 유지한 채 박스 안에 통째로 담는다.
+                박스보다 이미지가 길면 잘리는 대신 여백이 생기는 쪽을 택한다. */}
+          <div className="absolute inset-y-0 left-0 right-[calc(var(--gutter)*-1)] z-0 lg:hidden">
             <Image
               src="/main_branch.webp"
               alt=""
-              width={349}
-              height={525}
+              fill
               sizes="80vw"
-              className="absolute bottom-0 left-0 h-auto w-full"
+              className="object-contain object-[center_3.75rem]"
             />
           </div>
 
@@ -61,15 +60,15 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
           <div className="relative z-10 flex w-full flex-1 items-start pt-[125px] pb-12 lg:items-center lg:py-0">
             <Reveal>
               <div className="max-w-xl translate-x-[10px] translate-y-[5px]">
-                {/* 하한만 30px로 낮춘다. 6vw가 이기는 500px 이상(=데스크탑 포함)은 그대로다. */}
-                <h1 className="whitespace-pre font-serif text-[clamp(1.875rem,6vw,4.7rem)] font-light leading-[1.5] tracking-[-0.01em] text-charcoal">
+                {/* 하한만 26.8px로 낮춘다. 6vw가 이기는 500px 이상(=데스크탑 포함)은 그대로다. */}
+                <h1 className="whitespace-pre font-serif text-[clamp(1.675rem,6vw,4.7rem)] font-light leading-[1.5] tracking-[-0.01em] text-charcoal">
                   {hero.slogan}
                 </h1>
 
                 <div aria-hidden className="mt-6 mb-[18px] h-px w-8 bg-charcoal/20" />
 
-                {/* lg 미만에서는 clamp가 늘 하한(16px)에 걸리므로, 2px 줄인 값을 그대로 못박는다. */}
-                <p className="max-w-md whitespace-pre-line text-[calc(0.875rem+1px)] leading-[2] text-taupe lg:text-[clamp(calc(1rem+1px),calc(1.2vw+1px),calc(1.2rem+1px))]">
+                {/* lg 미만에서는 clamp가 늘 하한(16px)에 걸리므로, 값을 그대로 못박는다. */}
+                <p className="max-w-md whitespace-pre-line text-[calc(0.775rem+1px)] leading-[1.7] text-taupe lg:text-[clamp(calc(1rem+1px),calc(1.2vw+1px),calc(1.2rem+1px))]">
                   {hero.subcopy}
                 </p>
 

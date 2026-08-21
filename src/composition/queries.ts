@@ -13,3 +13,5 @@ import { container } from "./container";
 export const getProductCached = cache((id: string) => container.getProduct.execute(id));
 
 export const getCollectionCached = cache(() => container.getCollection.execute());
+
+export const getContactCached = cache(() => container.getContact.execute());

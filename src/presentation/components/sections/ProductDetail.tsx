@@ -17,17 +17,19 @@ interface ProductDetailProps {
   /** 목록 순서상 이전/다음 품목(끝이면 null) */
   prev: Product | null;
   next: Product | null;
+  /** 가격 옆 인스타그램 링크 버튼용 */
+  instagramUrl?: string;
 }
 
 /**
  * 품목 상세 페이지.
  *
- * 위쪽은 갤러리와 품목 소개, 아래쪽은 디자이너 시안 구조의 에디토리얼 —
- * 상징 해설 → 디테일 → 제품 정보.
+ * 위쪽은 갤러리와 품목 소개(+ 가격·인스타그램), 아래쪽은 디자이너 시안 구조의
+ * 에디토리얼 — 대표 문양 클로즈업 → 디테일 → 제품 정보.
  * 시안 콘텐츠(`product.detail`)가 없는 품목은 위쪽 영역만 나가고 아래는 생략된다.
  *
- * 가격과 구매 CTA는 두지 않는다 — 결제를 열지 않은 단계라 문의로 받는다.
- * 결제를 여는 시점에 이 위쪽 영역에 가격과 `/checkout/[id]` 링크를 되살리면 된다.
+ * 구매 CTA(장바구니·결제 버튼)는 두지 않는다 — 결제를 열지 않은 단계라 인스타그램
+ * DM 문의로 받는다. 결제를 여는 시점에 `/checkout/[id]` 링크를 되살리면 된다.
  * (결제 코드 자체는 그대로 살아 있다: /checkout, /api/orders, 승인·웹훅)
  */
 export function ProductDetail({
@@ -35,6 +37,7 @@ export function ProductDetail({
   related,
   prev,
   next,
+  instagramUrl,
 }: ProductDetailProps) {
   // 대표 컷 + 추가 갤러리(사진·GIF)를 하나의 미디어 목록으로 합친다.
   const media = [product.image, ...(product.gallery ?? [])];
@@ -119,8 +122,12 @@ export function ProductDetail({
             <p className="leading-relaxed text-taupe">{product.story}</p>
           )}
 
-          {/* 상징 해설 — 대표 문양 클로즈업 */}
-          {detail?.highlight && <ProductHighlight block={detail.highlight} />}
+          {/* 대표 문양 클로즈업 + 가격 · 인스타그램 */}
+          <ProductHighlight
+            image={detail?.highlight?.image}
+            price={product.price}
+            instagramUrl={instagramUrl}
+          />
         </div>
       </Container>
 

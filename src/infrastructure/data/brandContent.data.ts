@@ -118,7 +118,7 @@ export const processData: readonly ProcessStep[] = [
 export const contactData: ContactInfo = {
   showroomName: "설유화 아틀리에",
   address: "서울특별시 성동구 성수이로 12, 2층",
-  phone: "02-1234-5678",
+  phone: "050-7147-01320",
   email: "hello@sullyuwha.com",
   hours: [
     { label: "평일", value: "10:00 – 19:00" },
@@ -128,7 +128,6 @@ export const contactData: ContactInfo = {
   note: "예복 상담과 맞춤 제작 문의를 받습니다. 원활한 상담을 위해 방문 예약을 권장드립니다.",
   socials: [
     { label: "Instagram", url: "https://www.instagram.com/sullyuwha" },
-    { label: "Kakao", url: "https://pf.kakao.com" },
   ],
   mapImage: image("contact/atelier", "아틀리에 위치", 16 / 9),
 };

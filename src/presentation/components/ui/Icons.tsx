@@ -112,6 +112,17 @@ export function IconArrow(props: IconProps) {
   );
 }
 
+/** 인스타그램 */
+export function IconInstagram(props: IconProps) {
+  return (
+    <svg {...baseSm} {...props}>
+      <rect x={3} y={3} width={18} height={18} rx={5} />
+      <circle cx={12} cy={12} r={4} />
+      <circle cx={17.2} cy={6.8} r={0.6} fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 /** 설유화의 가치 — 라인 SVG 대신 쓰는 커스텀 아이콘 이미지(전통 문양을 그대로 딴 래스터). */
 export const featureIconImages = {
   tradition: "/icons/value-tradition.webp",

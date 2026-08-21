@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
+import Script from "next/script";
 
 /** 이번 세션에 인트로를 봤는지 기록하는 키. */
 const SEEN_KEY = "sullyuwha:intro-seen";
@@ -56,7 +57,11 @@ export function IntroSplash() {
 
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: GATE_SCRIPT }} />
+      <Script
+        id="intro-splash-gate"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: GATE_SCRIPT }}
+      />
       <div
         // 콘텐츠는 뒤에 이미 다 있다. 장식용 덮개이므로 보조기기에는 숨긴다.
         aria-hidden

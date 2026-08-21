@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCollectionCached, getProductCached } from "@/composition/queries";
+import {
+  getCollectionCached,
+  getContactCached,
+  getProductCached,
+} from "@/composition/queries";
 import { ProductDetail } from "@/presentation/components/sections/ProductDetail";
 
 interface PageProps {
@@ -51,9 +55,10 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
 
-  const [product, products] = await Promise.all([
+  const [product, products, contact] = await Promise.all([
     getProductCached(id),
     getCollectionCached(),
+    getContactCached(),
   ]);
 
   if (!product) {
@@ -65,6 +70,9 @@ export default async function ProductPage({ params }: PageProps) {
   const next =
     index >= 0 && index < products.length - 1 ? products[index + 1] : null;
   const related = products.filter((p) => p.id !== product.id);
+  const instagramUrl = contact.socials.find(
+    (s) => s.label.toLowerCase() === "instagram",
+  )?.url;
 
   return (
     <ProductDetail
@@ -72,6 +80,7 @@ export default async function ProductPage({ params }: PageProps) {
       related={related}
       prev={prev}
       next={next}
+      instagramUrl={instagramUrl}
     />
   );
 }
