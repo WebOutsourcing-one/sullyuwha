@@ -71,7 +71,7 @@ export function SiteHeader() {
               <span className="font-serif text-3xl font-light tracking-[0.15em] text-charcoal">
                 설유화
               </span>
-              <span className="mt-1 text-[0.7rem] uppercase tracking-[0.25em] text-taupe">
+              <span className="mt-1.5 text-[0.7rem] uppercase tracking-[0.25em] text-taupe">
                 Sullyuwha
               </span>
             </span>
