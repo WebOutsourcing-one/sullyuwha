@@ -74,7 +74,7 @@ export function HeroSection({ hero, features }: HeroSectionProps) {
 
                 <a
                   href={hero.primaryCta.href}
-                  className="group mt-12 inline-flex items-center gap-3 text-xs uppercase tracking-[0.12em] text-charcoal"
+                  className="group mt-12 inline-flex items-center gap-3 text-[11px] leading-4 uppercase tracking-[0.12em] text-charcoal lg:text-xs"
                 >
                   <span className="border-b border-charcoal/40 pb-1 transition-colors duration-300 group-hover:border-charcoal">
                     {hero.primaryCta.label}
