@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Container } from "../ui/Container";
-import { SHOW_PAYMENT_UI } from "@/lib/features";
+import { SHOW_PAYMENT_UI, SHOW_SOCIAL_LOGIN } from "@/lib/features";
 
 const NAV_LINKS = [
   { label: "BRAND", href: "/#top" },
@@ -126,29 +126,32 @@ export function SiteHeader() {
                   </button>
                 </div>
               ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setDropdownOpen((v) => !v)}
-                    className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
-                  >
-                    Login
-                  </button>
-                  {dropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-44 rounded-sm border border-line/60 bg-ivory py-1 shadow-lg">
-                      {LOGIN_PROVIDERS.map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => signIn(p.id)}
-                          className="flex w-full items-center px-4 py-2.5 text-sm text-charcoal transition-colors duration-200 hover:bg-mist/50"
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
+                // 소셜 로그인을 열기 전에는 로그인 입구 자체를 만들지 않는다.
+                SHOW_SOCIAL_LOGIN && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setDropdownOpen((v) => !v)}
+                      className="text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:text-charcoal"
+                    >
+                      Login
+                    </button>
+                    {dropdownOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-44 rounded-sm border border-line/60 bg-ivory py-1 shadow-lg">
+                        {LOGIN_PROVIDERS.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => signIn(p.id)}
+                            className="flex w-full items-center px-4 py-2.5 text-sm text-charcoal transition-colors duration-200 hover:bg-mist/50"
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )
               )}
             </div>
           </nav>
@@ -235,23 +238,25 @@ export function SiteHeader() {
                 </div>
               </div>
             ) : (
-              <div className="mt-8">
-                <p className="text-[0.6rem] uppercase tracking-[0.25em] text-gold">
-                  Login
-                </p>
-                <div className="mt-3 flex gap-2">
-                  {LOGIN_PROVIDERS.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => { setOpen(false); signIn(p.id); }}
-                      className="flex-1 border border-line px-4 py-3 text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
-                    >
-                      {p.short}
-                    </button>
-                  ))}
+              SHOW_SOCIAL_LOGIN && (
+                <div className="mt-8">
+                  <p className="text-[0.6rem] uppercase tracking-[0.25em] text-gold">
+                    Login
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    {LOGIN_PROVIDERS.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => { setOpen(false); signIn(p.id); }}
+                        className="flex-1 border border-line px-4 py-3 text-xs uppercase tracking-[0.16em] text-taupe transition-colors duration-200 hover:border-gold hover:text-charcoal"
+                      >
+                        {p.short}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )
             )}
           </nav>
         </div>

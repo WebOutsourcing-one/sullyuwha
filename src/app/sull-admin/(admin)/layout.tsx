@@ -39,12 +39,14 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           >
             상품 관리
           </Link>
-          <Link
+          {/* 주문 내역 — 당분간 노출하지 않는다. 라우트(/sull-admin/orders)는
+              그대로 있어 주소를 직접 알면 접근할 수 있다. */}
+          {/* <Link
             href="/sull-admin/orders"
             className="shrink-0 rounded px-3 py-2 text-sm text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
           >
             주문 내역
-          </Link>
+          </Link> */}
         </nav>
         <div className="mt-auto hidden pt-4 text-xs text-neutral-400 lg:block">
           {session.user.name}

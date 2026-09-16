@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Container } from "@/presentation/components/ui/Container";
 import { SocialLoginButtons } from "@/presentation/components/auth/SocialLoginButtons";
+import { SHOW_SOCIAL_LOGIN } from "@/lib/features";
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -97,7 +98,11 @@ export default async function LoginPage({ searchParams }: PageProps) {
       )}
 
       <div className="mt-10 flex w-full max-w-xs flex-col items-center gap-6">
-        <SocialLoginButtons callbackUrl={callbackUrl} />
+        {SHOW_SOCIAL_LOGIN ? (
+          <SocialLoginButtons callbackUrl={callbackUrl} />
+        ) : (
+          <p className="text-sm text-taupe">현재 로그인 기능을 준비 중입니다.</p>
+        )}
 
         <Link
           href="/"

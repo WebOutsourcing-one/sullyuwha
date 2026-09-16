@@ -21,3 +21,12 @@
  * (상세 페이지의 CTA만은 마크업이 지워진 상태라 따로 되살려야 한다)
  */
 export const SHOW_PAYMENT_UI = false;
+
+/**
+ * 소셜 로그인(카카오·네이버) UI를 노출할지.
+ *
+ * `false`인 동안에도 NextAuth 설정·콜백은 그대로 남아 있다 — 다시 켤 때
+ * 버튼만 되살리면 된다. 꺼진 동안은 헤더의 로그인 버튼과 `/login` 화면의
+ * 소셜 버튼을 감춘다. 이미 로그인된 세션(관리자 포함)에는 영향 없다.
+ */
+export const SHOW_SOCIAL_LOGIN = false;

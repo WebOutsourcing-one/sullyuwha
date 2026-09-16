@@ -6,6 +6,7 @@ import "./globals.css";
 import { SiteHeader } from "@/presentation/components/layout/SiteHeader";
 import { SiteFooter } from "@/presentation/components/layout/SiteFooter";
 import { SessionProvider } from "@/presentation/components/ui/SessionProvider";
+import { INTRO_GATE_SCRIPT } from "@/presentation/components/ui/IntroSplash";
 
 // 영문 — Montserrat Regular
 const montserrat = Montserrat({
@@ -47,17 +48,25 @@ export default function RootLayout({
         className={`${montserrat.variable} ${kopubBatang.variable} h-full antialiased`}
         suppressHydrationWarning
       >
-        {process.env.NODE_ENV === "development" && (
-          <head>
-            {/* 프로토콜 상대 URL(`//`)은 http 페이지에서 http로 내려가 중간자 공격에
-                노출된다. 서드파티 스크립트는 항상 https로 고정한다. */}
+        <head>
+          {/* IntroSplash 게이트 — 페인트 전에 실행돼야 해서 beforeInteractive로 둔다.
+              Next.js 규칙상 이 전략은 루트 레이아웃에서만 지원되므로 여기서 렌더한다
+              (다른 컴포넌트에 두면 "script tag" 하이드레이션 경고가 난다). */}
+          <Script
+            id="intro-splash-gate"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{ __html: INTRO_GATE_SCRIPT }}
+          />
+          {process.env.NODE_ENV === "development" && (
+            // 프로토콜 상대 URL(`//`)은 http 페이지에서 http로 내려가 중간자 공격에
+            // 노출된다. 서드파티 스크립트는 항상 https로 고정한다.
             <Script
               src="https://unpkg.com/react-grab/dist/index.global.js"
               crossOrigin="anonymous"
               strategy="afterInteractive"
             />
-          </head>
-        )}
+          )}
+        </head>
       <body className="flex min-h-full flex-col">
         <SessionProvider>
           <SiteHeader />
