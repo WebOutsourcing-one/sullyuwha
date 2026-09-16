@@ -35,13 +35,24 @@ export function BespokeSection({ bespoke }: BespokeSectionProps) {
     >
       {/* R2/어드민 업로드 파이프라인이 없는 콘텐츠라 public/의 고정 파일을 직접 쓴다
           (HeroSection의 main_branch.webp와 같은 방식). bespoke.image(에셋 키)는
-          당분간 쓰이지 않는다. */}
+          당분간 쓰이지 않는다.
+
+          모바일(4:5, 세로형 크롭)은 인물 전신 세로 컷을, sm 이상(4:3·16:9,
+          가로형 크롭)은 3분할 콜라주 컷을 따로 쓴다 — 한 장으로 두 비율을
+          다 커버하려면 어느 한쪽은 피사체가 잘려 나간다. */}
+      <Image
+        src="/bespoke_mob.webp"
+        alt={bespoke.image.alt}
+        fill
+        sizes="100vw"
+        className="object-cover object-[center_20%] sm:hidden"
+      />
       <Image
         src="/bespoke.webp"
         alt={bespoke.image.alt}
         fill
         sizes="100vw"
-        className="object-cover object-[center_30%]"
+        className="hidden object-cover object-[center_30%] sm:block"
       />
 
       <div
