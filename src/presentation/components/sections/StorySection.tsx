@@ -1,9 +1,18 @@
 import Link from "next/link";
 import type { BrandStory } from "@/domain/entities/BrandStory";
 import { Container } from "../ui/Container";
-import { R2Image } from "../ui/R2Image";
+import { AboutImageCarousel } from "../ui/AboutImageCarousel";
 import { Reveal } from "../ui/Reveal";
 import { IconArrow } from "../ui/Icons";
+
+/** 5초 간격으로 돌아가는 ABOUT 컷. 순서는 파일명 번호 그대로다. */
+const ABOUT_IMAGES = [
+  { src: "/about_imgs/about-1.webp", alt: "설유화 예복을 입은 모습 1" },
+  { src: "/about_imgs/about-2.webp", alt: "설유화 예복을 입은 모습 2" },
+  { src: "/about_imgs/about-3.webp", alt: "설유화 예복을 입은 모습 3" },
+  { src: "/about_imgs/about-4.webp", alt: "설유화 예복을 입은 모습 4" },
+  { src: "/about_imgs/about-5.webp", alt: "설유화 예복을 입은 모습 5" },
+] as const;
 
 interface StorySectionProps {
   story: BrandStory;
@@ -22,7 +31,10 @@ export function StorySection({ story }: StorySectionProps) {
           {/* 이미지 */}
           <Reveal>
             <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden bg-champagne lg:max-w-none">
-              <R2Image image={story.image} sizes="(max-width: 1024px) 90vw, 45vw" />
+              <AboutImageCarousel
+                images={ABOUT_IMAGES}
+                sizes="(max-width: 1024px) 90vw, 45vw"
+              />
             </div>
           </Reveal>
 

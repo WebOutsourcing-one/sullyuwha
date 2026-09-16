@@ -1,5 +1,5 @@
+import Image from "next/image";
 import type { BespokeContent } from "@/domain/entities/BespokeContent";
-import { R2Image } from "../ui/R2Image";
 import { Reveal } from "../ui/Reveal";
 import { IconArrow } from "../ui/Icons";
 
@@ -33,10 +33,15 @@ export function BespokeSection({ bespoke }: BespokeSectionProps) {
       className="relative aspect-[4/5] min-h-[34rem] w-full overflow-hidden bg-champagne sm:aspect-[4/3] lg:aspect-[16/9]"
       aria-labelledby="bespoke-title"
     >
-      <R2Image
-        image={bespoke.image}
+      {/* R2/어드민 업로드 파이프라인이 없는 콘텐츠라 public/의 고정 파일을 직접 쓴다
+          (HeroSection의 main_branch.webp와 같은 방식). bespoke.image(에셋 키)는
+          당분간 쓰이지 않는다. */}
+      <Image
+        src="/bespoke.webp"
+        alt={bespoke.image.alt}
+        fill
         sizes="100vw"
-        className="object-[center_30%]"
+        className="object-cover object-[center_30%]"
       />
 
       <div
