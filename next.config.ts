@@ -89,6 +89,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     remotePatterns: resolveRemoteHosts(),
+    // Next 16부터 localhost·사설 IP 이미지는 최적화를 거부한다(SSRF 방지).
+    // 로컬 개발은 MinIO(localhost:9000)를 쓰므로 개발 모드에서만 연다 — 운영은 S3라 해당 없다.
+    dangerouslyAllowLocalIP: isDev,
     // 업로드 경로와 마찬가지로 SVG는 렌더링하지 않는다 (SVG = 스크립트 실행 가능).
     dangerouslyAllowSVG: false,
   },

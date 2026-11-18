@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { assetPreviewUrl } from "@/lib/asset-url";
+import { PRODUCT_CATEGORIES } from "@/domain/entities/Category";
+
+/** 카테고리 탭의 "전체" 값. 실제 카테고리 이름과 겹치지 않게 빈 문자열을 쓴다. */
+const ALL = "";
 
 /** /api/admin/products가 목록용으로 골라 내려주는 칸들. */
 interface ProductRow {
@@ -39,6 +43,16 @@ export default function AdminProductsPage() {
   const [error, setError] = useState<string | null>(null);
   // 요청 중인 상품 id — 연타로 요청이 겹쳐 되돌림 상태가 엉키는 것을 막는다.
   const [toggling, setToggling] = useState<string | null>(null);
+  // 선택한 카테고리 탭. 수정 화면에 갔다 돌아와도 유지되도록 주소(?category=)에도 적는다.
+  const [category, setCategory] = useState<string>(ALL);
+
+  const selectCategory = (next: string) => {
+    setCategory(next);
+    const url = new URL(window.location.href);
+    if (next) url.searchParams.set("category", next);
+    else url.searchParams.delete("category");
+    window.history.replaceState(null, "", url);
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,6 +67,9 @@ export default function AdminProductsPage() {
         return data as ProductRow[];
       })
       .then((data) => {
+        // 주소에 남겨 둔 카테고리 탭을 되살린다(목록과 함께 한 번에 반영).
+        const fromUrl = new URLSearchParams(window.location.search).get("category") ?? ALL;
+        if ((PRODUCT_CATEGORIES as readonly string[]).includes(fromUrl)) setCategory(fromUrl);
         setProducts(data);
         setError(null);
         setLoading(false);
@@ -126,6 +143,10 @@ export default function AdminProductsPage() {
   if (loading) return <p className="text-neutral-500">로딩 중...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
 
+  const visible = category ? products.filter((p) => p.category === category) : products;
+  const bestOf = (c: string) => products.find((p) => p.category === c && p.isBest);
+  const selectedBest = category ? bestOf(category) : undefined;
+
   return (
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
@@ -141,7 +162,54 @@ export default function AdminProductsPage() {
         </Link>
       </div>
 
-      {products.length === 0 ? (
+      {products.length > 0 && (
+        <div className="mb-5 space-y-3">
+          {/* 카테고리 탭 — 개수와 베스트 지정 여부(★)를 함께 보여준다. */}
+          <div role="tablist" aria-label="카테고리" className="flex gap-2 overflow-x-auto pb-1">
+            <CategoryTab
+              label="전체"
+              count={products.length}
+              active={category === ALL}
+              onClick={() => selectCategory(ALL)}
+            />
+            {PRODUCT_CATEGORIES.map((c) => (
+              <CategoryTab
+                key={c}
+                label={c}
+                count={products.filter((p) => p.category === c).length}
+                hasBest={Boolean(bestOf(c))}
+                active={category === c}
+                onClick={() => selectCategory(c)}
+              />
+            ))}
+          </div>
+
+          {/* 카테고리를 고르면 그 카테고리의 베스트를 한 줄로 알려준다(카테고리당 하나). */}
+          {category && (
+            <p
+              className={`rounded-lg px-4 py-2.5 text-sm ${
+                selectedBest ? "bg-amber-50 text-amber-800" : "bg-neutral-100 text-neutral-600"
+              }`}
+            >
+              {selectedBest ? (
+                <>
+                  <span aria-hidden>★ </span>
+                  {category} 베스트: <b className="font-semibold">{selectedBest.name}</b>
+                  <span className="ml-2 text-amber-700/70">다른 상품을 지정하면 자동으로 바뀝니다</span>
+                </>
+              ) : (
+                <>{category} 베스트가 아직 없습니다. 상품의 ☆ 지정 버튼을 눌러 정해 주세요.</>
+              )}
+            </p>
+          )}
+        </div>
+      )}
+
+      {products.length > 0 && visible.length === 0 ? (
+        <div className="rounded-xl border border-neutral-200 bg-white px-4 py-12 text-center text-neutral-400">
+          {category} 카테고리에 등록된 상품이 없습니다.
+        </div>
+      ) : products.length === 0 ? (
         <div className="rounded-xl border border-neutral-200 bg-white px-4 py-12 text-center text-neutral-400">
           등록된 상품이 없습니다.
           <br />
@@ -158,7 +226,7 @@ export default function AdminProductsPage() {
             폰에서는 수정·삭제 버튼에 손이 닿지 않았다.
           */}
           <ul className="space-y-3 md:hidden">
-            {products.map((p) => (
+            {visible.map((p) => (
               <li key={p.id} className="rounded-xl border border-neutral-200 bg-white p-4">
                 <div className="flex gap-3">
                   <Thumbnail product={p} />
@@ -207,7 +275,7 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
+                  {visible.map((p) => (
                     <tr key={p.id} className="border-b border-neutral-100 transition-colors hover:bg-neutral-50">
                       <td className="px-4 py-3">
                         <Thumbnail product={p} />
@@ -268,6 +336,42 @@ function Thumbnail({ product }: { product: ProductRow }) {
     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-xs text-neutral-400">
       No
     </div>
+  );
+}
+
+function CategoryTab({
+  label,
+  count,
+  hasBest,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  hasBest?: boolean;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors ${
+        active
+          ? "border-neutral-900 bg-neutral-900 text-white"
+          : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400 hover:text-neutral-900"
+      }`}
+    >
+      {hasBest && (
+        <span aria-label="베스트 지정됨" className={active ? "text-amber-300" : "text-amber-500"}>
+          ★
+        </span>
+      )}
+      {label}
+      <span className={`tabular-nums ${active ? "text-white/70" : "text-neutral-400"}`}>{count}</span>
+    </button>
   );
 }
 

@@ -203,6 +203,12 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       thumbnailExt: next?.ext ?? "",
     }));
 
+  /** 목록으로 돌아갈 때 이 상품의 카테고리 탭이 열린 채로 간다. */
+  const listUrl = () =>
+    form.category
+      ? `/sull-admin/products?category=${encodeURIComponent(form.category)}`
+      : "/sull-admin/products";
+
   /** 서버로 보낼 본문. 저장과 미리보기가 같은 값을 쓰도록 한 곳에서 만든다. */
   const buildBody = () => {
     // alt는 저장 시점에 상품명으로 다시 만든다.
@@ -302,7 +308,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
         alert(data?.error ?? "저장에 실패했습니다");
         return;
       }
-      router.push("/sull-admin/products");
+      router.push(listUrl());
     } catch {
       alert("저장 중 오류가 발생했습니다");
     } finally {
@@ -311,7 +317,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
   };
 
   const priceNumber = Number(form.price.replace(/,/g, "")) || 0;
-  const goBack = () => router.push("/sull-admin/products");
+  const goBack = () => router.push(listUrl());
 
   return (
     // 하단 고정 저장 바에 마지막 섹션이 가리지 않도록 아래 여백을 둔다.
