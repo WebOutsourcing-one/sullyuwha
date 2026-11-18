@@ -274,85 +274,122 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
     }
   };
 
+  const priceNumber = Number(form.price.replace(/,/g, "")) || 0;
+  const goBack = () => router.push("/sull-admin/products");
+
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-6xl">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-serif text-2xl font-light">
-            {isEdit ? "상품 수정" : "새 상품 등록"}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-400">
-            {isEdit ? "상품 정보를 수정합니다" : "새로운 상품을 등록합니다"}
-          </p>
-        </div>
-        {/* 좁은 화면에서는 두 버튼이 한 줄을 나눠 갖는다(제목 옆에 끼우면 눌리기에 좁다). */}
-        <div className="flex shrink-0 gap-2 [&>button]:flex-1 sm:[&>button]:flex-none">
-          <button
-            type="button"
-            onClick={() => router.push("/sull-admin/products")}
-            className="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 transition-colors hover:bg-neutral-50"
-          >
-            취소
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700 disabled:opacity-50"
-          >
-            {saving ? "저장 중..." : "저장"}
-          </button>
-        </div>
-      </div>
+    // 하단 고정 저장 바에 마지막 섹션이 가리지 않도록 아래 여백을 둔다.
+    <form onSubmit={handleSubmit} className="mx-auto max-w-5xl pb-28">
+      <header className="mb-6">
+        <button
+          type="button"
+          onClick={goBack}
+          className="mb-3 text-sm text-neutral-500 transition-colors hover:text-neutral-900"
+        >
+          ← 상품 목록
+        </button>
+        <h1 className="font-serif text-2xl font-light text-neutral-900 sm:text-3xl">
+          {isEdit ? "상품 수정" : "새 상품 등록"}
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-500">
+          <span className="text-red-500">*</span> 표시는 필수 항목입니다. 나머지는 비워 두면
+          상세 페이지에서 해당 영역이 나타나지 않습니다.
+        </p>
 
-      {/* ── 목록 썸네일 — 컬렉션 카드·주문 요약에만 쓰이고 상세 페이지에는 나가지 않는다.
-             그래서 오른쪽 칸을 비워 둔다. 여기에 상품 정보를 끌어올리면 아래의
-             대표 컷 ↔ 상품 정보 짝이 상세 페이지와 다른 높이에 놓인다. ── */}
-      <div className="grid gap-10 pt-4 lg:grid-cols-2 lg:gap-16">
-        <div className="max-w-sm">
-          <ImageField
-            label="목록 썸네일 — 컬렉션 카드에 걸리는 컷 (비우면 대표 컷 사용)"
-            value={thumbnailImage}
-            onChange={setThumbnailImage}
-            aspect="aspect-[4/3]"
-            alt={altFor(form.name, ALT_ROLE.thumbnail)}
-          />
-        </div>
-      </div>
+        {/* 긴 폼이라 원하는 구역으로 바로 건너갈 수 있게 목차를 둔다. */}
+        <nav aria-label="입력 구역" className="mt-5 flex gap-2 overflow-x-auto pb-1">
+          {SECTIONS.map((s, i) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="shrink-0 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-600 transition-colors hover:border-neutral-400 hover:text-neutral-900"
+            >
+              {i + 1}. {s.title}
+            </a>
+          ))}
+        </nav>
+      </header>
 
-      {/* ── 상단 2단 — 대표 컷(갤러리) + 상품 정보 (상세 페이지 상단과 같은 배치) ── */}
-      <div className="mt-10 grid gap-10 border-t border-neutral-200 pb-10 pt-10 sm:pb-16 lg:grid-cols-2 lg:gap-16">
-        <div>
-          <ImageField
-            label="대표 컷 — 상세 갤러리 첫 컷"
-            value={coverImage}
-            onChange={setCoverImage}
-            aspect="aspect-[3/4]"
-            alt={altFor(form.name, ALT_ROLE.cover)}
-          />
-        </div>
-
-        <div className="flex flex-col gap-5">
-          <Field label="카테고리">
-            <select value={form.category} onChange={set("category")} required className={inputCls}>
-              <option value="">카테고리 선택</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="상품명">
+      <div className="space-y-6">
+        {/* ── 1. 기본 정보 ── */}
+        <Section index={0} description="상품 목록·컬렉션 카드·상세 페이지 제목에 공통으로 쓰입니다.">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="카테고리" required>
+              <select value={form.category} onChange={set("category")} required className={inputCls}>
+                <option value="">카테고리 선택</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </Field>
+            <Field
+              label="판매가"
+              help={priceNumber > 0 ? `${priceNumber.toLocaleString("ko-KR")}원으로 판매됩니다` : "0원이면 '가격 문의'로 표시되고 결제 버튼이 나가지 않습니다"}
+            >
+              <div className="relative">
+                <input
+                  inputMode="numeric"
+                  value={priceNumber ? priceNumber.toLocaleString("ko-KR") : ""}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, price: e.target.value.replace(/[^\d]/g, "") || "0" }))
+                  }
+                  className={`${inputCls} pr-10 text-right tabular-nums`}
+                  placeholder="0"
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-sm text-neutral-500">
+                  원
+                </span>
+              </div>
+            </Field>
+          </div>
+          <Field label="상품명" required>
             <input
               value={form.name}
               onChange={set("name")}
               required
-              className={`${inputCls} text-xl font-light`}
-              placeholder="상품명을 입력하세요"
+              className={`${inputCls} text-base`}
+              placeholder="예: 수복문 당의 세트"
             />
           </Field>
-          {/* 브레이크포인트 없이 2열이면 폰에서도 두 칸으로 쪼개져
-              한자 부제·태그라인이 각각 150px 남짓한 입력칸이 됐다. */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="한자 부제">
+          <Field label="한 줄 소개" help="컬렉션 카드와 검색 결과에 나가는 짧은 설명입니다.">
+            <textarea
+              value={form.description}
+              onChange={set("description")}
+              rows={2}
+              className={inputCls}
+              placeholder="예: 수와 복을 수놓은 진홍 당의와 스란치마 한 벌"
+            />
+          </Field>
+        </Section>
+
+        {/* ── 2. 이미지 ── */}
+        <Section index={1} description="이미지를 클릭하면 업로드하거나 교체할 수 있습니다.">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <ImageField
+              label="대표 컷"
+              help="상세 페이지 갤러리의 첫 번째 사진 (세로 3:4)"
+              value={coverImage}
+              onChange={setCoverImage}
+              aspect="aspect-[3/4]"
+              alt={altFor(form.name, ALT_ROLE.cover)}
+            />
+            <div className="sm:max-w-xs">
+              <ImageField
+                label="목록 썸네일"
+                help="컬렉션 카드·주문 요약에 쓰이는 사진 (가로 4:3). 비우면 대표 컷이 대신 쓰입니다."
+                value={thumbnailImage}
+                onChange={setThumbnailImage}
+                aspect="aspect-[4/3]"
+                alt={altFor(form.name, ALT_ROLE.thumbnail)}
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* ── 3. 상세 페이지 상단 문구 ── */}
+        <Section index={2} description="상세 페이지에서 상품명 주변에 놓이는 문구입니다.">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="한자 부제" help="상품명 위에 작게 표시됩니다.">
               <input
                 value={detail.subtitle ?? ""}
                 onChange={(e) => patchDetail({ subtitle: e.target.value })}
@@ -360,7 +397,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
                 placeholder="예: 壽福紋 唐衣"
               />
             </Field>
-            <Field label="세로 태그라인">
+            <Field label="세로 태그라인" help="사진 옆에 세로쓰기로 표시됩니다.">
               <input
                 value={detail.tagline ?? ""}
                 onChange={(e) => patchDetail({ tagline: e.target.value })}
@@ -369,7 +406,7 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
               />
             </Field>
           </div>
-          <Field label="도입부" help="제목 아래 문단. 줄바꿈은 그대로 유지된다">
+          <Field label="도입부" help="상품명 아래 문단입니다. 줄바꿈이 그대로 유지됩니다.">
             <textarea
               value={detail.intro ?? ""}
               onChange={(e) => patchDetail({ intro: e.target.value })}
@@ -378,26 +415,11 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
               placeholder={"수(壽)와 복(福)을 새겨\n예를 갖추는 자리에 기품을 더합니다."}
             />
           </Field>
-          <Field label="판매가 (원)" help="0이면 '가격 문의'로 표시되고 결제 버튼이 나가지 않는다">
-            <input
-              type="number"
-              min={0}
-              step={1000}
-              value={form.price}
-              onChange={set("price")}
-              className={inputCls}
-              placeholder="예: 1800000"
-            />
-            {Number(form.price) > 0 && (
-              <p className="mt-1 text-xs text-neutral-400">
-                {Number(form.price).toLocaleString("ko-KR")}원으로 판매됩니다
-              </p>
-            )}
-          </Field>
+        </Section>
 
-          {/* 상징 해설 — 대표 문양 클로즈업 + 의미 */}
+        {/* ── 4. 상징 해설 ── */}
+        <Section index={3} description="대표 문양의 클로즈업 사진과 그 의미를 소개합니다.">
           <BlockEditor
-            label="상징 해설 — 대표 문양 클로즈업 + 의미"
             block={detail.highlight ?? null}
             onChange={(highlight) => patchDetail({ highlight })}
             titlePlaceholder="예: 수복문, 장수와 복의 기원"
@@ -405,109 +427,173 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
             imageAspect="aspect-[16/10]"
             imageAlt={altFor(form.name, ALT_ROLE.highlight)}
           />
-        </div>
-      </div>
+          <Field
+            label="스토리 (대체 글)"
+            help="상징 해설을 비워 둔 경우에만 그 자리에 대신 표시됩니다."
+          >
+            <textarea value={form.story} onChange={set("story")} rows={4} className={inputCls} placeholder="상품의 제작 스토리를 자유롭게 작성하세요" />
+          </Field>
+        </Section>
 
-      {/* ── 디테일 3단 — 자수·소재·안감 (상세 페이지 디테일 섹션과 같은 배치) ── */}
-      <section className="border-t border-line py-10 sm:py-16">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="mb-8 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-            디테일 — 자수·소재·안감
-          </h2>
+        {/* ── 5. 디테일 3단 ── */}
+        <Section index={4} description="자수·소재·안감처럼 강조할 디테일을 최대 3개까지 소개합니다. 빈 칸은 상세 페이지에서도 빈 자리로 남습니다.">
           <FeatureBlocks
             blocks={detail.features ?? []}
             onChange={(features) => patchDetail({ features })}
             productName={form.name}
           />
-        </div>
-      </section>
+        </Section>
 
-      {/* ── 제품 정보 + 모델 컷 (상세 페이지 하단과 같은 배치) ── */}
-      <div className="grid gap-10 border-t border-line py-10 sm:py-16 lg:grid-cols-2 lg:gap-14">
-        <div className="flex flex-col gap-8 rounded-xl bg-neutral-50 px-4 py-6 sm:px-7 sm:py-8">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-            제품 정보
-          </h2>
-
-          <SpecsInput
-            values={parseJsonArray<{ label: string; value: string }>(form.specs)}
-            onChange={(specs) => setForm((prev) => ({ ...prev, specs: JSON.stringify(specs) }))}
-          />
-
-          <ListInput
-            label="세탁 및 관리 방법"
-            values={parseJsonArray<string>(form.care)}
-            onChange={(care) => setForm((prev) => ({ ...prev, care: JSON.stringify(care) }))}
-          />
-
-          <ListInput
-            label="유의사항"
-            values={detail.notes ?? []}
-            onChange={(notes) => patchDetail({ notes })}
-            placeholder="예: 모니터의 해상도에 따라 색상이 다르게 보일 수 있습니다."
-          />
-
-          <Field label="설명" help="컬렉션 카드와 검색 결과에 나가는 한 줄 소개">
-            <textarea value={form.description} onChange={set("description")} rows={3} className={inputCls} placeholder="상품에 대한 간단한 설명을 입력하세요" />
-          </Field>
-
-          <Field label="스토리" help="상징 해설 블록을 채우면 이 글은 상세 페이지에 나가지 않는다">
-            <textarea value={form.story} onChange={set("story")} rows={5} className={inputCls} placeholder="상품의 제작 스토리를 자유롭게 작성하세요" />
-          </Field>
-
-          <TagInput
-            label="태그"
-            values={parseJsonArray<string>(form.tags)}
-            onChange={(tags) => setForm((prev) => ({ ...prev, tags: JSON.stringify(tags) }))}
-          />
-        </div>
-
-        <div className="flex flex-col gap-5">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-            모델 컷
-          </h2>
+        {/* ── 6. 모델 컷 ── */}
+        <Section index={5} description={`착용 사진입니다. 여러 장을 한 번에 고를 수 있고 최대 ${MAX_MODEL_SHOTS}장까지 올릴 수 있습니다.`}>
           <ModelShots
             shots={detail.modelShots ?? []}
             onChange={(modelShots) => patchDetail({ modelShots })}
             productName={form.name}
           />
-        </div>
+        </Section>
+
+        {/* ── 7. 제품 정보 ── */}
+        <Section index={6} description="상세 페이지 하단의 제품 정보 표와 안내 문구입니다.">
+          <SpecsInput
+            values={parseJsonArray<{ label: string; value: string }>(form.specs)}
+            onChange={(specs) => setForm((prev) => ({ ...prev, specs: JSON.stringify(specs) }))}
+          />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ListInput
+              label="세탁 및 관리 방법"
+              values={parseJsonArray<string>(form.care)}
+              onChange={(care) => setForm((prev) => ({ ...prev, care: JSON.stringify(care) }))}
+              placeholder="예: 드라이클리닝만 가능합니다."
+            />
+            <ListInput
+              label="유의사항"
+              values={detail.notes ?? []}
+              onChange={(notes) => patchDetail({ notes })}
+              placeholder="예: 모니터에 따라 색상이 다르게 보일 수 있습니다."
+            />
+          </div>
+          <TagInput
+            label="태그"
+            values={parseJsonArray<string>(form.tags)}
+            onChange={(tags) => setForm((prev) => ({ ...prev, tags: JSON.stringify(tags) }))}
+          />
+        </Section>
       </div>
 
-      <div className="flex justify-end gap-2 border-t border-line pt-6">
-        <button
-          type="button"
-          onClick={() => router.push("/sull-admin/products")}
-          className="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 transition-colors hover:bg-neutral-50"
-        >
-          취소
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-lg bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700 disabled:opacity-50"
-        >
-          {saving ? "저장 중..." : "저장"}
-        </button>
+      {/* 긴 폼 어디서든 저장할 수 있게 하단에 고정한다. 데스크톱에서는 사이드바(w-56)를 피한다.
+          main이 overflow-auto라 sticky는 뷰포트에 붙지 않아 fixed를 쓴다. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 backdrop-blur lg:left-56">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <p className="hidden min-w-0 truncate text-sm text-neutral-500 sm:block">
+            {form.name.trim() ? (
+              <>
+                <span className="font-medium text-neutral-800">{form.name}</span>
+                {form.category && <span className="ml-2 text-neutral-400">· {form.category}</span>}
+              </>
+            ) : (
+              "상품명과 카테고리를 입력하면 저장할 수 있습니다"
+            )}
+          </p>
+          <div className="flex flex-1 gap-2 sm:flex-none [&>button]:flex-1 sm:[&>button]:flex-none">
+            <button
+              type="button"
+              onClick={goBack}
+              className="rounded-lg border border-neutral-300 px-5 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-lg bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700 disabled:opacity-50"
+            >
+              {saving ? "저장 중..." : isEdit ? "변경사항 저장" : "상품 등록"}
+            </button>
+          </div>
+        </div>
       </div>
     </form>
   );
 }
 
-function Field({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
+/** 폼 구역 목록 — 상단 목차와 각 섹션 제목이 같은 곳에서 나온다. */
+const SECTIONS = [
+  { id: "basic", title: "기본 정보" },
+  { id: "images", title: "이미지" },
+  { id: "intro", title: "상단 문구" },
+  { id: "symbol", title: "상징 해설" },
+  { id: "details", title: "디테일" },
+  { id: "model", title: "모델 컷" },
+  { id: "info", title: "제품 정보" },
+] as const;
+
+/** 번호가 붙은 흰 카드 한 구역. */
+function Section({
+  index,
+  description,
+  children,
+}: {
+  index: number;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  const { id, title } = SECTIONS[index];
+  return (
+    <section
+      id={id}
+      className="scroll-mt-6 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-8"
+    >
+      <div className="mb-6 flex items-start gap-3 border-b border-neutral-100 pb-5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+          {index + 1}
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
+          {description && (
+            <p className="mt-1 text-sm leading-relaxed text-neutral-500">{description}</p>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col gap-6">{children}</div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  help,
+  required,
+  children,
+}: {
+  label: string;
+  help?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-neutral-500">
-        {label}
-        {help && <span className="ml-2 font-normal text-neutral-400">— {help}</span>}
-      </label>
+      <FieldLabel label={label} required={required} />
       {children}
+      {help && <p className={helpCls}>{help}</p>}
     </div>
   );
 }
 
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+  return (
+    <label className={labelCls}>
+      {label}
+      {required && <span className="ml-0.5 text-red-500">*</span>}
+    </label>
+  );
+}
+
+const labelCls = "mb-2 block text-sm font-medium text-neutral-800";
+const helpCls = "mt-1.5 text-xs leading-relaxed text-neutral-500";
+
 const inputCls =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-400 focus:outline-none";
+  "w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/10";
 
 function safeJson(val: string): unknown {
   try {
@@ -520,12 +606,14 @@ function safeJson(val: string): unknown {
 /** 클릭하면 파일 선택이 열리는 이미지 업로드 미리보기 박스. */
 function ClickImage({
   label,
+  help,
   value,
   onChange,
   aspect,
   alt,
 }: {
   label: string;
+  help?: string;
   value: DetailImage;
   onChange: (next: DetailImage) => void;
   /** 미리보기 박스의 가로세로비 클래스. 예) aspect-[3/4], aspect-[16/10] */
@@ -547,13 +635,13 @@ function ClickImage({
 
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between">
-        <span className="text-xs font-medium text-neutral-500">{label}</span>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-neutral-800">{label}</span>
         {value.assetKey && (
           <button
             type="button"
             onClick={() => onChange({ assetKey: "", alt: "", ext: "" })}
-            className="text-xs text-red-400 hover:text-red-600"
+            className="text-xs text-red-500 hover:text-red-700"
           >
             이미지 제거
           </button>
@@ -562,7 +650,7 @@ function ClickImage({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className={`relative block w-full overflow-hidden rounded-lg border border-dashed border-neutral-300 bg-white transition-colors hover:border-neutral-400 hover:bg-neutral-50 ${aspect ?? "aspect-[4/3]"}`}
+        className={`group relative block w-full overflow-hidden rounded-xl border-2 border-dashed transition-colors ${src ? "border-transparent" : "border-neutral-300 bg-neutral-50 hover:border-neutral-500 hover:bg-neutral-100"} ${aspect ?? "aspect-[4/3]"}`}
       >
         {src ? (
           <NextImage
@@ -574,9 +662,15 @@ function ClickImage({
             className="object-cover"
           />
         ) : (
-          <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-neutral-400">
-            <span className="text-lg leading-none">+</span>
-            <span className="text-xs">이미지 업로드</span>
+          <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-neutral-500">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl leading-none shadow-sm">+</span>
+            <span className="text-sm font-medium">클릭해서 이미지 업로드</span>
+          </span>
+        )}
+        {/* 올린 뒤에도 클릭하면 교체된다는 걸 알 수 있게 hover 때 안내를 띄운다. */}
+        {src && !busy && (
+          <span className="absolute inset-x-0 bottom-0 bg-neutral-900/60 py-2 text-center text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+            클릭해서 교체
           </span>
         )}
         {busy && (
@@ -597,8 +691,9 @@ function ClickImage({
         }}
       />
       {/* 입력이 아니라 확인용이다 — 저장될 alt를 눈으로 볼 수 있게만 해 둔다. */}
+      {help && <p className={helpCls}>{help}</p>}
       {value.assetKey && (
-        <p className="mt-1 truncate text-[0.7rem] text-neutral-400" title={alt}>
+        <p className="mt-1 truncate text-xs text-neutral-400" title={alt}>
           대체 텍스트: {alt}
         </p>
       )}
@@ -609,12 +704,14 @@ function ClickImage({
 /** 도메인 Image 형태(assetKey + alt + ext)를 ClickImage에 맞춰 흐르게 하는 어댑터. */
 function ImageField({
   label,
+  help,
   value,
   onChange,
   aspect,
   alt,
 }: {
   label: string;
+  help?: string;
   value: DetailImage | null | undefined;
   onChange: (image: DetailImage | null) => void;
   aspect?: string;
@@ -624,6 +721,7 @@ function ImageField({
   return (
     <ClickImage
       label={label}
+      help={help}
       value={current}
       aspect={aspect}
       alt={alt}
@@ -633,9 +731,8 @@ function ImageField({
   );
 }
 
-/** 이미지 + 소제목 + 본문 한 블록 편집기(상징 해설용). */
+/** 이미지 + 소제목 + 본문 한 블록 편집기(상징 해설용). 넓은 화면에서는 사진과 글을 나란히 둔다. */
 function BlockEditor({
-  label,
   block,
   onChange,
   titlePlaceholder,
@@ -643,7 +740,6 @@ function BlockEditor({
   imageAspect,
   imageAlt,
 }: {
-  label: string;
   block: DetailBlock | null;
   onChange: (block: DetailBlock | null) => void;
   titlePlaceholder?: string;
@@ -655,40 +751,32 @@ function BlockEditor({
     onChange({ title: "", body: "", ...block, ...next });
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-widest text-neutral-400 uppercase">{label}</span>
-        {block?.image && (
-          <button
-            type="button"
-            onClick={() => patch({ image: null })}
-            className="text-xs text-red-400 hover:text-red-600"
-          >
-            블록 이미지 제거
-          </button>
-        )}
-      </div>
-      <div className="space-y-3">
-        <ImageField
-          label="이미지 (클릭해서 교체)"
-          value={block?.image}
-          aspect={imageAspect}
-          alt={imageAlt}
-          onChange={(image) => patch({ image })}
-        />
-        <input
-          value={block?.title ?? ""}
-          onChange={(e) => patch({ title: e.target.value })}
-          className={inputCls}
-          placeholder={titlePlaceholder ?? "소제목"}
-        />
-        <textarea
-          value={block?.body ?? ""}
-          onChange={(e) => patch({ body: e.target.value })}
-          rows={4}
-          className={inputCls}
-          placeholder={bodyPlaceholder ?? "본문"}
-        />
+    <div className="grid gap-5 md:grid-cols-2">
+      <ImageField
+        label="문양 클로즈업 사진"
+        value={block?.image}
+        aspect={imageAspect}
+        alt={imageAlt}
+        onChange={(image) => patch({ image })}
+      />
+      <div className="flex flex-col gap-5">
+        <Field label="소제목">
+          <input
+            value={block?.title ?? ""}
+            onChange={(e) => patch({ title: e.target.value })}
+            className={inputCls}
+            placeholder={titlePlaceholder ?? "소제목"}
+          />
+        </Field>
+        <Field label="본문">
+          <textarea
+            value={block?.body ?? ""}
+            onChange={(e) => patch({ body: e.target.value })}
+            rows={6}
+            className={inputCls}
+            placeholder={bodyPlaceholder ?? "본문"}
+          />
+        </Field>
       </div>
     </div>
   );
@@ -725,33 +813,36 @@ function FeatureBlocks({
 
   return (
     <div>
-      <p className="mb-6 text-xs text-neutral-400">
-        칸을 비워두면 그 자리는 상세 페이지에서도 빈 칸으로 남습니다.
-        1번과 3번만 채우면 2번 자리는 비운 채 나갑니다.
-      </p>
-      <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {slots.map((block, i) => {
           const filled = hasFeatureContent(block);
           return (
-            <li key={i}>
+            <li
+              key={i}
+              className={`rounded-xl border p-4 transition-colors ${filled ? "border-neutral-300 bg-white" : "border-neutral-200 bg-neutral-50/60"}`}
+            >
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-neutral-500">
+                  <span className="text-sm font-semibold text-neutral-800">
                     디테일 {i + 1}
-                    {!filled && <span className="ml-1.5 text-neutral-300">— 비어 있음</span>}
+                    <span
+                      className={`ml-2 rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${filled ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-400"}`}
+                    >
+                      {filled ? "작성됨" : "비어 있음"}
+                    </span>
                   </span>
                   {filled && (
                     <button
                       type="button"
                       onClick={() => setItem(i, { title: "", body: "", image: null })}
-                      className="text-xs text-red-400 hover:text-red-600"
+                      className="text-xs text-red-500 hover:text-red-700"
                     >
                       비우기
                     </button>
                   )}
                 </div>
                 <ImageField
-                  label="이미지"
+                  label="사진"
                   value={block.image}
                   aspect="aspect-[4/3]"
                   alt={altFor(productName, ALT_ROLE.feature(i))}
@@ -771,6 +862,7 @@ function FeatureBlocks({
                   placeholder="본문 — 이 디테일이 무엇을 뜻하는지 적어주세요"
                 />
                 <div className="flex items-center gap-1">
+                  <span className="mr-1 text-xs text-neutral-400">자리 이동</span>
                   <MoveButton
                     label={`디테일 ${i + 1} 앞칸으로 옮기기`}
                     disabled={i === 0}
@@ -1164,7 +1256,7 @@ function TagInput({
 
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-neutral-500">{label}</label>
+      <label className={labelCls}>{label}</label>
       <div className="flex gap-2">
         <input
           value={input}
@@ -1173,7 +1265,7 @@ function TagInput({
           placeholder="태그 입력 후 Enter"
           className={inputCls}
         />
-        <button type="button" onClick={add} className="shrink-0 rounded-lg bg-neutral-200 px-3 text-sm hover:bg-neutral-300">
+        <button type="button" onClick={add} className="shrink-0 rounded-lg border border-neutral-300 bg-white px-4 text-sm text-neutral-700 transition-colors hover:bg-neutral-100">
           추가
         </button>
       </div>
@@ -1205,7 +1297,8 @@ function SpecsInput({
 
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-neutral-500">상품 스펙</label>
+      <label className={labelCls}>상품 스펙</label>
+      <p className="-mt-1 mb-3 text-xs text-neutral-500">상세 페이지 제품 정보 표에 &lsquo;항목명 — 값&rsquo; 형태로 나갑니다.</p>
       <div className="space-y-2">
         {/* 좁은 화면에서는 항목명·값·삭제가 한 줄에 들어가지 않아 세로로 쌓는다.
             쌓으면 어느 둘이 한 쌍인지 흐려지므로 그때만 테두리로 묶는다. */}
@@ -1231,7 +1324,11 @@ function SpecsInput({
             </button>
           </div>
         ))}
-        <button type="button" onClick={add} className="text-sm text-neutral-500 hover:text-neutral-700">
+        <button
+          type="button"
+          onClick={add}
+          className="w-full rounded-lg border border-dashed border-neutral-300 py-2.5 text-sm text-neutral-600 transition-colors hover:border-neutral-500 hover:text-neutral-900"
+        >
           + 스펙 항목 추가
         </button>
       </div>
@@ -1263,7 +1360,7 @@ function ListInput({
 
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-neutral-500">{label}</label>
+      <label className={labelCls}>{label}</label>
       <div className="flex gap-2">
         <input
           value={input}
@@ -1272,16 +1369,16 @@ function ListInput({
           placeholder={placeholder ?? "항목 입력 후 Enter"}
           className={inputCls}
         />
-        <button type="button" onClick={add} className="shrink-0 rounded-lg bg-neutral-200 px-3 text-sm hover:bg-neutral-300">
+        <button type="button" onClick={add} className="shrink-0 rounded-lg border border-neutral-300 bg-white px-4 text-sm text-neutral-700 transition-colors hover:bg-neutral-100">
           추가
         </button>
       </div>
       {values.length > 0 && (
         <ul className="mt-2 space-y-1">
           {values.map((v, i) => (
-            <li key={i} className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm text-neutral-700">
-              <span>{v}</span>
-              <button type="button" onClick={() => remove(i)} className="text-xs text-red-400 hover:text-red-600">삭제</button>
+            <li key={i} className="flex items-start justify-between gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700">
+              <span className="min-w-0 break-words"><span className="mr-2 tabular-nums text-neutral-400">{i + 1}.</span>{v}</span>
+              <button type="button" onClick={() => remove(i)} className="shrink-0 text-xs text-red-500 hover:text-red-700">삭제</button>
             </li>
           ))}
         </ul>
