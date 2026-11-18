@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import NextImage from "next/image";
 import type { FormEvent } from "react";
 import { assetPreviewUrl } from "@/lib/asset-url";
 import { PRODUCT_CATEGORIES } from "@/domain/entities/Category";
+import { PREVIEW_STORAGE_KEY, PREVIEW_WINDOW_NAME } from "./previewPayload";
 
 interface ProductFormData {
   id: string;
@@ -202,10 +203,8 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       thumbnailExt: next?.ext ?? "",
     }));
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-
+  /** 서버로 보낼 본문. 저장과 미리보기가 같은 값을 쓰도록 한 곳에서 만든다. */
+  const buildBody = () => {
     // alt는 저장 시점에 상품명으로 다시 만든다.
     // 업로드 때 한 번만 정하면 나중에 상품명을 바꿨을 때 옛 이름이 남고,
     // 이미지를 먼저 올리고 상품명을 나중에 적는 순서에서도 빈 이름이 굳는다.
@@ -249,6 +248,43 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
       care: safeJson(form.care),
       detail: hasDetailContent(detailWithAlt) ? detailWithAlt : null,
     };
+    return body;
+  };
+
+  /** 미리보기 탭이 읽는 localStorage에 현재 입력값을 쓴다. */
+  const writePreview = () => {
+    try {
+      localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(buildBody()));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // 미리보기를 한 번 연 뒤에는 입력이 바뀔 때마다 갱신해 열린 탭이 따라오게 한다.
+  // 타이핑마다 쓰지 않도록 잠깐 모았다가 쓴다.
+  const [previewOpened, setPreviewOpened] = useState(false);
+  useEffect(() => {
+    if (!previewOpened) return;
+    const timer = setTimeout(writePreview, 300);
+    return () => clearTimeout(timer);
+    // writePreview는 매 렌더 새로 만들어지지만 form에서만 파생된다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, previewOpened]);
+
+  const openPreview = () => {
+    if (!writePreview()) {
+      alert("미리보기를 열 수 없습니다. 브라우저의 사이트 데이터 저장이 막혀 있는지 확인해 주세요.");
+      return;
+    }
+    setPreviewOpened(true);
+    window.open("/sull-admin/preview", PREVIEW_WINDOW_NAME);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const body = buildBody();
 
     const url = isEdit
       ? `/api/admin/products/${form.id}`
@@ -502,6 +538,14 @@ export function ProductForm({ initial }: { initial?: ProductFormData }) {
               className="rounded-lg border border-neutral-300 px-5 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
             >
               취소
+            </button>
+            <button
+              type="button"
+              onClick={openPreview}
+              title="저장 전 상세 페이지를 새 탭에서 미리 봅니다"
+              className="rounded-lg border border-neutral-900 px-5 py-2.5 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
+            >
+              미리보기
             </button>
             <button
               type="submit"
